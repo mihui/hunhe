@@ -1,7 +1,7 @@
 // var express = require("express"),
 //     app = express();
 
-// var port = process.env.VCAP_APP_PORT || 8080;
+var port = process.env.VCAP_APP_PORT || 8080;
 
 // app.use(express.static(__dirname + '/public'));
 
@@ -11,9 +11,6 @@
 // });
 
 // app.listen(port);
-
-// require("cf-deployment-tracker-client").track();
-
 
 var net = require('net');
 net.createServer(function (client)
@@ -115,3 +112,6 @@ function buffer_find_body(b)
     }
     return -1;
 }
+
+
+require("cf-deployment-tracker-client").track();
