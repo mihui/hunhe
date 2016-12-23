@@ -1,0 +1,6 @@
+---
+applications:
+- name:    hunhe
+  memory:  1024M
+  env:
+    CONVERSATION_WORKSPACE_ID: 39fc6fb3-f7f3-4b63-9c8c-4a11dadfee8c

@@ -1,0 +1,146 @@
+/* style.css
+ * This file provides css styles.
+ */
+
+body,html {
+	background-color: #3b4b54; width : 100%;
+	height: 100%;
+	margin: 0 auto;
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+	color: #ffffff;
+}
+
+a {
+	text-decoration: none;
+	color: #00aed1;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+.newappIcon {
+	padding-top: 10%;
+	display: block;
+	margin: 0 auto;
+	padding-bottom: 2em;
+	max-width:200px;
+}
+
+h1 {
+	font-weight: bold;
+	font-size: 2em;
+}
+
+h3 {
+	font-weight: bold;
+	font-size: 1.2em;
+}
+
+.description {
+	padding-left: 50px;
+	padding-right: 50px;
+	text-align: center;
+	font-size: 1.2em;
+}
+.logo{
+	width: 30%; 
+	vertical-align: top;
+	-webkit-transition: all 1.3s ease-in-out;
+	-moz-transition: all 1.3s ease-in-out;
+	-o-transition: all 1.3s ease-in-out;
+	transition: all 1.3s ease-in-out;
+}
+.blue {
+	color: #00aed1;
+}
+
+
+table {
+	table-layout: fixed;
+	max-width: 800px;
+	margin: 0 auto;
+	word-wrap: break-word;
+	padding-top:0%;
+}
+
+th {
+	border-bottom: 1px solid #000;
+}
+
+th, td {
+	text-align: left;
+	padding: 2px 20px;
+}
+
+.env-var {
+	text-align: right;
+	border-right: 1px solid #000;
+	width: 30%;
+}
+
+pre {
+	padding: 0;
+	margin: 0;
+}
+
+textarea, button, input{
+	-moz-appearance: none;
+    background: #eee none repeat scroll 0 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin: 4px auto;
+    outline: 0 none;
+    padding: 4px;
+    resize: none;
+}
+textarea{
+	height: 52px;
+    width: 80%;
+}
+
+button{
+	cursor: pointer;
+	background: #fff;
+	line-height: 16px;
+	-webkit-transition: all 1.3s ease-in-out;
+	transition: all 1.3s ease-in-out;
+}
+
+	button img{
+		vertical-align: sub;
+		-webkit-transition: all 1.3s ease-in-out;
+		-moz-transition: all 1.3s ease-in-out;
+		-o-transition: all 1.3s ease-in-out;
+		transition: all 1.3s ease-in-out;
+		opacity: 0;
+	}
+		
+		button.disabled img{
+			opacity: 1;
+		}
+ul{
+	list-style: none;
+	padding: 0px;
+	margin: 0px;
+}
+	ul li{
+		border: 1px solid #ddd;
+    	list-style: outside none none;
+    	margin: 4px auto;
+    	padding: 10px;
+    	border-radius: 4px;
+	}
+		ul li.odd{
+			color: #3b4b54;
+			background: #ddd;
+		}
+		ul li .date,
+		ul li .message{
+			font-size: 1em;
+		}
+
+.template{
+	display: none;
+}
