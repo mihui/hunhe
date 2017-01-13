@@ -4,8 +4,6 @@ var express = require("express"),
     app = express();
 
 var jquery = fs.readFileSync("./public/js/jquery.min.js", "utf-8");
-var github = fs.readFileSync("./public/css/github.css", "utf-8");
-var site = fs.readFileSync("./public/css/site.css", "utf-8");
 
 var port = process.env.VCAP_APP_PORT || 8080;
 
@@ -13,7 +11,7 @@ var forwardUrl = 'https://github.com/mihui/ml/blob/master/README.md';
 
 app.use(express.static(__dirname + '/public'));
 app.get("/", function (request, response) {
-    response.writeHead(200, {'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/html'})
+    response.writeHead(200, {'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/html'});
 	response.write('<!DOCTYPE html>');
     response.write('<head>');
     response.write('<link rel="apple-touch-icon" href="/favicon.png">');
@@ -22,11 +20,9 @@ app.get("/", function (request, response) {
     response.write('<meta name="apple-mobile-web-app-title" content="Machine Learning" />');
     response.write('<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />');
     response.write('<meta name="format-detection" content="telephone=no" />');
-    response.write('<meta name="apple-mobile-web-app-capable" content="yes" />')
-    response.write('<style>');
-    response.write(github);
-    response.write(site);
-    response.write('</style>');
+    response.write('<meta name="apple-mobile-web-app-capable" content="yes" />');
+    response.write('<link rel="stylesheet" href="/css/github.css" />');
+    response.write('<link rel="stylesheet" href="/css/site.css" />');
 	jsdom.env({
 	  url: forwardUrl,
 	  src: [jquery],
