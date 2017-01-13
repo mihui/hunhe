@@ -16,7 +16,13 @@ app.get("/", function (request, response) {
     response.writeHead(200, {'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/html'})
 	response.write('<!DOCTYPE html>');
     response.write('<head>');
-    response.write('<link rel="shortcut icon" href="favicon.ico" /><meta name="apple-mobile-web-app-capable" content="yes" /><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /><meta name="apple-mobile-web-app-title" content="ML" /><meta name="format-detection" content="telephone=no" /><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />')
+    response.write('<link rel="apple-touch-icon" href="/favicon.png">');
+    response.write('<link rel="shortcut icon" href="/favicon.ico" />');
+    response.write('<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />');
+    response.write('<meta name="apple-mobile-web-app-title" content="Machine Learning" />');
+    response.write('<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />');
+    response.write('<meta name="format-detection" content="telephone=no" />');
+    response.write('<meta name="apple-mobile-web-app-capable" content="yes" />')
     response.write('<style>');
     response.write(github);
     response.write(site);
