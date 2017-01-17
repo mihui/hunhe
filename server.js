@@ -33,7 +33,9 @@ app.get("/", function (request, response) {
 	    response.write('</title>');
 	    response.write('</head>');
 	    response.write('<body>');
+	    response.write('<div class="wrapper">');
 	    response.write(html);
+	    response.write('</div>');
 	    response.write('</body>');
 	    response.write('</html>');
 	    response.end();
