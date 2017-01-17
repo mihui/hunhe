@@ -1,9 +1,6 @@
 var express = require("express"),
-	fs = require("fs"),
 	jsdom = require("jsdom"),
     app = express();
-
-var jquery = fs.readFileSync("./public/js/jquery.min.js", "utf-8");
 
 var port = process.env.VCAP_APP_PORT || 8080;
 
@@ -23,10 +20,11 @@ app.get("/", function (request, response) {
     response.write('<meta name="apple-mobile-web-app-capable" content="yes" />');
     response.write('<link rel="stylesheet" href="/css/github.css" />');
     response.write('<link rel="stylesheet" href="/css/site.css" />');
-	jsdom.env({
-	  url: forwardUrl,
-	  src: [jquery],
-	  done: function (err, window) {
+
+	jsdom.env(
+	  forwardUrl,
+	  ['http://'+request.headers.host+'/js/jquery.min.js'],
+	  function (err, window) {
 	    var $ = window.$;
 	    var readme = $('#readme');
 	    var html = readme.html();
@@ -40,7 +38,7 @@ app.get("/", function (request, response) {
 	    response.write('</html>');
 	    response.end();
 	  }
-	});
+	);
 });
 
 app.get("/hello", function (request, response) {

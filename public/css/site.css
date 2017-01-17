@@ -9,3 +9,7 @@ body,html {
 body{
 	padding: 20px;
 }
+
+body .markdown-body{
+	margin: 0px auto 20px;
+}
