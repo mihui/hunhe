@@ -292,7 +292,7 @@ if(typeof(window.__pages) === 'undefined') {
         var reader = new FileReader();
         reader.onload = function(_evt){
           const data = new Uint8Array(reader.result);
-          methods.share(from, to, isPrivate, id, data, file, 1024);
+          methods.share(from, to, isPrivate, id, data, file, 8096);
         }
         reader.readAsArrayBuffer(file);
       }
