@@ -112,7 +112,7 @@ if(typeof(window.__pages) === 'undefined') {
         VARS.timestamp = timestamp;
       }
       var jMessageLog = $(message);
-      if(data.metadata && data.metadata.type === TYPES.FILE) {
+      if(data && data.metadata && data.metadata.type === TYPES.FILE) {
         var actionButtons = ``;
         if(data.to.id === w.__user.id) {
           actionButtons = `
@@ -136,7 +136,7 @@ if(typeof(window.__pages) === 'undefined') {
         </div>`);
       }
       jHistory.append(jMessageLog);
-      
+
       jHistoryScroll.scrollTop(jHistoryScroll[0].scrollHeight);
     },
     mount() {
