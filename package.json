@@ -1,21 +1,27 @@
 {
-    "name": "Hunhe",
-    "version": "0.0.1",
-    "license": "Mi Hui",
-    "dependencies": {
-        "express": "~4.x",
-        "commander": "^2.6.0",
-        "http-post": "^0.1.1",
-        "http-proxy": "^1.8.1",
-        "jsdom": "*",
-        "cf-deployment-tracker-client": "*"
-    },
-    "main": "server.js",
-    "scripts": {
-        "start": "node server.js"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/mihui/Hunhe.git"
-    }
+  "name": "hunhe",
+  "version": "0.0.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "glob": "^8.1.0",
+    "jose": "^4.13.1",
+    "mongodb": "^5.2.0",
+    "socket.io": "^4.6.1"
+  },
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mihui/hunhe.git"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
 }
