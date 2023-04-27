@@ -452,14 +452,14 @@ if(typeof(window.__pages) === 'undefined') {
         };
 
         // Only for testing
-        checkMode(function(isPrivate) {
-          if(isPrivate) {
-            jNickname.val('PRIVATE');
-          }
-          else {
-            jNickname.val('PUBLIC');
-          }
-        });
+        // checkMode(function(isPrivate) {
+        //   if(isPrivate) {
+        //     jNickname.val('PRIVATE');
+        //   }
+        //   else {
+        //     jNickname.val('PUBLIC');
+        //   }
+        // });
 
         methods.mount();
       }
