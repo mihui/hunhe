@@ -104,7 +104,7 @@ if(typeof(window.__pages) === 'undefined') {
       }
       else {
         message = `
-          <li class="notification">${input} <i>[${methods.time()}]</i></li>
+          <li class="notification">${input}</i></li>
         `;
       }
       if(displayTime) {
