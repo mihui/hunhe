@@ -20,7 +20,12 @@ if(typeof(window.__pages) === 'undefined') {
 
   var VARS = {
     timestamp: 0,
-    files: {}
+    files: {
+      // Cached data for receiver
+      receive: {},
+      // Cached data for sender
+      transfer: {}
+    },
   };
 
   var TYPES = {
@@ -53,7 +58,7 @@ if(typeof(window.__pages) === 'undefined') {
     list(users) {
       jUserList.empty();
       let classAttribute = '', firstStyle = true;
-      for(const key in CONSTS) {
+      for(var key in CONSTS) {
         if(firstStyle) {
           classAttribute = ' class="active"';
           firstStyle = false;
@@ -169,18 +174,17 @@ if(typeof(window.__pages) === 'undefined') {
         methods.list(users);
       });
       w.__socket.on('chat', function(data) {
-        console.log('### CHAT BACK ###');
         methods.chat(data.message, { from: data.from, to: data.to, is_private: data.is_private, metadata: data.metadata });
       });
 
       w.__socket.on('transfer-chat', function(info) {
-        console.log('### RECEIVE START ###');
+        console.log('### TRANSFER CHAT ###');
         // console.log(
         //   info.file.id, info.file.size, info.file.name,
         //   info.from.id, info.from.nickname,
         //   info.to.id, info.to.nickname,
         //   info.is_private);
-        VARS.files[info.file.id] = {
+        VARS.files.receive[info.file.id] = {
           size: 0,
           buffer: [],
           file: info.file
@@ -188,7 +192,26 @@ if(typeof(window.__pages) === 'undefined') {
         var metadata = { type: TYPES.FILE, file: info.file };
         methods.message(w.__user.room, info.from, info.to, info.is_private, `发送文件 ${info.file.name} (${Math.round(info.file.size/1024)}KB)`, metadata);
       });
+      // Receiver to Sender
+      w.__socket.on('transfer-start', function(info) {
+        console.log('### TRANSFER START ###');
+        var bufferSize = 8096;
+        var chunk = VARS.files.transfer[info.file.id].data.slice(0, bufferSize);
+        VARS.files.transfer[info.file.id].data = VARS.files.transfer[info.file.id].data.slice(bufferSize, VARS.files.transfer[info.file.id].size);
+        // console.log(
+        //   info.file.id, info.file.size, info.file.name,
+        //   info.from.id, info.from.nickname,
+        //   info.to.id, info.to.nickname,
+        //   info.is_private
+        // );
+        var progress = 100 - Math.trunc(VARS.files.transfer[info.file.id].data.length / info.file.size * 100);
+        // console.log(`[Sender] [${info.file.id}] -> ${progress}`);
+        $(`.chat-history .list > li > #file-${info.file.id} .progress`).text(`${progress}%`);
 
+        if(chunk.length > 0) {
+          w.__socket.emit('transfer-data', info, chunk);
+        }
+      });
       w.__socket.on('transfer-data', function(info, trunk) {
         console.log('### RECEIVE DATA ###');
         // console.log(
@@ -198,21 +221,25 @@ if(typeof(window.__pages) === 'undefined') {
         //   info.is_private
         // );
 
-        VARS.files[info.file.id].buffer.push(trunk);
-        VARS.files[info.file.id].size += trunk.byteLength;
+        VARS.files.receive[info.file.id].buffer.push(trunk);
+        VARS.files.receive[info.file.id].size += trunk.byteLength;
 
-        var progress = Math.trunc(VARS.files[info.file.id].size / info.file.size * 100);
+        var progress = Math.trunc(VARS.files.receive[info.file.id].size / info.file.size * 100);
         // console.log(`[Receiver] [${info.file.id}] -> ${progress}`);
         $(`.chat-history .list > li > #file-${info.file.id} .progress`).text(`${progress}%`);
 
-        if(VARS.files[info.file.id].size === info.file.size) {
+        if(VARS.files.receive[info.file.id].size === info.file.size) {
           console.log(`### RECEIVED FILE: ${info.file.size} ###`);
-          download(new Blob(VARS.files[info.file.id].buffer), info.file.name);
-          delete VARS.files[info.file.id];
+          download(new Blob(VARS.files.receive[info.file.id].buffer), info.file.name);
+          delete VARS.files.receive[info.file.id];
         }
         else {
           w.__socket.emit('transfer-accept', info);
         }
+      });
+
+      w.__socket.on('transfer-cancel', function(info) {
+        $(`.chat-history .list > li > #file-${info.file.id} .progress`).addClass('cancel').text(`用户已取消`);
       });
 
       w.__socket.on('rejected', data => {
@@ -255,34 +282,16 @@ if(typeof(window.__pages) === 'undefined') {
     quit() {
       w.__socket.emit('leave', { nickname: w.__user.nickname, room: w.__user.room, id: w.__user.id });
     },
-    share(from, to, isPrivate, id, data, file, bufferSize) {
-      var fileSize = data.length;
-      var fileName = file.name;
-      var fileData = data;
+    share(from, to, isPrivate, id, data, file) {
+      /** @type {{ size: number, name: string, data: Buffer }} */
+      VARS.files.transfer[id] = {
+        size: data.length,
+        name: file.name,
+        data
+      };
       // Sender to Receiver
-      w.__socket.emit('transfer-start', { from, to, is_private: isPrivate, file: { id, size: fileSize, name: fileName } });
-      // Receiver to Sender
-      w.__socket.on('transfer-start', function(info) {
-        console.log('### TRANSFER DATA ###');
-        const chunk = fileData.slice(0, bufferSize);
-        fileData = fileData.slice(bufferSize, fileSize);
-        // console.log(
-        //   info.file.id, info.file.size, info.file.name,
-        //   info.from.id, info.from.nickname,
-        //   info.to.id, info.to.nickname,
-        //   info.is_private
-        // );
-        var progress = 100 - Math.trunc(fileData.length / info.file.size * 100);
-        // console.log(`[Sender] [${info.file.id}] -> ${progress}`);
-        $(`.chat-history .list > li > #file-${info.file.id} .progress`).text(`${progress}%`);
+      w.__socket.emit('transfer-start', { from, to, is_private: isPrivate, file: { id, size: VARS.files.transfer[id].size, name: VARS.files.transfer[id].name } });
 
-        if(chunk.length > 0) {
-          w.__socket.emit('transfer-data', info, chunk);
-        }
-      });
-      w.__socket.on('transfer-cancel', function(info) {
-        $(`.chat-history .list > li > #file-${info.file.id} .progress`).addClass('cancel').text(`用户已取消`);
-      });
     },
     read(file, isPrivate, to) {
       var id = methods.getId();
@@ -291,8 +300,8 @@ if(typeof(window.__pages) === 'undefined') {
       if(file) {
         var reader = new FileReader();
         reader.onload = function(_evt){
-          const data = new Uint8Array(reader.result);
-          methods.share(from, to, isPrivate, id, data, file, 8096);
+          var data = new Uint8Array(reader.result);
+          methods.share(from, to, isPrivate, id, data, file);
         }
         reader.readAsArrayBuffer(file);
       }
@@ -427,38 +436,25 @@ if(typeof(window.__pages) === 'undefined') {
           methods.read(file, isPrivate, to);
         });
 
-        var getQuotaLimit = function() {
-          if (
-            w.performance !== undefined &&
-            w.performance.memory !== undefined &&
-            w.performance.memory.jsHeapSizeLimit !== undefined
-          ) {
-            return (performance).memory.jsHeapSizeLimit;
-          }
-          return 1073741824;
-        };
-
-        var checkMode = function(__callback) {
-          w.navigator.webkitTemporaryStorage && w.navigator.webkitTemporaryStorage.queryUsageAndQuota(
-              function (_, quota) {
-                const quotaInMib = Math.round(quota / (1024 * 1024));
-                const quotaLimitInMib = Math.round(getQuotaLimit() / (1024 * 1024)) * 2;
-                __callback(quotaInMib < quotaLimitInMib);
-              },
-              function (e) {
-                __callback(false);
-              }
-            );
-        };
-
-        // Only for testing
-        // checkMode(function(isPrivate) {
-        //   if(isPrivate) {
-        //     jNickname.val('PRIVATE');
+        // var checkBrowser = function(__callback) {
+        //   var userAgent = w.navigator.userAgent.toLocaleLowerCase();
+        //   if(userAgent.includes('edg')) {
+        //     return __callback('Edge');
+        //   }
+        //   else if (userAgent.includes('chrome')) {
+        //     return __callback('Chrome');
+        //   }
+        //   else if (userAgent.includes('firefox')) {
+        //     return __callback('Firefox');
         //   }
         //   else {
-        //     jNickname.val('PUBLIC');
+        //     return __callback('');
         //   }
+        // };
+
+        // // Only for testing
+        // checkBrowser(function(name) {
+        //   jNickname.val(name);
         // });
 
         methods.mount();
