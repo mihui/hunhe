@@ -53,7 +53,7 @@ if(typeof(window.__pages) === 'undefined') {
       var minString = (minute < 10) ? `0${minute}` : minute;
       var secString = (second < 10) ? `0${second}` : second;
       // return `${year}-${monString}-${dayString} ${hourString}:${minString}:${secString}`
-      return `${hourString}:${minString}:${secString}`
+      return `${hourString}:${minString}`; //:${secString}
     },
     list(users) {
       jUserList.empty();
@@ -113,7 +113,7 @@ if(typeof(window.__pages) === 'undefined') {
         `;
       }
       if(displayTime) {
-        jHistory.append(`<li class="time">[${methods.time()}]</li>`);
+        jHistory.append(`<li class="time">${methods.time()}</li>`);
         VARS.timestamp = timestamp;
       }
       var jMessageLog = $(message);
@@ -308,6 +308,23 @@ if(typeof(window.__pages) === 'undefined') {
     },
     message(room, from, to, isPrivate, message, metadata = { type: TYPES.CHAT }) {
       w.__socket.emit('chat', { room, from, to, is_private: isPrivate, message, metadata });
+    },
+    notify(message) {
+      console.log(message);
+      if (!("Notification" in window)) {
+        // Check if the browser supports notifications
+        console.warn('This browser does not support desktop notification');
+      } else if (Notification.permission === "granted") {
+        const notification = new Notification(message);
+      } else if (Notification.permission !== "denied") {
+        // We need to ask the user for permission
+        Notification.requestPermission().then((permission) => {
+          // If the user accepts, let's create a notification
+          if (permission === "granted") {
+            const notification = new Notification(message);
+          }
+        });
+      }
     }
   };
   var pages = {
@@ -325,6 +342,7 @@ if(typeof(window.__pages) === 'undefined') {
         var jToWhom = $('.tool-view .to input');
         var jMethod = $('.tool-view .method input');
         var jFilePicker = $('.tool-view .transfer .file');
+        var jFileButton = $('.tool-view .transfer .filepicker');
 
         var sendMessage = function(message) {
           if(message.length === 0) { return; }
@@ -344,6 +362,9 @@ if(typeof(window.__pages) === 'undefined') {
           jParent.find('li').removeClass('active');
           $(this).parent().addClass('active');
           jInput.focus();
+          var blacklist = Object.keys(CONSTS).concat(w.__user.id);
+          jFilePicker.attr('disabled', blacklist.includes(id));
+          jFileButton.attr('disabled', blacklist.includes(id));
         };
         jMethod.on('change', function(evt) {
           w.__utility.stopEvent(evt);
@@ -424,7 +445,7 @@ if(typeof(window.__pages) === 'undefined') {
           w.__utility.stopEvent(evt);
           methods.quit();
         });
-        $('.tool-view .transfer .filepicker').on('click', function(evt) {
+        jFileButton.on('click', function(evt) {
           w.__utility.stopEvent(evt);
           jFilePicker.trigger('click');
         });

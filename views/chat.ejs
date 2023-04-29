@@ -1,8 +1,8 @@
 <%-include('partials/header') %>
 
 <body class="chat">
-	<%-include('partials/navigation') %>
 	<div class="main">
+		<%-include('partials/navigation') %>
 		<div class="content">
 
 			<div class="login-views">
@@ -72,8 +72,8 @@
 						<input type="submit" value="发送" />
 					</div>
 					<div class="tool transfer">
-						<input type="button" value="文件" class="filepicker" />
-						<input type="file" class="file" />
+						<input type="button" value="文件" class="filepicker" disabled="disabled" />
+						<input type="file" class="file" disabled="disabled" />
 					</div>
 					<div class="tool quit">
 						<input type="button" value="退出" />

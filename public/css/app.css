@@ -46,56 +46,51 @@ a:hover {
   text-decoration: underline;
 }
 
-.navigation {
-  margin: 0px 2rem 2rem;
-  background: #fff;
-  width: 768px;
-  border-radius: 6px;
-  display: block;
-  opacity: 0.8;
-}
-.navigation ul {
-  display: flex;
-  padding: 0px;
-  margin: 0px;
-}
-.navigation ul li {
-  list-style: none;
-  padding: 0px;
-}
-.navigation ul li a {
-  border: 1px solid #eee;
-  background: #fff;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  margin-left: 1rem;
-}
-.navigation ul li a:hover {
-  box-shadow: 0px 2px 10px -1px #010101;
-}
-.navigation ul li.active a {
-  color: #0000ff;
-}
-
 .main {
-  margin: 0px 2rem 2rem;
+  margin: 2rem;
   background: #fff;
   border-radius: 6px;
   opacity: 0.9;
-  box-shadow: 0px 2px 10px -1px #010101;
+  box-shadow: 0px 0px 2px 0px #010101;
   width: 768px;
   height: 432px;
+  position: relative;
+  display: flex;
+  flex-flow: column;
 }
 .main h1 {
   margin: 0px;
 }
+.main .navigation ul {
+  display: flex;
+  padding: 0px;
+  margin: 0px;
+}
+.main .navigation ul li {
+  list-style: none;
+  padding: 0px;
+  margin-left: 1rem;
+}
+.main .navigation ul li a {
+  border: 1px solid #eee;
+  background: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+.main .navigation ul li a:hover {
+  box-shadow: 0px 0px 2px 0px #010101;
+}
+.main .navigation ul li.active a {
+  color: #0000ff;
+}
 .main .content {
-  margin: 2rem;
+  margin: 1rem 2rem;
 }
 
 .chat .main .content {
-  height: 100%;
+  height: 0px;
   margin: 0px;
+  flex: 1;
 }
 .chat .main .content .login-views {
   height: 100%;
@@ -126,7 +121,7 @@ a:hover {
 }
 .chat .main .content .login-views div label {
   font-size: 80%;
-  color: #333;
+  color: #777;
   display: block;
 }
 .chat .main .content .chat-views {
@@ -153,7 +148,7 @@ a:hover {
 .chat .main .content .chat-views .chat-view .chat-history .list {
   list-style: none;
   padding: 0px;
-  margin: 1rem;
+  margin: 0.5rem 1rem;
 }
 .chat .main .content .chat-views .chat-view .chat-history .list li {
   display: block;
@@ -161,7 +156,7 @@ a:hover {
   border-radius: 5px;
 }
 .chat .main .content .chat-views .chat-view .chat-history .list li.notification .user::after {
-  content: "";
+  content: none;
 }
 .chat .main .content .chat-views .chat-view .chat-history .list li .user {
   cursor: pointer;
@@ -174,6 +169,7 @@ a:hover {
   text-align: center;
   color: #999;
   font-size: 0.8rem;
+  padding: 0px;
 }
 .chat .main .content .chat-views .chat-view .chat-history .list li.me {
   text-align: right;
@@ -324,7 +320,7 @@ a:hover {
   visibility: hidden;
 }
 
-@media (max-height: 470px) {
+@media (max-height: 470px) or (max-width: 768px) {
   .main {
     transform: scale(0.6);
   }
