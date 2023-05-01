@@ -42,7 +42,7 @@ class SocketManager {
         logger.warn(socket.data);
       }
       const users = sockets.map(x => {
-        return { nickname: x.data.nickname, id: x.id, rooms: x.rooms };
+        return { nickname: x.data.nickname, id: x.id, sid: x.data.id };
       });
       return this.getSockets(socket.data.room).emit('users', users);
     });
@@ -50,7 +50,7 @@ class SocketManager {
     socket.on('login', async (data) => {
       const { nickname, id, room, is_reconnect } = data;
       logger.debug('### LOGIN ###');
-      logger.debug(data);
+
       if(nickname.length === 0) { return socket.emit('rejected', { nickname }); }
 
       const oldSockets = await this.getSockets(room).fetchSockets();
@@ -59,24 +59,25 @@ class SocketManager {
       });
 
       const isAllowed = foundUser ? foundUser.id === id : true;
-      const user = { id: socket.id, nickname, room };
-
+      const sessionId = id || socket.id;
+      const user = { id: socket.id, nickname, room, sid: sessionId };
+      const channels = [];
       if(isAllowed) {
         socket.data.nickname = nickname;
-        if(is_reconnect) {
-          await socket.join(id);
-        }
+        socket.data.id = sessionId;
         const newRoom = room || CHATROOM;
-        await socket.join(newRoom);
-        socket.data.room = newRoom; 
-        logger.debug('### ROOMS ###');
-        logger.debug(socket.rooms);
+        channels.push(newRoom);
+        if(is_reconnect) {
+          channels.push(id);
+          logger.warn(`### [${nickname}] RECONNECT: ${id}, ${socket.id} ###`);
+        }
+        console.log(channels);
+        await socket.join(channels);
+        socket.data.room = newRoom;
         const newSockets = await this.getSockets(room).fetchSockets();
         const users = newSockets.map(x => {
-          return { nickname: x.data.nickname, id: x.id, rooms: x.rooms };
+          return { nickname: x.data.nickname, id: x.id, sid: x.data.id };
         });
-        logger.debug('### USERS ###');
-        logger.debug(users);
         return this.getSockets(room).emit('welcome', { users, user, room, is_reconnect });
       }
       return socket.emit('rejected', { nickname });
@@ -155,8 +156,8 @@ class SocketManager {
        * @param {{ from: { id: string, nickname: string }, to: { id: string, nickname: string }, is_private: boolean, file: { id: string, size: number, name: string } }} info File information
        */
       (info) => {
-        console.log('### ACCEPT ###');
-        console.log(info);
+        // console.log('### ACCEPT ###');
+        // console.log(info);
         socket.in(info.from.id).emit('transfer-start', { file: info.file, from: info.from, to: info.to, is_private: info.is_private });
       }
     );
@@ -180,8 +181,8 @@ class SocketManager {
        * @param {Buffer} trunk Data trunk
        */
       (info, trunk) => {
-        console.log(`### DATA: ${trunk.length} ###`);
-        console.log(info);
+        // console.log(`### DATA: ${trunk.length} ###`);
+        // console.log(info);
         socket.in(info.to.id).emit('transfer-data', { file: info.file, from: info.from, to: info.to, is_private: info.is_private }, trunk);
       }
     );

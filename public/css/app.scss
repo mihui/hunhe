@@ -240,6 +240,12 @@ a {
 								&.active {
 									background: #eee;
 								}
+								&.me {
+									border-bottom: 1px solid #eee;
+									a {
+										font-weight: bold;
+									}
+								}
 								a {
 									display: block;
 									padding: 0.5rem;

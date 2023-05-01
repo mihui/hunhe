@@ -217,6 +217,12 @@ a:hover {
 .chat .main .content .chat-views .chat-view .chat-users .list li.active {
   background: #eee;
 }
+.chat .main .content .chat-views .chat-view .chat-users .list li.me {
+  border-bottom: 1px solid #eee;
+}
+.chat .main .content .chat-views .chat-view .chat-users .list li.me a {
+  font-weight: bold;
+}
 .chat .main .content .chat-views .chat-view .chat-users .list li a {
   display: block;
   padding: 0.5rem;

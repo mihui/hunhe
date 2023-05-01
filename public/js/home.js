@@ -12,10 +12,11 @@ if(typeof(window.__pages) === 'undefined') {
   var jNickname = $('.form-view .nickname');
   var jRoom = $('.form-view .room');
   var jMessage = $('.message-view');
+  var jToWhom = $('.tool-view .to input');
 
   var CONSTS = {
     __EVERYONE: '大家',
-    __AI: '机器人'
+    // __AI: '机器人'
   };
 
   var VARS = {
@@ -33,49 +34,71 @@ if(typeof(window.__pages) === 'undefined') {
     FILE: 'FILE',
   };
 
+  var KEYS = {
+    ID: 'ID',
+  };
+
+  var storage = {
+    save(key, value) {
+      w.localStorage.setItem(key, value);
+    },
+    get(key) {
+      return w.localStorage.getItem(key);
+    }
+  };
+
   var methods = {
     getId() {
       return `${new Date().getTime().toString(16)}-${Math.random().toString(16).substring(2)}`.toUpperCase();
     },
     time() {
       var date = new Date();
-      var year = date.getFullYear();
-      var month = date.getMonth() + 1;
-      var day = date.getDate();
-      
+      // var year = date.getFullYear();
+      // var month = date.getMonth() + 1;
+      // var day = date.getDate();
       var minute = date.getMinutes();
-      var second = date.getSeconds();
+      // var second = date.getSeconds();
       var hour = date.getHours();
-
-      var monString = (month < 10) ? `0${month}` : month;
-      var dayString = (day < 10) ? `0${day}` : day;
+      // var monString = (month < 10) ? `0${month}` : month;
+      // var dayString = (day < 10) ? `0${day}` : day;
       var hourString = (hour < 10) ? `0${hour}` : hour;
       var minString = (minute < 10) ? `0${minute}` : minute;
-      var secString = (second < 10) ? `0${second}` : second;
+      // var secString = (second < 10) ? `0${second}` : second;
       // return `${year}-${monString}-${dayString} ${hourString}:${minString}:${secString}`
       return `${hourString}:${minString}`; //:${secString}
     },
     list(users) {
       jUserList.empty();
-      let classAttribute = '', firstStyle = true;
       for(var key in CONSTS) {
-        if(firstStyle) {
-          classAttribute = ' class="active"';
-          firstStyle = false;
-        }
-        else {
-          classAttribute = '';
-        }
         jUserList.append(`
-          <li${classAttribute}><a href="javascript:;" data-id="${key}" data-name="${CONSTS[key]}">${CONSTS[key]}</a></li>
+          <li id="user-${key}"><a href="javascript:;" data-id="${key}" data-name="${CONSTS[key]}">${CONSTS[key]}</a></li>
         `);
       }
-      for(var i in users) {
-        var user = users[i];
-        if(user.nickname)
+
+      var sortedUsers = [];
+      
+      if(users) {
+        sortedUsers = users.sort((a, b) => {
+          if (a.self) return -1;
+          if (b.self) return 1;
+          if (a.nickname < b.nickname) return -1;
+          return a.nickname > b.nickname ? 1 : 0;
+        });
+      }
+
+      for(var i in sortedUsers) {
+        var user = sortedUsers[i];
+        if(user.nickname) {
+          var classAttribute = '';
+          var selectedId = jToWhom.data('id');
+          if(selectedId === user.sid) {
+            classAttribute = ' class="active"';
+          }
+          if(user.sid === w.__user.sid) { continue; }
           jUserList.append(`
-            <li><a href="javascript:;" data-id="${user.id}" data-name="${user.nickname}">${user.nickname}</a></li>
+            <li id="user-${user.sid}"${classAttribute}><a href="javascript:;" data-id="${user.sid}" data-name="${user.nickname}">${user.nickname}</a></li>
           `);
+        }
       }
     },
     chat(input, data) {
@@ -85,11 +108,11 @@ if(typeof(window.__pages) === 'undefined') {
       var displayTime = timestamp - VARS.timestamp > 180000;
 
       if(data) {
-        var classAttribute = data.is_private ? ' private' : data.to.id === w.__user.id ? ' highlight' : '';
+        var classAttribute = data.is_private ? ' private' : data.to.id === w.__user.sid ? ' highlight' : '';
         var toWhom =  data.to.id === '__EVERYONE'
             ? ''
             : `<a class="user" data-id="${data.to.id}" data-name="${data.to.nickname}">@${data.to.nickname}</a>`;
-        if(w.__user.id === data.from.id) {
+        if(w.__user.sid === data.from.id) {
           message = `
             <li class="me${classAttribute}">
               ${toWhom}
@@ -119,7 +142,7 @@ if(typeof(window.__pages) === 'undefined') {
       var jMessageLog = $(message);
       if(data && data.metadata && data.metadata.type === TYPES.FILE) {
         var actionButtons = ``;
-        if(data.to.id === w.__user.id) {
+        if(data.to.id === w.__user.sid) {
           actionButtons = `
             <a class="accept">[接收]</a>
             <a class="reject">[拒绝]</a>
@@ -151,17 +174,21 @@ if(typeof(window.__pages) === 'undefined') {
       });
       w.__socket.on('welcome', function(data) {
         console.log('### WELCOME ###');
-        if(data.user.id === w.__socket.id) {
+
+        if(w.__socket.id === data.user.id) {
+          // Logged in
+          w.__user.id = data.user.sid;
+          w.__user.nickname = data.user.nickname;
+          w.__user.room = data.user.room;
+          w.__user.sid = data.user.sid;
+
+          storage.save(KEYS.ID, data.user.sid);
+
           $('.login-views').hide();
           $('.chat-views').addClass('display');
         }
+
         methods.list(data.users);
-        if(w.__socket.id === data.user.id) {
-          // Logged in
-          w.__user.id = w.__socket.id;
-          w.__user.nickname = data.user.nickname;
-          w.__user.room = data.user.room;
-        }
 
         if(data.is_reconnect) {
           return console.warn('### RECONNECT ###');
@@ -280,7 +307,7 @@ if(typeof(window.__pages) === 'undefined') {
       return w.__socket.emit('login', { nickname, id: w.__user.id, room, is_reconnect: isReconnect });
     },
     quit() {
-      w.__socket.emit('leave', { nickname: w.__user.nickname, room: w.__user.room, id: w.__user.id });
+      w.__socket.emit('leave', { nickname: w.__user.nickname, room: w.__user.room, id: w.__socket.id });
     },
     share(from, to, isPrivate, id, data, file) {
       /** @type {{ size: number, name: string, data: Buffer }} */
@@ -295,7 +322,7 @@ if(typeof(window.__pages) === 'undefined') {
     },
     read(file, isPrivate, to) {
       var id = methods.getId();
-      var from = { id: w.__socket.id, nickname: w.__user.nickname };
+      var from = { id: w.__user.sid, nickname: w.__user.nickname };
 
       if(file) {
         var reader = new FileReader();
@@ -339,32 +366,27 @@ if(typeof(window.__pages) === 'undefined') {
     chat: {
       init: function() {
         var jInput = $('.tool-view .input input');
-        var jToWhom = $('.tool-view .to input');
         var jMethod = $('.tool-view .method input');
         var jFilePicker = $('.tool-view .transfer .file');
         var jFileButton = $('.tool-view .transfer .filepicker');
-
+        var selectUser = function(id, name) {
+          jToWhom.data('id', id);
+          jToWhom.val(name);
+          jInput.focus();
+          // File
+          var blacklist = Object.keys(CONSTS).concat(w.__user.id);
+          jFilePicker.attr('disabled', blacklist.includes(id));
+          jFileButton.attr('disabled', blacklist.includes(id));
+        };
         var sendMessage = function(message) {
           if(message.length === 0) { return; }
           var to = { id: jToWhom.data('id'), nickname: jToWhom.val() };
           var isPrivate = jMethod.prop('checked');
-          var from = { id: w.__socket.id, nickname: w.__user.nickname };
+          var from = { id: w.__user.sid, nickname: w.__user.nickname };
           var room = w.__user.room;
           methods.message(room, from, to, isPrivate, message);
-        }, onSelectingUser = function(evt) {
-          w.__utility.stopEvent(evt);
-          var id = $(this).data('id');
-          var selectedName = $(this).data('name');
-          jToWhom.data('id', id);
-          jToWhom.val(selectedName);
-          // Styles
-          var jParent = $(this).parent().parent();
-          jParent.find('li').removeClass('active');
-          $(this).parent().addClass('active');
-          jInput.focus();
-          var blacklist = Object.keys(CONSTS).concat(w.__user.id);
-          jFilePicker.attr('disabled', blacklist.includes(id));
-          jFileButton.attr('disabled', blacklist.includes(id));
+        }, onSelectingUser = function(id, name) {          
+          selectUser(id, name);
         };
         jMethod.on('change', function(evt) {
           w.__utility.stopEvent(evt);
@@ -385,7 +407,16 @@ if(typeof(window.__pages) === 'undefined') {
           w.__utility.stopEvent(evt);
           methods.login(false);
         });
-        $('.chat-users').on('click', '.list > li > a', onSelectingUser);
+        $('.chat-users').on('click', '.list > li > a', function(evt) {
+          w.__utility.stopEvent(evt);
+          var id = $(this).data('id');
+          var selectedName = $(this).data('name');
+          onSelectingUser(id, selectedName);
+          // Styles
+          var jParent = $(this).parent().parent();
+          jParent.find('li').removeClass('active');
+          $(this).parent().addClass('active');
+        });
         $('.chat-users').on('dragover', '.list > li > a', function(evt) {
           w.__utility.stopEvent(evt);
           var id = $(this).data('id');
@@ -415,7 +446,12 @@ if(typeof(window.__pages) === 'undefined') {
             methods.read(file, isPrivate, to);
           });
         });
-        $('.chat-history').on('click', '.list > li > a.user', onSelectingUser);
+        $('.chat-history').on('click', '.list > li > a.user', function(evt) {
+          w.__utility.stopEvent(evt);
+          var id = $(this).data('id');
+          var selectedName = $(this).data('name');
+          onSelectingUser(id, selectedName);
+        });
         $('.chat-history').on('click', '.list > li > .file > a.accept', function(evt) {
           w.__utility.stopEvent(evt);
           var jTransfer = $(this).parent();
