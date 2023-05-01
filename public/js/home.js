@@ -273,6 +273,8 @@ if(typeof(window.__pages) === 'undefined') {
         console.log('### REJECTED ###');
         // console.log(data);
         jMessage.addClass('error').text(`${data.nickname} ${jMessage.data('nickname-message')}`);
+        $('.login-views').show();
+        $('.chat-views').removeClass('display');
       });
       w.__socket.on('leave', data => {
         if(data.user.id === w.__user.id) {
@@ -307,7 +309,7 @@ if(typeof(window.__pages) === 'undefined') {
       return w.__socket.emit('login', { nickname, id: w.__user.id, room, is_reconnect: isReconnect });
     },
     quit() {
-      w.__socket.emit('leave', { nickname: w.__user.nickname, room: w.__user.room, id: w.__socket.id });
+      w.__socket.emit('leave', { nickname: w.__user.nickname, room: w.__user.room, id: w.__user.id });
     },
     share(from, to, isPrivate, id, data, file) {
       /** @type {{ size: number, name: string, data: Buffer }} */

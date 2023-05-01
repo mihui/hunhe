@@ -124,14 +124,16 @@ class SocketManager {
        */
       async (user) => {
         logger.warn(`### LEAVE ROOM: ${user.room} ###`);
-        socket.leave(user.room);
+        logger.warn(user);
+
+        await socket.leave(user.room);
         socket.emit('leave', { user });
         const sockets = await this.getSockets(user.room).fetchSockets();
         for (const socket of sockets) {
           logger.warn(`[${socket.id}]: ${socket.data.nickname}`);
         }
         const users = sockets.map(x => {
-          return { nickname: x.data.nickname, id: x.id, rooms: x.rooms };
+          return { nickname: x.data.nickname, id: x.id, sid: x.data.id };
         });
         return this.getSockets(user.room).emit('leave', { users, user });
       }
