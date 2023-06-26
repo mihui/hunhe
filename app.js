@@ -34,27 +34,33 @@ mongoManager.boot().then(async() => {
   logger.error(error.stack);  
 });
 
-glob.sync('./routers/**/*.js').forEach(async (file, index, array) => {
-  const seq = index + 1;
-  logger.log(`[${seq}/${array.length}] Router: ${file}`);
+const list = glob.sync('./routers/**/*.js');
+let sequence = 0;
+for(const i in list) {
+  sequence++;
+  const filePath = list[i];
+  logger.log(`[${sequence}/${list.length}] Router: ${filePath}`);
   /**
    * @type {{ publicPath: string, publicRouter: express.Router, privatePath: string?, privateRouter: express.Router? }} router Router
    */
-  const router = await import(file);
-  const publicPath = `${VARS.APP_CONTEXT}${router.publicPath}`;
-  logger.info(`Public: ${publicPath}`);
-  app.use(publicPath, router.publicRouter);
+  const { publicPath, publicRouter, privatePath, privateRouter } = await import(filePath);
 
-  if (router.privateRouter) {
-    const privatePath = `${VARS.APP_CONTEXT}${router.privatePath}`;
-    logger.info(`Secured: ${privatePath}`);
-    app.use(privatePath, sessionService.authenticate(), router.privateRouter);
+  if(publicRouter && publicPath) {
+    const prefixPublic = `${VARS.APP_CONTEXT}${publicPath}`;
+    logger.info(`Public: ${prefixPublic}`);
+    app.use(prefixPublic, publicRouter);
   }
-  if(seq === array.length) {
+  if (privateRouter && privatePath) {
+    const prefixPrivate = `${VARS.APP_CONTEXT}${privatePath}`;
+    logger.info(`Secured: ${prefixPrivate}`);
+    app.use(prefixPrivate, sessionService.authenticate(), privateRouter);
+  }
+
+  if(sequence === list.length) {
     logger.debug('### COMPLETED DYNAMIC IMPORT ###');
     app.use(httpErrorHandler);
   }
-});
+}
 
 let server;
 
