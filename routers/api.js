@@ -13,8 +13,9 @@ publicRouter.get('/', async (req, res, next) => {
 /**
  * Status SDK API
  */
-publicRouter.post('/status/report', async (req, res, next) => {
-  return res.send({ status: httpCodes.OK });
+publicRouter.post('/status/report/:id', async (req, res, next) => {
+  const { id } = req.params;
+  return res.send({ status: httpCodes.OK, id, message: 'This API is only used for serving Status Report Test. We do not store any data you post here.' });
 });
 
 export {
