@@ -9,7 +9,7 @@
 				<form class="form-view">
 					<div>
 						<label>昵称</label>
-						<input type="text" class="nickname" value="" placeholder="昵称" maxlength="10" />
+						<input type="text" class="nickname" value="TEST" placeholder="昵称" maxlength="10" />
 					</div>
 					<div>
 						<label>房间代码</label>
@@ -28,30 +28,10 @@
 			<div class="chat-views">
 				<div class="chat-view">
 					<div class="chat-history">
-						<ol class="list">
-							<%
-							const LOOP = 0;
-							for(const i of new Array(LOOP)) {
-							%>
-							<li>
-								【mmmbee】欢迎来到浑河聊天室 ^_^!
-								<i><%=new Date().toTimeString()%></i>
-							</li>
-							<%
-							}
-							%>
-						</ol>
+						<ol class="list"></ol>
 					</div>
 					<div class="chat-users">
-						<ol class="list">
-							<%
-							for(const i of new Array(LOOP)) {
-							%>
-							<li><a>大家</a></li>
-							<%
-							}
-							%>
-						</ol>
+						<ol class="list"></ol>
 					</div>
 				</div>
 				<form class="tool-view">

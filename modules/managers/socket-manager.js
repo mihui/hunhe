@@ -71,7 +71,7 @@ class SocketManager {
           channels.push(id);
           logger.warn(`### [${nickname}] RECONNECT: ${id}, ${socket.id} ###`);
         }
-        console.log(channels);
+        // console.log(channels);
         await socket.join(channels);
         socket.data.room = newRoom;
         const newSockets = await this.getSockets(room).fetchSockets();
