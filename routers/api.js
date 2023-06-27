@@ -38,7 +38,8 @@ publicRouter.get('/status/report/reset', (req, res, next) => {
  */
 publicRouter.post('/status/report/:id', async (req, res, next) => {
   const { id } = req.params;
-  const { logs = '', status = '', cpu = {}, memory = '', store = false } = req.body;
+  const { logs = '', status = '', cpu = {}, memory = '' } = req.body;
+  const { store = false } = req.headers;
   if(store)
     reports.push({ status, cpu, memory, logs });
   return res.send({ status: httpCodes.OK, id, message: 'This API is only used for serving Status Report Test. We do not store any data you post here.' });
