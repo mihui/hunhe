@@ -27,7 +27,7 @@ publicRouter.get('/status/report', (req, res, next) => {
  * Status SDK API - Reset report data
  */
 publicRouter.get('/status/report/reset', (req, res, next) => {
-  for(const report of reports) {
+  while(reports.length > 0) {
     reports.pop();
   }
   res.send(reports);
