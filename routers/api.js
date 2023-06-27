@@ -4,9 +4,10 @@ import { httpError, httpCodes, httpMessages } from '../modules/http-manager.js';
 import jwt from '../modules/jwt.js';
 import { Logger } from '../modules/logger.js';
 const { logger } = Logger('token');
-
 const publicRouter = Router();
 const publicPath = '/api';
+
+const reports = [];
 
 /**
  * API endpoint
@@ -16,10 +17,30 @@ publicRouter.get('/', async (req, res, next) => {
 });
 
 /**
- * Status SDK API
+ * Status SDK API - Get reports
+ */
+publicRouter.get('/status/report', (req, res, next) => {
+  res.send(reports);
+});
+
+/**
+ * Status SDK API - Reset report data
+ */
+publicRouter.get('/status/report/reset', (req, res, next) => {
+  for(const report of reports) {
+    reports.pop();
+  }
+  res.send(reports);
+});
+
+/**
+ * Status SDK API - Receive report data
  */
 publicRouter.post('/status/report/:id', async (req, res, next) => {
   const { id } = req.params;
+  const { logs = '', status = '', cpu = {}, memory = '', store = false } = req.body;
+  if(store)
+    reports.push({ status, cpu, memory, logs });
   return res.send({ status: httpCodes.OK, id, message: 'This API is only used for serving Status Report Test. We do not store any data you post here.' });
 });
 
