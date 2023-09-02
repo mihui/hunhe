@@ -97,7 +97,8 @@ export const Events = {
   JoinScreenShare: 'JoinScreenShare',
   JoinScreenShareCallback: 'JoinScreenShareCallback',
   ClientNotification: 'ClientNotification',
-  UserMessage: 'UserMessage'
+  UserMessage: 'UserMessage',
+  UpdateMeeting: 'UpdateMeeting'
 };
 
 class Beeper {

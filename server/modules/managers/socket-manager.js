@@ -51,6 +51,8 @@ const EVENTS = {
   USER_SCREEN_START_CALLBACK: 'client:screen:start:callback',
   USER_SCREEN_JOIN_CALLBACK: 'client:screen:join:callback',
   USER_SCREEN_STOP_CALLBACK: 'client:screen:stop:callback',
+  // Meeting
+  MEETING_UPDATE_CALLBACK: 'client:meeting:update:callback'
 };
 
 const MODES = {
@@ -201,7 +203,8 @@ class SocketManager {
     socket.emit(EVENTS.USER_WELCOME_PRIVATE, chatUser, this.screenId);
     this.fetchUsers(chatUser.room);
 
-    socket.on('disconnect', async () => {
+    socket.on('disconnect',
+    async () => {
       logger.warn('### SOCKET DISCONNECTED ###');
       /** @type {ChatUser} */
       const user = socket.data;
@@ -234,12 +237,20 @@ class SocketManager {
       }
     );
 
-    socket.on('server:status', (browser, microphone, emoji) => {
+    socket.on('server:status',
+    (browser, microphone, emoji) => {
       console.log(browser, microphone, emoji);
       setStatus({ browser, microphone, emoji });
       /** @type {ChatUser} */
       const user = socket.data;
       this.fetchUsers(user.room);
+    });
+
+    socket.on('server:meeting:update',
+    (meeting) => {
+      /** @type {ChatUser} */
+      const fromUser = socket.data;
+      this.getSockets(fromUser.room).emit(EVENTS.MEETING_UPDATE_CALLBACK, fromUser, meeting);
     });
 
     socket.on('server:user:message',
@@ -253,9 +264,7 @@ class SocketManager {
         /** @type {ChatUser} */
         const fromUser = socket.data;
         const rooms = this.getRooms(mode, to.id, fromUser.id, fromUser.room);
-        logger.info(`[MESSAGE] ${fromUser.id}: ${message}`, rooms);
         this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, fromUser, data);
-
         if(typeof ack === 'function') ack();
       }
     );

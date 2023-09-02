@@ -12,9 +12,9 @@ import { User } from '../../models/user';
 import Avatar from '@mui/joy/Avatar';
 
 /**
- * 
+ * Chat user information
  * @param {{ open: boolean, user: User, handleClose: () => void }} param0 
- * @returns 
+ * @returns {() => Modal} Returns modal instance
  */
 export const ChatUserModal = ({ open, user, handleClose, translate }) => {
 
@@ -42,10 +42,6 @@ export const ChatUserModal = ({ open, user, handleClose, translate }) => {
             <FormControl>
               <FormLabel>{ translate('形象') }</FormLabel>
               <Avatar src={user.avatar} />
-            </FormControl>
-            <FormControl>
-              <FormLabel>{ translate('编号') }</FormLabel>
-              <Input autoFocus readOnly value={user.id} />
             </FormControl>
             <Button type="submit">{ translate('关闭') }</Button>
           </Stack>

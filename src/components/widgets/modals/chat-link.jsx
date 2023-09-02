@@ -19,7 +19,7 @@ import { chatService } from '../../services/chat';
  * @param {{ open: boolean, user: User, handleClose: () => void, meeting: Meeting, setMeeting: (meeting: Meeting) => void }} param0 Props
  * @returns {() => Modal} Returns Modal
  */
-export const ChatLinkModal = ({ open, user, handleClose, meeting, setMeeting, translate }) => {
+export const ChatLinkModal = ({ open, user, handleClose, meeting, setMeeting, handleMeeting, translate }) => {
 
   return (
     <Modal open={open} onClose={() => handleClose()}>
@@ -30,16 +30,17 @@ export const ChatLinkModal = ({ open, user, handleClose, meeting, setMeeting, tr
       >
         <Typography id="basic-modal-dialog-title" level="h2">{ translate('会议信息') }</Typography>
         <form onSubmit={(event) => {
-            event.preventDefault();
-            // Fetch save
-            chatService.updateMeeting(meeting).then(data => {
-              // Data is meeting data
-            }).catch(error => {
-              // @todo: Handle error
-            }).finally(() => {
-              handleClose();
-            });
-          } }
+          event.preventDefault();
+          // Fetch save
+          chatService.updateMeeting(meeting).then(data => {
+            // Data is meeting data
+            handleMeeting();
+          }).catch(error => {
+            // @todo: Handle error
+          }).finally(() => {
+            handleClose();
+          });
+        } }
         >
           <Stack spacing={2}>
             <FormControl>
@@ -60,7 +61,7 @@ export const ChatLinkModal = ({ open, user, handleClose, meeting, setMeeting, tr
               <FormLabel>{ translate('人数限制') }</FormLabel>
               <Input type='number' value={meeting.limitation} endDecorator={ translate('人') } slotProps={{ input: { max: 10, min: 2 } }} onChange={evt => {
                 console.log(evt.target.value);
-                setMeeting({ ...meeting, limitation: evt.target.value })
+                setMeeting({ ...meeting, limitation: evt.target.value });
               }} />
             </FormControl>
             <FormControl>

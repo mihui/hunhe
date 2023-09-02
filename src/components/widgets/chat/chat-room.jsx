@@ -56,7 +56,7 @@ export default function ChatRoom({ id, translate }) {
     return storedUser;
   }, goBackHome = useCallback((isIdValid = true) => {
     let route = '/';
-    if(id && isIdValid) {
+    if(id && id !== ROOMS.DEFAULT.ID && isIdValid) {
       route = route.concat(`?meeting=${id}`);
     }
     router.push(route);
@@ -188,15 +188,10 @@ export default function ChatRoom({ id, translate }) {
   scrollToBottom = () => {
     if(chatHistoryRef)
       chatHistoryRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  };;
+  };
   const getFakeMessage = () => {
     const str = 'Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
     return str.substring(Math.random() * str.length/2, Math.random() * str.length/2);
-  }, getFakeTime = () => {
-    return new Date();
-  }, randomAvatar = () => {
-    const num = Math.floor(Math.random() * Avatars.length);
-    return Avatars[num].url;
   }, focusInput = () => {
     if(chatInputRef.current) {
       chatInputRef.current.focus();
@@ -216,6 +211,12 @@ export default function ChatRoom({ id, translate }) {
       const browserStatus = vars.audio.streaming ? STATUS.AUDIO : document.visibilityState === 'visible' ? STATUS.ONLINE : STATUS.AWAY;
       socket.emit('server:status', browserStatus, vars.audio.localMute ? STATUS.MUTED : STATUS.SPEAKING, emoji);
     }
+  }, onMeetingUpdate = () => {
+    if(socket) {
+      socket.emit('server:meeting:update', meeting);
+    }
+  }, onMeetingUpdated = (user, meeting) => {
+    beeper.publish(Events.UpdateMeeting, { user, meeting });
   },
   /**
    * Get screen ID
@@ -375,6 +376,7 @@ export default function ChatRoom({ id, translate }) {
       socket.on('client:error', onClientError);
       socket.on('client:users', onUsers);
       socket.on('client:user:message', onUserMessage);
+      socket.on('client:meeting:update:callback', onMeetingUpdated);
 
       return () => {
         socket.emit('leave');
@@ -391,6 +393,7 @@ export default function ChatRoom({ id, translate }) {
         socket.off('client:error', onClientError);
         socket.off('client:users', onUsers);
         socket.off('client:user:message', onUserMessage);
+        socket.off('client:meeting:update:callback', onMeetingUpdated);
       };
     }
   }, [notifyUser, translate, socket]);
@@ -506,10 +509,17 @@ export default function ChatRoom({ id, translate }) {
     }
   }, [ screenId, socket ]);
 
+  // Scroll chat history automatically
   useEffect(() => {
     if(uiProperties.scroll)
       scrollToBottom();
   }, [chatHistory, uiProperties.scroll]);
+
+  // useEffect(() => {
+  //   if(meeting) {
+  //     console.log('meeting->', meeting);
+  //   }
+  // }, [ meeting ]);
 
   // Handle events and setup peers
   useEffect(() => {
@@ -545,6 +555,10 @@ export default function ChatRoom({ id, translate }) {
     const disposeNotificationEvent = beeper.subscribe(Events.ClientNotification, ({ message, style }) => {
       notifyUser(message, style);
     });
+    const disposeUpdateMeeting = beeper.subscribe(Events.UpdateMeeting, ({ user, meeting }) => {
+      setMeeting(meeting);
+      notifyUser(utility.format(translate('【{0}】更新了会议信息'), user.name), NOTIFICATION_STYLES.INFO, true);
+    });
 
     return () => {
       disposeSocketConnectedEvent();
@@ -553,6 +567,7 @@ export default function ChatRoom({ id, translate }) {
       disposeJoinScreenSharingCallbackEvent();
       disposeStatusChangeEvent();
       disposeNotificationEvent();
+      disposeUpdateMeeting();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -564,11 +579,7 @@ export default function ChatRoom({ id, translate }) {
       {/* CHAT HEADER */}
       <Layout.Header>
         <IconButton size="sm"  onClick={evt => {
-          let route = '/';
-          if(meeting.id) {
-            route = route.concat(`?meeting=${meeting.id}`);
-          }
-          router.push(route);
+          goBackHome(true);
         }}>
           <HomeIcon />
         </IconButton>
@@ -627,7 +638,7 @@ export default function ChatRoom({ id, translate }) {
       {/* CHAT LINK */}
       <ChatLinkModal user={me} open={uiProperties.link} translate={translate} handleClose={() => {
         setUiProperties({ ...uiProperties, link: false });
-      } } meeting={meeting} setMeeting={setMeeting} />
+      } } meeting={meeting} setMeeting={setMeeting} handleMeeting={onMeetingUpdate} />
       {/* CHAT ERROR */}
       <ChatErrorModal open={uiProperties.error.code > 0} translate={translate} handleClose={() => {
         setUiProperties({ ...uiProperties, error: { code: 0, message: '' } });
