@@ -5,7 +5,7 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "next start -p 8081",
     "dev": "npm run web-dev & npm run node-dev",
     "node-dev": "APP_PORT=8082 nodemon app.js",
     "web-dev": "NODE_ENV=development next dev -p 8081",
