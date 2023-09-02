@@ -57,7 +57,7 @@ const httpHelper = {
  * @param {express.NextFunction} next Next function
  */
 const httpErrorHandler = (err, req, res, next) => {
-  logger.debug('httpErrorHandler');
+  logger.debug('*** httpErrorHandler ***');
   if (res.headersSent) {
     return next(err);
   }
@@ -77,7 +77,7 @@ const httpErrorHandler = (err, req, res, next) => {
   }
   // Validate HTTP status code
   // Fallback to the error code if the code is invalid
-  const hasCode = Object.prototype.hasOwnProperty.call(STATUS_CODES, data.status);
+  const hasCode = Object.hasOwn(STATUS_CODES, data.status);
   if(hasCode === false) {
     data.status = err.code;
   }

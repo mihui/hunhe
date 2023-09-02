@@ -1,9 +1,6 @@
 import { Router } from 'express';
 import { httpError, httpCodes, httpMessages } from '../modules/http-manager.js';
-import jwt from '../modules/jwt.js';
 import { Logger } from '../modules/logger.js';
-import { VARS } from '../modules/vars.js';
-import mongoManager from '../modules/managers/mongo-manager.js';
 const { logger } = Logger('view');
 
 const publicRouter = Router();

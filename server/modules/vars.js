@@ -7,13 +7,14 @@ const defaults = {
   appName: 'Hunhe',
   appPort: 8080,
   appContext: '',
-  appAddress: 'https://localhost',
+  appAddress: 'https://hunhe.app.com',
   //
   jwtIssuer: 'Hunhe Studio', // urn:example:issuer
   jwtAudience: 'Hunhe Studio Users', // urn:example:audience
   jwtDuration: '10h',
   jwtAlgorithm: 'PS256',
-  jwtEndpointUrl: 'https://localhost:8888/api/token',
+  jwtEndpointUrl: 'https://hunhe.app.com/api/token',
+  peerPort: 9090
 };
 
 const processor = {
@@ -23,17 +24,23 @@ const processor = {
   isDebugging: () => {
     return process.env.IS_DEBUGGING === 'true';
   },
-  getPort: (isNumber = true) => {
+  getAppPort: (isNumber = true) => {
     let port = process.env.APP_PORT ? Number(process.env.APP_PORT) : defaults.appPort;
     if (isNumber) {
       return port;
     }
     return (port === 80 || port === 443) ? '' : `:${port}`;
   },
-  getInterfaces: () => {
+  getPeerPort: (isNumber = true) => {
+    let port = process.env.PEER_PORT ? Number(process.env.PEER_PORT) : defaults.peerPort;
+    if (isNumber) {
+      return port;
+    }
+    return (port === 80 || port === 443) ? '' : `:${port}`;
+  },
+  getInterfaces: (portString = processor.getAppPort(false)) => {
     let listOfInterfaces = [];
     const protocol = processor.isSSL() ? 'https' : 'http';
-    const portString = processor.getPort(false);
     listOfInterfaces.push(`${protocol}://localhost${portString}`);
 
     for (const i in networkInterfaces) {
@@ -59,7 +66,7 @@ const processor = {
     while(addr.slice(-1) === '/') {
       addr = addr.substring(0, addr.length - 1);
     }
-    return `${addr}${processor.getPort(false)}`;
+    return `${addr}${processor.getAppPort(false)}`;
   }, 
   getContextPath: () => {
     return (process.env.APP_CONTEXT || process.env.APP_CONTEXT === '') ? process.env.APP_CONTEXT : defaults.appContext;
@@ -68,8 +75,9 @@ const processor = {
 
 const VARS = {
   // Application
+  APP_ADDRESS: process.env.APP_NAME ?? defaults.appAddress,
   APP_NAME: process.env.APP_NAME ?? defaults.appName,
-  APP_PORT: processor.getPort(),
+  APP_PORT: processor.getAppPort(),
   APP_CONTEXT: process.env.APP_CONTEXT ?? defaults.appContext,
 
   // SSL
@@ -82,8 +90,11 @@ const VARS = {
   JWT_DURATION: process.env.JWT_DURATION ?? defaults.jwtDuration,
   JWT_ENDPOINT_URL: process.env.JWT_ENDPOINT_URL ?? defaults.jwtEndpointUrl,
   JWT_ALGORITHM: process.env.JWT_ALGORITHM ?? defaults.jwtAlgorithm,
-  MONGO_DB_URL: process.env.MONGO_DB_URL ?? '',
-  MONGO_DB_DATABASE_NAME: process.env.MONGO_DB_DATABASE_NAME ?? 'migg',
+  MONGO_DB_URL: process.env.MONGO_DB_URL ?? 'mongodb://localhost:27017',
+  MONGO_DB_DATABASE_NAME: process.env.MONGO_DB_DATABASE_NAME ?? 'hunhe',
+  //
+  CHAT_LOBBY_ID: '00000000-0000-0000-0000-000000000000',
+  PEER_PORT: processor.getPeerPort(),
 };
 
 BigInt.prototype.toJSON = function() {
@@ -91,9 +102,11 @@ BigInt.prototype.toJSON = function() {
 };
 console.info('### VARS ###');
 console.info(VARS);
-const INTERFACES = processor.getInterfaces();
+const HTTP_INTERFACES = processor.getInterfaces();
+const PEER_INTERFACES = processor.getInterfaces(processor.getPeerPort(false));
 
 export {
   VARS,
-  INTERFACES
+  HTTP_INTERFACES,
+  PEER_INTERFACES
 };

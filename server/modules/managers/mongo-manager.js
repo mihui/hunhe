@@ -1,14 +1,15 @@
 import { VARS } from '../vars.js';
 import { Logger } from '../logger.js'; 
-import mongodb, { Collection } from 'mongodb';
-import path from 'path';
+import { Collection } from 'mongodb';
 import { Db, MongoClient } from 'mongodb';
+import { httpCodes, httpError, httpMessages } from '../http-manager.js';
 const { logger } = Logger('mongo-manager');
 
 class Mongo {
 
   /** @type {MongoClient} */
   #client;
+
   constructor() { }
 
   async boot() {
@@ -60,7 +61,9 @@ class Mongo {
    * @returns {Db} Database
    */
   getDatabase(name = VARS.MONGO_DB_DATABASE_NAME) {
-    return this.#client.db(name);
+    if(this.#client)
+      return this.#client.db(name);
+    throw httpError(httpCodes.SYSTEM_FAILURE, httpMessages.SYSTEM_FAILURE);
   }
 
   /**
@@ -69,8 +72,10 @@ class Mongo {
    * @returns {Collection} Returns mongodb collection
    */
   getCollection(name, database = VARS.MONGO_DB_DATABASE_NAME) {
-    return this.getDatabase().collection(name);
+    return this.getDatabase(database).collection(name);
   }
 }
 
-export default new Mongo();
+const mongo = new Mongo();
+
+export default mongo;

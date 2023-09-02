@@ -1,27 +1,46 @@
 {
   "name": "hunhe",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",
-  "dependencies": {
-    "dotenv": "^16.0.3",
-    "ejs": "^3.1.9",
-    "express": "^4.18.2",
-    "glob": "^8.1.0",
-    "jose": "^4.13.1",
-    "mongodb": "^5.2.0",
-    "socket.io": "^4.6.1"
-  },
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "npm run web-dev & npm run node-dev",
+    "node-dev": "APP_PORT=8082 nodemon app.js",
+    "web-dev": "NODE_ENV=development next dev -p 8081",
+    "build": "NODE_ENV=production next build",
+    "prod": "next start",
+    "lint": "next lint"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/mihui/hunhe.git"
   },
+  "dependencies": {
+    "@emotion/react": "latest",
+    "@emotion/styled": "latest",
+    "@mui/icons-material": "latest",
+    "@mui/joy": "latest",
+    "@mui/material": "latest",
+    "dotenv": "latest",
+    "ejs": "latest",
+    "express": "latest",
+    "glob": "latest",
+    "jose": "latest",
+    "mongodb": "latest",
+    "next": "latest",
+    "peer": "^1.0.1",
+    "peerjs": "latest",
+    "react": "latest",
+    "react-markdown": "latest",
+    "socket.io": "latest",
+    "socket.io-client": "latest"
+  },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "nodemon": "latest",
+    "sass": "latest"
   }
 }
