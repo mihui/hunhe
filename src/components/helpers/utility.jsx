@@ -1,3 +1,4 @@
+import { DEVICE, Device } from "../models/meeting";
 
 class Storage {
 
@@ -89,6 +90,19 @@ class Utility {
     });
     return str;
   }
+  /**
+   * Get browser supported devices
+   * @returns {Promise<Array<Device>>} Returns devices
+   */
+  async getDevices () {
+    // Add default screen sharing input
+    let systemDevices = [];
+    try {
+      systemDevices = await navigator.mediaDevices.enumerateDevices();
+    }
+    catch(error) { /* empty */ }
+    return systemDevices.filter(x => x.kind ==='audioinput' || x.kind === 'videoinput');
+  }
 }
 
 export const Events = {
@@ -96,6 +110,8 @@ export const Events = {
   ClientError: 'ClientError',
   JoinScreenShare: 'JoinScreenShare',
   JoinScreenShareCallback: 'JoinScreenShareCallback',
+  StopScreenShareCallback: 'StopScreenShareCallback',
+  StartScreenShareCallback: 'StartScreenShareCallback',
   ClientNotification: 'ClientNotification',
   UserMessage: 'UserMessage',
   UpdateMeeting: 'UpdateMeeting'

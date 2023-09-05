@@ -65,8 +65,34 @@ class SocketManager {
   /** @type {Server} */
   #io;
 
-  /** @type {string} */
-  screenId = '';
+  /** @type {Map<string, string>} */
+  screenMap = new Map();
+
+  /**
+   * Set screen ID
+   * @param {string} room Room ID
+   * @param {string} id User/Screen ID
+   */
+  setScreen(room, id) {
+    this.screenMap.set(room, id);
+  }
+
+  /**
+   * Get screen
+   * @param {string} room Room ID
+   * @returns {string} Returns screen ID of the room
+   */
+  getScreen(room) {
+    return this.screenMap.has(room) ? this.screenMap.get(room) : '';
+  }
+
+  /**
+   * Delete screen
+   * @param {string} room Room ID
+   */
+  deleteScreen(room) {
+    this.screenMap.delete(room);
+  }
 
   constructor() {}
 
@@ -145,79 +171,87 @@ class SocketManager {
    */
   async #onConnected(socket) {
 
-    const { room = ROOM.DEFAULT, id, avatar, name } = socket.handshake.query;
+    // const { room = ROOM.DEFAULT, id, avatar, name } = socket.handshake.query;
 
     const setStatus = (value) => {
       socket.data['__status'] = Object.assign({}, socket.data['__status'], value);
     };
 
-    /** @type {ChatUser} User data - One time usage */
-    const chatUser = { 
-      room,
-      id, avatar, name,
-      __id: socket.id,
-      __status: { browser: STATUS.ONLINE, microphone: STATUS.MUTED, emoji: '' }
-    };
+    socket.on('server:join',
+    /**
+     * Join room
+     * @param {string} room Room ID
+     * @param {ChatUser} newUser New joiner
+     */
+    async (room, newUser) => {
+      /** @type {ChatUser} User data - One time usage */
+      const chatUser = { 
+        room,
+        id: newUser.id, avatar: newUser.avatar, name: newUser.name,
+        __id: socket.id,
+        __status: { browser: STATUS.ONLINE, microphone: STATUS.MUTED, emoji: '' }
+      };
 
-    logger.debug(`### [${chatUser.room}] SOCKET CONNECTED: ${socket.id} ###`);
+      logger.debug(`### [${chatUser.room}] SOCKET CONNECTED: ${socket.id} ###`);
 
-    const meeting = await meetingService.queryMeetingById(chatUser.room);
-    const validated = { disconnect: false, code: httpCodes.OK };
-    if(meeting) {
-      const users = await this.fetchUsers([chatUser.room], [], false);
-      if(users.length >= meeting.limitation) {
-        logger.warn('### ROOM FULL ###');
-        validated.disconnect = true;
-        // Exceeding limitation
-        validated.code = httpCodes.BAD_REQUEST;
+      const meeting = await meetingService.queryMeetingById(chatUser.room);
+      const validated = { disconnect: false, code: httpCodes.OK };
+      if(meeting) {
+        const users = await this.fetchUsers([chatUser.room], [], false);
+        if(users.length >= meeting.limitation) {
+          logger.warn('### ROOM FULL ###');
+          validated.disconnect = true;
+          // Exceeding limitation
+          validated.code = httpCodes.BAD_REQUEST;
+        }
+        else if(meeting.locked && users.length > 1) {
+          logger.warn('### ROOM LOCKED ###');
+          validated.disconnect = true;
+          // Room locked
+          validated.code = httpCodes.CONFLICT;
+        }
       }
-      else if(meeting.locked && users.length > 1) {
-        logger.warn('### ROOM LOCKED ###');
+      else {
+        logger.warn('### ROOM NOT FOUND ###');
+        // Room not found
         validated.disconnect = true;
-        // Room locked
-        validated.code = httpCodes.CONFLICT;
+        validated.code = httpCodes.NOT_FOUND;
       }
-    }
-    else {
-      logger.warn('### ROOM NOT FOUND ###');
-      // Room not found
-      validated.disconnect = true;
-      validated.code = httpCodes.NOT_FOUND;
-    }
-    if(validated.disconnect) {
-      logger.warn('### DISCONNECTING ###');
-      logger.warn(validated);
-      logger.warn(meeting);
-      
-      socket.emit(EVENTS.USER_ERROR, validated.code);
-      socket.disconnect(true);
-      return;
-    }
+      if(validated.disconnect) {
+        logger.warn('### DISCONNECTING ###');
+        logger.warn(validated);
+        logger.warn(meeting);
+        
+        socket.emit(EVENTS.USER_ERROR, validated.code);
+        socket.disconnect(true);
+        return;
+      }
 
-    socket.data = chatUser;
-    socket.join([ chatUser.room, chatUser.id ]);
+      socket.data = chatUser;
+      socket.join([ chatUser.room, chatUser.id ]);
 
-    // Welcome event to all users
-    this.getSockets(chatUser.room).emit(EVENTS.USER_WELCOME_PUBLIC, chatUser, this.screenId);
-    // Welcome event to myself
-    socket.emit(EVENTS.USER_WELCOME_PRIVATE, chatUser, this.screenId);
-    this.fetchUsers(chatUser.room);
+      // Welcome event to all users
+      this.getSockets(chatUser.room).emit(EVENTS.USER_WELCOME_PUBLIC, chatUser);
+      // Welcome event to myself
+      socket.emit(EVENTS.USER_WELCOME_PRIVATE, chatUser, this.getScreen(chatUser.room));
+      this.fetchUsers(chatUser.room);
+    });
 
     socket.on('disconnect',
     async () => {
       logger.warn('### SOCKET DISCONNECTED ###');
       /** @type {ChatUser} */
-      const user = socket.data;
-      if(user.id === this.screenId) {
-        this.getSockets().emit(EVENTS.USER_SCREEN_STOP_CALLBACK, user);
+      const chatUser = socket.data;
+      if(chatUser.id === this.getScreen(chatUser.room)) {
+        this.getSockets(chatUser.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, chatUser);
         // Need to know if this user is in a call
-        this.getSockets().emit(EVENTS.USER_AUDIO_HANGUP_CALLBACK, user);
+        this.getSockets(chatUser.room).emit(EVENTS.USER_AUDIO_HANGUP_CALLBACK, chatUser);
       }
       // Use socket.id in case one user have multiple windows
-      this.fetchUsers(user.room, [ socket.id ]);
+      this.fetchUsers(chatUser.room, [ socket.id ]);
     });
 
-    socket.on('server:user:screen:join',
+    socket.on('server:screen:join',
       /**
        * Start a call
        * @param {string} screenId Screen ID
@@ -232,14 +266,35 @@ class SocketManager {
           if(rooms.includes(caller.id) === false)
             rooms.push(caller.id);
         }
-        logger.debug('rooms->', rooms);
-        this.getSockets(rooms).emit(EVENTS.USER_SCREEN_JOIN_CALLBACK, callee, caller);
+        logger.debug('rooms->', rooms, 'caller->', caller);
+        this.getSockets(rooms).emit(EVENTS.USER_SCREEN_JOIN_CALLBACK, callee, caller, screenId);
       }
     );
 
+    socket.on('server:screen:stop',
+    () => {
+      /** @type {ChatUser} */
+      const sharer = socket.data;
+      logger.debug('server:screen:stop');
+      this.deleteScreen(sharer.room);
+      this.getSockets(sharer.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, sharer);
+    });
+
+    socket.on('server:screen:start',
+    /**
+     * Start a call for screen stream
+     * @param {string} screenId Screen ID
+     */
+    async (screenId) => {
+      /** @type {ChatUser} */
+      const caller = socket.data;
+      this.setScreen(caller.room, screenId);
+      const users = await this.fetchUsers(caller.room, [], false);
+      socket.emit(EVENTS.USER_SCREEN_START_CALLBACK, caller, users, screenId);
+    });
+
     socket.on('server:status',
     (browser, microphone, emoji) => {
-      console.log(browser, microphone, emoji);
       setStatus({ browser, microphone, emoji });
       /** @type {ChatUser} */
       const user = socket.data;

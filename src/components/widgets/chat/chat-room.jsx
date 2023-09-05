@@ -19,10 +19,13 @@ import SendIcon from '@mui/icons-material/Send';
 import SlideshowIcon from '@mui/icons-material/Slideshow';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import InfoIcon from '@mui/icons-material/Info';
+import PresentToAllIcon from '@mui/icons-material/PresentToAll';
+import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
 
 import Stack from '@mui/joy/Stack';
 import Box from '@mui/joy/Box';
 import Tooltip from '@mui/joy/Tooltip';
+import Divider from '@mui/joy/Divider';
 
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -33,15 +36,10 @@ import { Events, beeper, storage, utility } from '@/components/helpers/utility';
 import { Avatars, ROOMS, STATUS, StorageKeys } from '@/components/config/vars';
 import { ChatLinkModal } from '@/components/widgets/modals/chat-link';
 import { ChatFormat } from '@/components/widgets/chat/chat-format';
-import { DEVICE, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER } from '@/components/models/meeting';
-import { chatService } from '@/components/services/chat';
+import { DEVICE, Device, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER, UIProperty } from '@/components/models/meeting';
+import { chatService, streamService } from '@/components/services/chat';
 import { ChatErrorModal } from '../modals/chat-error';
-import io, { Socket } from 'socket.io-client';
-
-/** @type {{ Audio: import('peerjs').Peer, Video: import('peerjs').Peer }} */
-const Peers = {
-  Audio: null, Video: null
-};
+import Button from '@mui/joy/Button';
 
 /**
  * Chatroom
@@ -49,6 +47,19 @@ const Peers = {
  */
 export default function ChatRoom({ id, translate }) {
   const router = useRouter();
+
+  /** @type {[ isLoading: boolean, setIsLoading: (isLoading: boolean) => void ]} */
+  const [ isLoading, setIsLoading ] = useState(true);
+
+  /** @type {[ { video: boolean, audio: boolean }, setPeerStatus: (peerStatus: { video: boolean, audio: boolean }) => void ]} */
+  const [ peerStatus, setPeerStatus ] = useState({ video: false, audio: false });
+
+  /** @type {[ chatNotification: { message: string, style: string, time: Date }, setChatNotification: (chatNotification: { message: string, style: string, time: Date }) => void ]} */
+  const [ chatNotification, setChatNotification ] = useState({ message: '', style: NOTIFICATION_STYLES.INFO, time: new Date() });
+  //
+  const notifyUser = useCallback((message, style = NOTIFICATION_STYLES.INFO, hasTranslation = false) => {
+    setChatNotification({ message: hasTranslation ? message : translate(message), style, time: new Date() })
+  }, [translate]);
 
   /** @type {() => User} */
   const getUser = () => {
@@ -61,6 +72,137 @@ export default function ChatRoom({ id, translate }) {
     }
     router.push(route);
   }, [ id, router ]);
+
+  const onSocketChanged = (connected, isReconnect = false) => {
+    // Disable/Enable UI
+    setIsLoading(connected === false);
+    beeper.publish(Events.SocketConnected, { connected, isReconnect });
+  };
+
+  const socketEvents = {
+    onSocketConnect: () => {
+      console.log('### CONNECTED ###');
+      streamService.getWebSocket().emit('server:join', meeting.id, me);
+    },
+    onSocketReconnect: () => {
+      console.log('### RECONNECTED ###');
+      onSocketChanged(true, true);
+    },
+    onSocketReconnectFailed: () => {
+      console.warn('### CONNECTION FAILED ###');
+      onSocketChanged(false);
+      notifyUser('重新连接失败，请刷新页面重试', NOTIFICATION_STYLES.ERROR);
+    },
+    onSocketReconnectAttempt: () => {
+      notifyUser('正在重新连接...（第 {0} 次尝试）', NOTIFICATION_STYLES.WARNING);
+    },
+    onSocketError: error => {
+      console.warn('### SOCKET ERROR ###');
+      onSocketChanged(false);
+      notifyUser('连接错误', NOTIFICATION_STYLES.ERROR);
+    },
+    onSocketDisconnect: reason => {
+      console.warn('### DISCONNECTED ###');
+      onSocketChanged(false);
+      notifyUser('连接已断开，请重试', NOTIFICATION_STYLES.ERROR);
+      setChatUsers([]);
+      if(reason === "io server disconnect") {
+        streamService.connectWebSocket();
+      }
+    },
+    /** @type {(user: User) => void} */
+    onClientWelcomePublic: user => {
+      notifyUser(utility.format(translate('网友【{0}】兴高采烈地来到了会议室， 大家热烈欢迎 ^_^！'), user.name), NOTIFICATION_STYLES.INFO, true);
+    },
+    /** @type {(user: User, screenId) => void} */
+    onClientWelcomePrivate: (user, screenId) => {
+      // joinScreenSharing(screenId);
+      setScreenId(screenId);
+      onSocketChanged(true);
+      setIsSocketReady(true);
+    },
+    /** @type {(callee: User, caller: User, screenId: string) => void} */
+    onClientJoinScreen: (callee, caller, remoteScreenId) => {
+      if(caller) {
+        if(caller.id === me.id) {
+          streamService.videoCall(getScreenId(callee.id, true), streamService.remoteVideoStream);
+        }
+      }
+      else if(callee) {
+        if(callee.id === me.id) {
+          // @todo: What is this logic for
+        }
+      }
+      // beeper.publish(Events.JoinScreenShareCallback, { callee, caller, remoteScreenId });
+    },
+    /** @type {(caller: User, users: Array<User>, remoteScreenId: string) => void} */
+    onClientStartScreen: (caller, users, remoteScreenId) => {
+      // beeper.publish(Events.StartScreenShareCallback, { caller, users, remoteScreenId });
+      notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
+      setVars({ ...vars, screen: { id: remoteScreenId } });
+      for(const receiver of users) {
+        if(receiver.id !== me.id) {
+          streamService.videoCall(getScreenId(receiver.id, true), streamService.remoteVideoStream);
+        }
+      }
+    },
+    /** @type {(sharer: User) => void} */
+    onClientStopScreen: (sharer) => {
+      // console.log('client:screen:stop:callback');
+      // beeper.publish(Events.StopScreenShareCallback, { sharer });
+      setScreenId('');
+      notifyUser(utility.format('{0} 停止了屏幕共享', sharer.name))
+      if(sharer.id !== me.id) {
+        stopVideo();
+      }
+    },
+    onClientLeave: data => {
+      // console.log('client:leave');
+      // console.info(data);
+    },
+    onClientError: code => {
+      console.warn('client:error');
+      let message = '';
+      if(code === 409) {
+        console.warn('### ROOM IS LOCKED ###');
+        message = ('房间已锁定');
+      }
+      else if(code === 404) {
+        console.warn('### ROOM NOT FOUND ###');
+        message = ('找不到该房间');
+      }
+      else if(code === 400) {
+        console.warn('### ROOM IS FULL ###');
+        message = ('房间已满');
+      }
+      else {
+        message = ('未知错误');
+        console.warn('### UNKNOWN ERROR ###');
+      }
+      beeper.publish(Events.ClientError, { code, message });
+    },
+    /** @type {(users: Array<User>) => void} */
+    onUsers: (users) => {
+      users.unshift(new All(translate));
+      // for(let i = 0; i < 100; i++) {
+      //   users.push(new User(crypto.randomUUID(), 'Fake user', '/images/avatars/00.png'));
+      // }
+      setChatUsers(users);
+    },
+    onUserMessage: (id, fromUser, data) => {
+      /** @type {ChatRecord} */
+      const chatRecord = {
+        id,
+        message: data.message,
+        from: fromUser, to: data.to,
+        time: new Date()
+      };
+      setChatHistory(x => [ ...x, chatRecord ]);
+    },
+    onMeetingUpdated: (user, meeting) => {
+      beeper.publish(Events.UpdateMeeting, { user, meeting });
+    }
+  };
 
   const useMeeting = (initialId, initialData) => {
     /** @type {[ meeting: Meeting, setMeeting: (meeting: Meeting) => void ]} */
@@ -101,8 +243,9 @@ export default function ChatRoom({ id, translate }) {
     const [ isMeOK, setIsMeOK ] = useState(false);
     /** @type {[ room: string, setRoom: (room: string) => void ]} */
     const [ room, setRoom ] = useState(initialRoom);
-    /** @type {[ socket: Socket, setSocket: (socket: Socket) => void ]} */
-    const [ socket, setSocket ] = useState(null);
+    const [ arePeersOK, setArePeersOK ] = useState(false);
+    const [ isSocketReady, setIsSocketReady ] = useState(false);
+
     // Get user information from session storage
     useEffect(() => {
       // 1. Initialize user
@@ -120,54 +263,219 @@ export default function ChatRoom({ id, translate }) {
 
     useEffect(() => {
       if(meeting.id && me && me.name && me.avatar && me.id) {
-        setSocket(io({ path: '/api/messaging', query: { room: meeting.id, id: me.id, avatar: me.avatar, name: me.name } }));
+        console.log('### CONNECTING WITH SOCKET ###');
+        streamService.connectWebSocket();
+        // setSocket(io({ path: '/api/messaging', query: { room: meeting.id, id: me.id, avatar: me.avatar, name: me.name } }));
+
+        streamService.getWebSocket().on('connect', socketEvents.onSocketConnect)
+          .on('reconnect', socketEvents.onSocketReconnect)
+          .on('reconnect_failed', socketEvents.onSocketReconnectFailed)
+          .on('error', socketEvents.onSocketError)
+          .on('disconnect', socketEvents.onSocketDisconnect)
+          .on('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
+          .on('client:welcome:public', socketEvents.onClientWelcomePublic)
+          .on('client:welcome:private', socketEvents.onClientWelcomePrivate)
+          .on('client:leave', socketEvents.onClientLeave)
+          .on('client:error', socketEvents.onClientError)
+          .on('client:users', socketEvents.onUsers)
+          .on('client:user:message', socketEvents.onUserMessage)
+          .on('client:meeting:update:callback', socketEvents.onMeetingUpdated)
+          // Screen share
+          .on('client:screen:join:callback', socketEvents.onClientJoinScreen)
+          .on('client:screen:stop:callback', socketEvents.onClientStopScreen)
+          .on('client:screen:start:callback', socketEvents.onClientStartScreen);
+        return () => {
+          streamService.getWebSocket().emit('leave');
+          streamService.getWebSocket().off('connect', socketEvents.onSocketConnect)
+            .off('reconnect', socketEvents.onSocketReconnect)
+            .off('reconnect_failed', socketEvents.onSocketReconnectFailed)
+            .off('error', socketEvents.onSocketError)
+            .off('disconnect', socketEvents.onSocketDisconnect)
+            .off('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
+            .off('client:welcome:public', socketEvents.onClientWelcomePublic)
+            .off('client:welcome:private', socketEvents.onClientWelcomePrivate)
+            .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
+            .off('client:leave', socketEvents.onClientLeave)
+            .off('client:error', socketEvents.onClientError)
+            .off('client:users', socketEvents.onUsers)
+            .off('client:user:message', socketEvents.onUserMessage)
+            .off('client:meeting:update:callback', socketEvents.onMeetingUpdated);
+        }
       }
     }, [me]);
 
-    return [ { socket, me, isMeOK }, { setMe, setRoom } ];
+    // Setup Peers
+    useEffect(() => {
+      if(isMeOK && isMeetingOK && isSocketReady) {
+        const
+        tryVideoCover = (id) => {
+          const selectedUser = document.getElementById(id);
+          if(selectedUser && remoteVideoRef) {
+            remoteVideoRef.current.poster = selectedUser.dataset['avatar'];
+          }
+        },
+        startReceivingVideo = (stream, muted = true) => {
+          remoteVideoRef.current.srcObject = stream;
+          remoteVideoRef.current.muted = muted;
+          setUiProperty(current => {
+            return { ...current, isReceivingVideo: true };
+          });
+        },
+
+        /** @type {() => void} */
+        onAudioPeerOpen = () => {
+          console.log(`Your device ID is: ${streamService.audioPeer.id}`);
+          console.log('### AUDIO READY ###');
+          setPeerStatus(current => { return { ...current, audio: true }; });
+        },
+        /** @type {() => void} */
+        onAudioPeerDisconnected = () => {
+          console.info('### PEER DISCONNECTED ###');
+          streamService.audioPeer.reconnect();
+        },
+        /** @type {(call: { peer: string, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
+        onAudioPeerCall = call => {
+          console.info(`### AUDIO ON CALL: ${call.peer} ###`);
+          // Automatically join
+          // if(vars.audio.isAlive) {
+          //   return methods.startAudio({ isCaller: false, call, isAuto: true });
+          // }
+          // methods.chatAudioConfirm(async () => {
+          //   await methods.startAudio({ isCaller: false, call });
+          // }, () => {
+          //   methods.rejectAudio(call);
+          // });
+          // return true;
+        },
+        /** @type {(error: { type: string }) => void} */
+        onAudioPeerError = error => {
+          console.warn('### AUDIO PEER ERROR ###');
+          const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : 'Audio server connection error.';
+          console.warn(message);
+          beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
+        };
+        // Screen
+        const
+        /** @type {() => void} */
+        onVideoPeerOpen = () => {
+          console.log(`Your share ID is: ${streamService.videoPeer.id}`);
+          console.log('### SCREEN READY ###');
+          setPeerStatus(current => { return { ...current, video: true }; });
+        },
+        /** @type {() => void} */
+        onVideoPeerDisconnected = () => {
+          console.warn('### PEER DISCONNECTED ###');
+          streamService.videoPeer.reconnect();
+        },
+        /** @type {(call: { peer: string, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
+        onVideoPeerCall = call => {
+          console.log(`### VIDEO ON CALL: ${call.peer} ###`);
+          const peerScreenId = getScreenId(call.peer);
+          tryVideoCover(peerScreenId);
+          // I was sharing, but somebody interrupted
+          if(streamService.isPublishingVideo || streamService.isReceivingVideo) {
+            if(screenId !== peerScreenId) {
+              stopScreen(true);
+            }
+          }
+          call.answer();
+          call.on('stream', remoteStream => {
+            streamService.receiveVideoStream(remoteStream);
+            // Unmute local video
+            startReceivingVideo(remoteStream, false);
+            // setScreenId(peerScreenId);
+          });
+        },
+        /** @type {(error: { type: string }) => void} */
+        onVideoPeerError = error => {
+          console.warn('### SCREEN PEER ERROR ###');
+          const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : 'Video server connection error.';
+          console.warn(message);
+          beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
+        };
+        console.log('### START ###');
+        if(streamService.audioPeer === null && streamService.videoPeer === null) {
+          import('peerjs').then(imported => {
+            const Peer = imported.default;
+            const peerOptions = {
+              host: window.location.host, path: '/live/audio',
+              config: { iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+              ] }
+            };
+            streamService.audioPeer = (new Peer(me.id, peerOptions));
+            streamService.videoPeer = (new Peer(getScreenId(me.id, true), peerOptions));
+            setArePeersOK(true);
+            // Audio
+      
+            streamService.audioPeer.on('open', onAudioPeerOpen)
+              .on('disconnected', onAudioPeerDisconnected)
+              .on('call', onAudioPeerCall)
+              .on('error', onAudioPeerError);
+
+    
+            streamService.videoPeer.on('open', onVideoPeerOpen)
+              .on('disconnected', onVideoPeerDisconnected)
+              .on('call', onVideoPeerCall)
+              .on('error', onVideoPeerError);
+          });
+        }
+        return () => {
+          if(streamService.audioPeer)
+            streamService.audioPeer.off('open', onAudioPeerOpen)
+              .off('disconnected', onAudioPeerDisconnected)
+              .off('call', onAudioPeerCall)
+              .off('error', onAudioPeerError);
+
+          if(streamService.videoPeer)
+            streamService.videoPeer.off('open', onVideoPeerOpen)
+              .off('disconnected', onVideoPeerDisconnected)
+              .off('call', onVideoPeerCall)
+              .off('error', onVideoPeerError);
+        };
+      }
+    }, [isMeOK, isSocketReady, me.id]);
+
+    return [ { me, isMeOK, arePeersOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ];
   };
 
   /** @type {[ { meeting: Meeting, isMeetingOK: boolean }, setMeeting: (meeting: Meeting) => void ]} */
   const [ { meeting, isMeetingOK }, setMeeting ] = useMeeting(id, new Meeting().setId(id).toJSON());
 
-  /** @type {[ { socket: Socket, me: User, isMeOK: boolean }, { setMe: (me: User) => void, setRoom: (room: string) => void } ]} */
-  const [ { me, socket, isMeOK }, { setMe, setRoom } ] = useUser(id, new User().toJSON());
+  // Leave setMe and setRoom for future changes, e.g. rename or switch rooms
+  /** @type {[ { me: User, isMeOK: boolean, arePeersOK: boolean }, { setMe: (me: User) => void, setRoom: (room: string) => void } ]} */
+  const [ { me, isMeOK, arePeersOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ] = useUser(id, new User().toJSON());
 
   /** @type {[ chat: ChatPayload, setChat: (chat: ChatPayload) => void ]} */
   const [ chat, setChat ] = useState(new ChatPayload().toJSON());
-  /** @type {[ uiProperties: { profile: boolean, link: boolean, users: boolean, error: { code: number, message: string }, emoji: boolean, scroll: boolean }, setUiProperties: ( uiProperties: { profile: boolean, link: boolean, users: boolean, error: { code: number, message: string }, emoji: boolean, scroll: boolean } ) => void ]} */
-  const [ uiProperties, setUiProperties ] = useState({ profile: false, link: false, users: false, error: { code: 0, message: '' }, emoji: false, scroll: true });
+  /** @type {[ uiProperty: UIProperty, setUiProperty: ( uiProperty: UIProperty ) => void ]} */
+  const [ uiProperty, setUiProperty ] = useState(new UIProperty().toJSON());
   /** @type {[ chatHistory: Array<ChatRecord>, setChatHistory: (chatHistory: Array<ChatRecord>) => void ]} */
   const [ chatHistory, setChatHistory ] = useState([]);
   /** @type {[ chatVideo: ChatVideo, setChatVideo: (chatVideo: ChatVideo) => void ]} */
   const [ chatVideo, setChatVideo ] = useState(new ChatVideo().toJSON());
-  /** @type {[ isLoading: boolean, setIsLoading: (isLoading: boolean) => void ]} */
-  const [ isLoading, setIsLoading ] = useState(true);
 
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
   const [ chatUsers, setChatUsers ] = useState([]);
 
-  /** @type {[ chatNotification: { message: string, style: string, time: Date }, setChatNotification: (chatNotification: { message: string, style: string, time: Date }) => void ]} */
-  const [ chatNotification, setChatNotification ] = useState({ message: '', style: NOTIFICATION_STYLES.INFO, time: new Date() });
-
-  /** @type {[ vars: { audio: Media, screen: Media, status: { emoji: string } }, setVars: (vars: { audio: Media, screen: Media, status: { emoji: string } }) => void ]} */
+  /** @type {[ vars: { audio: Media, screen: Media, status: { emoji: string }, devices: Array<Device> }, setVars: (vars: { audio: Media, screen: Media, status: { emoji: string }, devices: Array<Device> }) => void ]} */
   const [ vars, setVars ] = useState({
-    audio: { id: DEVICE.MICROPHONE, streaming: false, stream: null, localMute: true },
-    screen: { id: DEVICE.SCREEN, streaming: false, stream: null },
-    status: { emoji: '' }
+    audio: { id: DEVICE.MICROPHONE },
+    screen: { id: DEVICE.SCREEN },
+    status: { emoji: '' },
+    devices: []
   });
 
-  /** @type {[ audioPeer: import('peerjs').Peer, setAudioPeer: (audioPeer: import('peerjs').Peer) => void ]} */
-  const [ audioPeer, setAudioPeer ] = useState(Peers.Audio);
-  /** @type {[ videoPeer: import('peerjs').Peer, setVideoPeer: (videoPeer: import('peerjs').Peer) => void ]} */
-  const [ videoPeer, setVideoPeer ] = useState(Peers.Video);
   /** @type {[ screenId: string, setScreenId: (screenId: string) => void ]} */
   const [ screenId, setScreenId ] = useState('');
 
-  const nonRef = useRef({ meeting: false, user: false, socket: false, peer: false, load: false });
+  const nonRef = useRef({ meeting: false, user: false, peer: false, load: false });
   /** @type {{ current: HTMLInputElement }} */
   const chatInputRef = useRef(null);
+  /** @type {{ current: HTMLDivElement }} */
   const chatHistoryRef = useRef(null);
+  /** @type {{ current: HTMLVideoElement }} */
+  const remoteVideoRef = useRef(null);
 
   /** @type {(num: number) => string} */
   const prefixDigit = (num) => {
@@ -196,34 +504,15 @@ export default function ChatRoom({ id, translate }) {
     if(chatInputRef.current) {
       chatInputRef.current.focus();
     }
-  }, notifyUser = useCallback((message, style = NOTIFICATION_STYLES.INFO, hasTranslation = false) => {
-    setChatNotification({ message: hasTranslation ? message : translate(message), style, time: new Date() })
-  }, [translate]);
+  };
 
-  const onSocketChanged = (connected, isReconnect = false) => {
-    // Disable/Enable UI
-    setIsLoading(connected === false);
-    beeper.publish(Events.SocketConnected, { connected, isReconnect });
-  }, joinScreenSharing = (screenId) => {
-    beeper.publish(Events.JoinScreenShare, screenId);
-  }, onStatusChange = (emoji) => {
-    if(socket) {
-      const browserStatus = vars.audio.streaming ? STATUS.AUDIO : document.visibilityState === 'visible' ? STATUS.ONLINE : STATUS.AWAY;
-      socket.emit('server:status', browserStatus, vars.audio.localMute ? STATUS.MUTED : STATUS.SPEAKING, emoji);
-    }
+  const joinScreenSharing = (screenId) => {
+    // beeper.publish(Events.JoinScreenShare, screenId);
+    // streamService.getWebSocket().emit('server:screen:join', screenId);
   }, onMeetingUpdate = () => {
-    if(socket) {
-      socket.emit('server:meeting:update', meeting);
-    }
-  }, onMeetingUpdated = (user, meeting) => {
-    beeper.publish(Events.UpdateMeeting, { user, meeting });
+    streamService.getWebSocket().emit('server:meeting:update', meeting);
   },
-  /**
-   * Get screen ID
-   * @param {string} id ID string
-   * @param {Boolean} forPeer If it is for peer connection string
-   * @returns {string} Returns screen ID
-   */
+  /** @type {(id: string, forPeer: string) => string} */
   getScreenId = (id, forPeer = false) => {
     const prefix = 'share-';
     if(forPeer)
@@ -241,285 +530,141 @@ export default function ChatRoom({ id, translate }) {
   sendChatMessage = async () => {
     if(chat.input.length > 0) {
       setIsLoading(true);
-      if(socket.disconnected) {
+      if(streamService.getWebSocket().disconnected) {
         return notifyUser('正在尝试重新连接', NOTIFICATION_STYLES.WARNING);
       }
       const payload = generateMessage();
       setChat({ ...chat, input: '' });
-      socket.emit('server:user:message', payload, () => {
+      streamService.getWebSocket().emit('server:user:message', payload, () => {
         setIsLoading(false);
       });
     }
     focusInput();
-  };
+  },
+  isShareSupported = () => {
+    return typeof (window.navigator.mediaDevices.getDisplayMedia) !== 'undefined';
+  },
+  stopStream = (nativeElement) => {
+    if(nativeElement) {
+      const stream = nativeElement.srcObject;
+      stopTracks(stream);
+      nativeElement.srcObject = null;
+    }
+  },
+  /** @type {(stream: MediaStream) => void} */
+  stopTracks = (stream) => {
+    if(stream) {
+      const tracks = stream.getTracks();
+      tracks.forEach(track => {
+        track.stop();
+      });
+    }
+  },
+  stopVideo = () => {
+    stopTracks(streamService.remoteVideoStream);
+    stopStream(remoteVideoRef.current);
+    streamService.isPublishingVideo = false;
+    streamService.isReceivingVideo = false;
 
-  // Setup Peers
-  useEffect(() => {
-    if(isMeOK && isMeetingOK) {
-      console.log('### START ###');
-      if(Peers.Audio === null && Peers.Video === null) {
-        import('peerjs').then(imported => {
-          const Peer = imported.default;
-          const peerOptions = {
-            host: window.location.host, path: '/live/audio',
-            config: { iceServers: [
-              { urls: 'stun:stun.l.google.com:19302' },
-            ] }
-          };
-          setAudioPeer(new Peer(me.id, peerOptions));
-          setVideoPeer(new Peer(getScreenId(me.id, true), peerOptions));
-        });
+    setUiProperty({ ...uiProperty,
+      isReceivingVideo: streamService.isReceivingVideo,
+      isPublishingVideo: streamService.isPublishingVideo
+    });
+  },
+  stopScreen = (isLocal = false) => {
+    stopVideo();
+
+    if(isLocal) return;
+    streamService.getWebSocket().emit('server:screen:stop');
+  },
+  getDisplayMedia = async () => {
+    const video = { width: { max: 3840 }, height: { max: 2160 }, deviceId: undefined };
+    const isScreenOnly = vars.screen.id === DEVICE.SCREEN || vars.devices.findIndex(x => x.deviceId === vars.screen.id) === -1;
+    if(isScreenOnly) {
+      delete video.deviceId;
+    }
+    else {
+      video.deviceId = vars.screen.id;
+    }
+    // Audio
+    const audio = vars.audio.id === DEVICE.MICROPHONE ? true : { deviceId: vars.audio.id };
+    /** @type {DisplayMediaStreamOptions|MediaStreamConstraints} */
+    const constraints = { video, audio };
+    // If the device ID equas default screen share or can not find the selected device
+    return isScreenOnly ?
+      await navigator.mediaDevices.getDisplayMedia(constraints) :
+      await navigator.mediaDevices.getUserMedia(constraints);
+  },
+  captureScreen = async () => {
+    try {
+      const stream = await getDisplayMedia();
+      if(stream) {
+        // Stop local stream if it is being shared, remote stream should be cleaned after callback <- @todo
+        stopTracks(streamService.remoteVideoStream);
+        streamService.publishVideoStream(stream);
+        setUiProperty({ ...uiProperty, isPublishingVideo: streamService.isPublishingVideo });
+        // // Notify server
+        // streamService.getWebSocket().emit('server:user:screen', getScreenId(me.id));
+        // // Notify user
+        // notifyUser('屏幕共享已开启', NOTIFICATION_STYLES.SUCCESS);
+        remoteVideoRef.current.muted = streamService.isMuted;
+        remoteVideoRef.current.srcObject = stream;
+        return true;
       }
-      return () => {};
     }
-  }, [isMeOK, isMeetingOK, me.id]);
-
-  // Handle WebSocket events
-  useEffect(() => {
-    if(socket) {
-      const
-      onSocketConnect = () => {
-        console.log('### CONNECTED ###');
-        onSocketChanged(true);
-      },
-      onSocketReconnect = () => {
-        console.log('### RECONNECTED ###');
-        onSocketChanged(true, true);
-      },
-      onSocketReconnectFailed = () => {
-        console.warn('### CONNECTION FAILED ###');
-        onSocketChanged(false);
-        notifyUser('重新连接失败，请刷新页面重试', NOTIFICATION_STYLES.ERROR);
-      },
-      onSocketReconnectAttempt = () => {
-        notifyUser('正在重新连接...（第 {0} 次尝试）', NOTIFICATION_STYLES.WARNING);
-      },
-      onSocketError = error => {
-        console.warn('### SOCKET ERROR ###');
-        onSocketChanged(false);
-        notifyUser('连接错误', NOTIFICATION_STYLES.ERROR);
-      },
-      onSocketDisconnect = reason => {
-        console.warn('### DISCONNECTED ###');
-        onSocketChanged(false);
-        notifyUser('连接已断开，请重试', NOTIFICATION_STYLES.ERROR);
-        setChatUsers([]);
-        if(reason === "io server disconnect") {
-          socket.connect();
-        }
-      };
-      /** @type {(user: User) => void} */
-      const onClientWelcomePublic = user => {
-        notifyUser(utility.format(translate('网友【{0}】兴高采烈地来到了会议室， 大家热烈欢迎 ^_^！'), user.name), NOTIFICATION_STYLES.INFO, true);
-      },
-      /** @type {(user: User, screenId) => void} */
-      onClientWelcomePrivate = (user, screenId) => {
-        joinScreenSharing(screenId);
-      };
-      const
-      /** @type {(callee: User, caller: User, screenId: string) => void} */
-      onClientJoinScreen = (callee, caller, screenId) => {
-        beeper.publish(Events.JoinScreenShareCallback, { callee, caller });
-      },
-      onClientLeave = data => {
-        console.log('client:leave');
-      },
-      onClientError = code => {
-        console.warn('client:error');
-        let message = '';
-        if(code === 409) {
-          console.warn('### ROOM IS LOCKED ###');
-          message = ('房间已锁定');
-        }
-        else if(code === 404) {
-          console.warn('### ROOM NOT FOUND ###');
-          message = ('找不到该房间');
-        }
-        else if(code === 400) {
-          console.warn('### ROOM IS FULL ###');
-          message = ('房间已满');
-        }
-        else {
-          message = ('未知错误');
-          console.warn('### UNKNOWN ERROR ###');
-        }
-        beeper.publish(Events.ClientError, { code, message });
-      },
-      /** @type {(users: Array<User>) => void} */
-      onUsers = (users) => {
-        users.unshift(new All(translate));
-        // for(let i = 0; i < 100; i++) {
-        //   users.push(new User(crypto.randomUUID(), 'Fake user', '/images/avatars/00.png'));
-        // }
-        setChatUsers(users);
-      },
-      onUserMessage = (id, fromUser, data) => {
-        /** @type {ChatRecord} */
-        const chatRecord = {
-          id,
-          message: data.message,
-          from: fromUser, to: data.to,
-          time: new Date()
-        };
-        setChatHistory(x => [ ...x, chatRecord ]);
-      };
-      socket.on('connect', onSocketConnect);
-      socket.on('reconnect', onSocketReconnect);
-      socket.on('reconnect_failed', onSocketReconnectFailed);
-      socket.on('error', onSocketError);
-      socket.on('disconnect', onSocketDisconnect);
-      socket.on('reconnect_attempt', onSocketReconnectAttempt);
-      socket.on('client:welcome:public', onClientWelcomePublic);
-      socket.on('client:welcome:private', onClientWelcomePrivate);
-      socket.on('client:screen:join:callback', onClientJoinScreen);
-      socket.on('client:leave', onClientLeave);
-      socket.on('client:error', onClientError);
-      socket.on('client:users', onUsers);
-      socket.on('client:user:message', onUserMessage);
-      socket.on('client:meeting:update:callback', onMeetingUpdated);
-
-      return () => {
-        socket.emit('leave');
-        socket.off('connect', onSocketConnect);
-        socket.off('reconnect', onSocketReconnect);
-        socket.off('reconnect_failed', onSocketReconnectFailed);
-        socket.off('error', onSocketError);
-        socket.off('disconnect', onSocketDisconnect);
-        socket.off('reconnect_attempt', onSocketReconnectAttempt);
-        socket.off('client:welcome:public', onClientWelcomePublic);
-        socket.off('client:welcome:private', onClientWelcomePrivate);
-        socket.off('client:screen:join:callback', onClientJoinScreen);
-        socket.off('client:leave', onClientLeave);
-        socket.off('client:error', onClientError);
-        socket.off('client:users', onUsers);
-        socket.off('client:user:message', onUserMessage);
-        socket.off('client:meeting:update:callback', onMeetingUpdated);
-      };
+    catch(error) {
+      console.log(error);
+      // What if someone is sharing, but I cam cancelling... @todo
     }
-  }, [notifyUser, translate, socket]);
-
-  // Audio
-  useEffect(() => {
-    Peers.Audio = audioPeer;
-    if(audioPeer) {
-      // Audio
-      const
-      /** @type {() => void} */
-      onPeerOpen = () => {
-        console.log(`Your device ID is: ${audioPeer.id}`);
-        console.log('### AUDIO READY ###');
-      },
-      /** @type {() => void} */
-      onPeerDisconnected = () => {
-        console.info('### PEER DISCONNECTED ###');
-        audioPeer.reconnect();
-      },
-      /** @type {(call: { peer: string, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
-      onPeerCall = call => {
-        console.info('### PEER ON CALL ###');
-        // Automatically join
-        // if(vars.audio.streaming) {
-        //   return methods.startAudio({ isCaller: false, call, isAuto: true });
-        // }
-        // methods.chatAudioConfirm(async () => {
-        //   await methods.startAudio({ isCaller: false, call });
-        // }, () => {
-        //   methods.rejectAudio(call);
-        // });
-        // return true;
-      },
-      /** @type {(error: { type: string }) => void} */
-      onPeerError = error => {
-        console.warn('### AUDIO PEER ERROR ###');
-        const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : 'Audio server connection error.';
-        console.warn(message);
-        beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
-      };
-      Peers.Audio.on('open', onPeerOpen);
-      Peers.Audio.on('disconnected', onPeerDisconnected);
-      Peers.Audio.on('call', onPeerCall);
-      Peers.Audio.on('error', onPeerError);
-      return () => {
-        Peers.Audio.off('open', onPeerOpen);
-        Peers.Audio.off('disconnected', onPeerDisconnected);
-        Peers.Audio.off('call', onPeerCall);
-        Peers.Audio.off('error', onPeerError);
-      };
+    return false;
+  },
+  shareScreen = async () => {
+    if(streamService.isPublishingVideo) {
+      stopScreen();
     }
-  }, [audioPeer]);
-
-  // Screen
-  useEffect(() => {
-    Peers.Video = videoPeer;
-    if(videoPeer) {
-      // Screen
-      const
-      /** @type {() => void} */
-      onPeerOpen = () => {
-        console.log(`Your share ID is: ${Peers.Video.id}`);
-        console.log('### SCREEN READY ###');
-      },
-      /** @type {() => void} */
-      onPeerDisconnected = () => {
-        console.info('### PEER DISCONNECTED ###');
-        videoPeer.reconnect();
-      },
-      /** @type {(call: { peer: string, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
-      onPeerCall = call => {
-        console.log(`### ON CALL: ${call.peer} ###`);
-        const peerScreenId = methods.getScreenId(call.peer);
-        // methods.queryVideoCover(peerScreenId);
-        // I was sharing, but somebody interrupted
-        // if(vars.screen.streaming) {
-        //   if(screenId !== peerScreenId) {
-        //     // methods.stopScreen(true);
-        //   }
-        // }
-        setScreenId(peerScreenId);
-        call.answer();
-        call.on('stream', remoteStream => {
-          // Unmute local video
-          // methods.startVideo(remoteStream, false);
-        });
-      },
-      /** @type {(error: { type: string }) => void} */
-      onPeerError = error => {
-        console.warn('### SCREEN PEER ERROR ###');
-        const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : 'Video server connection error.';
-        console.warn(message);
-        beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
-      };
-      Peers.Video.on('open', onPeerOpen);
-      Peers.Video.on('disconnected', onPeerDisconnected);
-      Peers.Video.on('call', onPeerCall);
-      Peers.Video.on('error', onPeerError);
-      return () => {
-        Peers.Video.off('open', onPeerOpen);
-        Peers.Video.off('disconnected', onPeerDisconnected);
-        Peers.Video.off('call', onPeerCall);
-        Peers.Video.off('error', onPeerError);
-      };
+    const isOK = await captureScreen();
+    if(isOK) {
+      streamService.setEmoji('📽');
+      setVars({ ...vars, status: { emoji: streamService.emoji } });
+      changeStatus();
+      streamService.getWebSocket().emit('server:screen:start', getScreenId(me.id));
     }
-  }, [videoPeer]);
+  },
+  changeStatus = () => {
+    const browserStatus = streamService.isPublishingVideo ? STATUS.AUDIO :
+      document.visibilityState === 'visible' ? STATUS.ONLINE :
+      STATUS.AWAY;
+    const microphoneStatus = streamService.isMuted ? STATUS.MUTED : STATUS.SPEAKING;
+    streamService.getWebSocket().emit('server:status', browserStatus, microphoneStatus, streamService.emoji);
+  };
 
   // Handle join screen sharing
   useEffect(() => {
-    if(socket && screenId) {
-      socket.emit('server:user:screen:join', screenId);
+    if(screenId && peerStatus.video) {
+      streamService.getWebSocket().emit('server:screen:join', screenId);
     }
-  }, [ screenId, socket ]);
+  }, [ screenId, peerStatus.video ]);
+
+  // useEffect(() => {
+  //   console.log('streamService.isReceivingAudio->', streamService.isReceivingAudio);
+  //   if(streamService.isReceivingAudio) {
+  //     const enabled = (streamService.isMuted === false);
+  //     const tracks = streamService.remoteAudioStream.getTracks();
+  //     tracks.forEach(track => {
+  //       if(track.kind === 'audio') {
+  //         track.enabled = enabled;
+  //       }
+  //     });
+  //     remoteVideoRef.current.muted = streamService.isMuted;
+  //     remoteVideoRef.current.srcObject = streamService.remoteAudioStream;
+  //   }
+  // }, []);
 
   // Scroll chat history automatically
   useEffect(() => {
-    if(uiProperties.scroll)
+    if(uiProperty.isScrolling)
       scrollToBottom();
-  }, [chatHistory, uiProperties.scroll]);
-
-  // useEffect(() => {
-  //   if(meeting) {
-  //     console.log('meeting->', meeting);
-  //   }
-  // }, [ meeting ]);
+  }, [chatHistory, uiProperty.isScrolling]);
 
   // Handle events and setup peers
   useEffect(() => {
@@ -531,27 +676,39 @@ export default function ChatRoom({ id, translate }) {
       }
     });
     const disposeClientErrorEvent = beeper.subscribe(Events.ClientError, error => {
-      setUiProperties({ ...uiProperties, error });
+      setUiProperty({ ...uiProperty, error });
     });
     const disposeJoinScreenSharingEvent = beeper.subscribe(Events.JoinScreenShare, remoteScreenId => {
-      setScreenId(remoteScreenId);
+      // setScreenId(remoteScreenId);
+      console.log('### JOIN SCREEN ->', remoteScreenId);
     });
-    const disposeJoinScreenSharingCallbackEvent = beeper.subscribe(Events.JoinScreenShareCallback, ({ callee, caller }) => {
-      console.log('callee->', callee, 'caller->', caller);
-      if(caller) {
-        if(caller.id === me.id && vars.screen.streaming) {
-          vars.screen.peer.call(getScreenId(callee.id, true), chatVideo.localStream, { metadata: {  } });
-        }
-      }
-      else if(callee) {
-        if(callee.id === me.id) {
-  
-        }
-      }
+    // const disposeStartScreenSharingCallbackEvent = beeper.subscribe(Events.StartScreenShareCallback, ({ caller, users, remoteScreenId }) => {
+      
+    // });
+    const disposeStopScreenSharingCallbackEvent = beeper.subscribe(Events.StopScreenShareCallback, ({ sharer }) => {
+      
     });
-    const disposeStatusChangeEvent = beeper.subscribe(Events.StatusChange, () => {
-      onStatusChange();
-    });
+    // const disposeJoinScreenSharingCallbackEvent = beeper.subscribe(Events.JoinScreenShareCallback,
+    //   /**
+    //    * 
+    //    * @param {{ callee: User, caller: User, remoteScreenId: string }} param0 Callback data
+    //    */
+    //   ({ callee, caller, remoteScreenId }) => {
+    //   // console.log('callee->', callee, 'caller->', caller, 'remoteScreenId->', remoteScreenId);
+    //   if(caller) {
+    //     if(caller.id === me.id) {
+    //       streamService.videoPeer.call(getScreenId(callee.id, true), streamService.remoteVideoStream, { metadata: {  } });
+    //     }
+    //   }
+    //   else if(callee) {
+    //     if(callee.id === me.id) {
+    //       // @todo: What is this logic for
+    //     }
+    //   }
+    // });
+    // const disposeStatusChangeEvent = beeper.subscribe(Events.StatusChange, () => {
+    //   changeEmoji();
+    // });
     const disposeNotificationEvent = beeper.subscribe(Events.ClientNotification, ({ message, style }) => {
       notifyUser(message, style);
     });
@@ -560,14 +717,23 @@ export default function ChatRoom({ id, translate }) {
       notifyUser(utility.format(translate('【{0}】更新了会议信息'), user.name), NOTIFICATION_STYLES.INFO, true);
     });
 
+    // Find browser supported devices
+    utility.getDevices().then(systemDevices => {
+      const devices = [{ kind: 'videoinput', label: translate('仅屏幕'), deviceId: DEVICE.SCREEN }].concat(systemDevices);
+      setVars({ ...vars, devices });
+    });
+
     return () => {
       disposeSocketConnectedEvent();
       disposeClientErrorEvent();
       disposeJoinScreenSharingEvent();
-      disposeJoinScreenSharingCallbackEvent();
-      disposeStatusChangeEvent();
+      // disposeJoinScreenSharingCallbackEvent();
+      disposeStopScreenSharingCallbackEvent();
+      // disposeStartScreenSharingCallbackEvent();
+      // disposeStatusChangeEvent();
       disposeNotificationEvent();
       disposeUpdateMeeting();
+
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -578,17 +744,20 @@ export default function ChatRoom({ id, translate }) {
     <Layout.Main className={styles['chat']}>
       {/* CHAT HEADER */}
       <Layout.Header>
+        {/* HOME BUTTON */}
         <IconButton size="sm"  onClick={evt => {
           goBackHome(true);
         }}>
           <HomeIcon />
         </IconButton>
 
+        {/* CHAT NOTIFICATION */}
         <span className={styles['chat-subject']}>{ chatNotification.message ? <>
           {chatNotification.message} <i>({getMinuteFormat(chatNotification.time)})</i>
           </> : meeting.id === ROOMS.DEFAULT.ID ? translate(ROOMS.DEFAULT.SUBJECT) : meeting.subject }
         </span>
 
+        {/* MENU - RIGHT */}
         <Box sx={{
           display: 'flex',
           flexDirection: 'row',
@@ -596,53 +765,55 @@ export default function ChatRoom({ id, translate }) {
           gap: 1.5
         }} className={styles['chat-menus']}
         >
+          {/* OPEN MEETING INFORMATION */}
           { ROOMS.DEFAULT.ID !== meeting.id && <IconButton
             size="sm"
             variant="plain"
             sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
             onClick={_evt => {
-              setUiProperties({ ...uiProperties, link: true });
+              setUiProperty({ ...uiProperty, isLinkDisplayed: true });
           }} className={styles['chat-menu']} disabled={isLoading}>
             <InfoIcon />
           </IconButton> }
 
+          {/* OPEN MY PROFILE */}
           <IconButton
             size="sm"
             variant="soft"
             sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
             onClick={_evt => {
-              setUiProperties({ ...uiProperties, profile: true });
+              setUiProperty({ ...uiProperty, isProfileDisplayed: true });
             }} className={styles['chat-menu']} disabled={isLoading}>
             <PersonIcon />
           </IconButton>
 
+          {/* OPEN USER LIST */}
           <Badge badgeContent={chatUsers.length ? chatUsers.length - 1 : ''}>
             <IconButton
               size="sm"
               variant="soft"
               sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
               onClick={_evt => {
-                setUiProperties({ ...uiProperties, users: !uiProperties.users });
+                setUiProperty({ ...uiProperty, isUserListDisplayed: !uiProperty.isUserListDisplayed });
               }} className={styles['chat-menu']} disabled={isLoading}>
               <PeopleIcon />
             </IconButton>
           </Badge>
-
         </Box>
       </Layout.Header>
 
       {/* CHAT MODALS */}
-      <ChatUserModal user={me} open={uiProperties.profile} translate={translate} handleClose={() => {
-        setUiProperties({ ...uiProperties, profile: false });
+      <ChatUserModal user={me} open={uiProperty.isProfileDisplayed} translate={translate} handleClose={() => {
+        setUiProperty({ ...uiProperty, isProfileDisplayed: false });
       }} />
       {/* CHAT LINK */}
-      <ChatLinkModal user={me} open={uiProperties.link} translate={translate} handleClose={() => {
-        setUiProperties({ ...uiProperties, link: false });
+      <ChatLinkModal user={me} open={uiProperty.isLinkDisplayed} translate={translate} handleClose={() => {
+        setUiProperty({ ...uiProperty, isLinkDisplayed: false });
       } } meeting={meeting} setMeeting={setMeeting} handleMeeting={onMeetingUpdate} />
       {/* CHAT ERROR */}
-      <ChatErrorModal open={uiProperties.error.code > 0} translate={translate} handleClose={() => {
-        setUiProperties({ ...uiProperties, error: { code: 0, message: '' } });
-      }} message={uiProperties.error.message} handleBack={goBackHome} />
+      <ChatErrorModal open={uiProperty.error.code > 0} translate={translate} handleClose={() => {
+        setUiProperty({ ...uiProperty, error: { code: 0, message: '' } });
+      }} message={uiProperty.error.message} handleBack={goBackHome} />
 
       {/* CHAT HISTORY + SCREEN SHARE */}
       <Box
@@ -664,6 +835,29 @@ export default function ChatRoom({ id, translate }) {
           justifyContent: 'flex-start',
           flexWrap: 'wrap',
         }}>
+          {/* Video/Screen sharing */}
+          <div className={`${styles['chat-media']}${(uiProperty.isReceivingVideo || uiProperty.isPublishingVideo) ? ` ${styles['show']}` : ''}`}>
+            <div className={styles['chat-screen']}>
+              <div className={styles['videos']}>
+                <div className={styles['remote']}>
+                  <video autoPlay disablePictureInPicture ref={remoteVideoRef}></video>
+                </div>
+              </div>
+              <div className={styles['controls']}>
+                <IconButton onClick={evt => {
+                  // Play
+                  remoteVideoRef.current.play();
+                }}>
+                  <SlideshowIcon />
+                </IconButton>
+                <IconButton onClick={evt => {
+                  // Fullscreen
+                }}>
+                  <FullscreenIcon />
+                </IconButton>
+              </div>
+            </div>
+          </div>
           {/* Chat content */}
           <div className={styles['chat-content']}>
             {/* Chat history */}
@@ -679,31 +873,9 @@ export default function ChatRoom({ id, translate }) {
               <div ref={chatHistoryRef}></div>
             </div>
           </div>
-          {/* Video/Screen sharing */}
-          { isLoading === false && (chatVideo.isPublishing || chatVideo.isReceiving) && <div className={styles['chat-screen']}>
-            <div className={styles['videos']}>
-              <div className={styles['local']}>
-                <video autoPlay disablePictureInPicture></video>
-              </div>
-              <div className={styles['remote']}>
-                <video autoPlay disablePictureInPicture></video>
-              </div>
-            </div>
-            <div className={styles['controls']}>
-              <IconButton onClick={evt => {
-                // Play
-              }}>
-                <SlideshowIcon />
-              </IconButton>
-              <IconButton onClick={evt => {
-                // Fullscreen
-              }}>
-                <FullscreenIcon />
-              </IconButton>
-            </div>
-          </div> }
+
           {/* User list */}
-          { uiProperties.users && <div className={styles['chat-users']}>
+          { uiProperty.isUserListDisplayed && <div className={styles['chat-users']}>
             <div className={styles['chat-layer']}>
               <ul>
               { chatUsers.reduce(
@@ -728,10 +900,10 @@ export default function ChatRoom({ id, translate }) {
                   return <li onClick={evt => {
                     evt.preventDefault();
                     evt.stopPropagation();
-                    setUiProperties({ ...uiProperties, users: !uiProperties.users });
+                    setUiProperty({ ...uiProperty, users: !uiProperty.isUserListDisplayed });
                     setChat({ ...chat, from: me, to: x });
                     focusInput();
-                  }} key={x.id} id={x.id} data-window={x.windows && x.windows > 1 ? x.windows : ''} style={{'--background-avatar-placeholder': `url(${x.avatar})` }}>
+                  }} key={x.id} id={x.id} data-avatar={x.avatar} data-window={x.windows && x.windows > 1 ? x.windows : ''} style={{'--background-avatar-placeholder': `url(${x.avatar})` }}>
                     <a>{x.name}{ emoji && <span className={styles['emoji']} dangerouslySetInnerHTML={{ __html: emoji }}></span> }</a>
                   </li>
                 }) }
@@ -741,7 +913,7 @@ export default function ChatRoom({ id, translate }) {
         </Box>
       </Box>
 
-      {/* CHAT FORM */}
+      {/* CHAT FOOTER */}
       <Layout.Footer>
         <Box sx={{
           display: 'flex',
@@ -752,11 +924,13 @@ export default function ChatRoom({ id, translate }) {
           width: '100%',
         }}
         >
+          {/* CHAT FORM */}
           <form className={styles['chat-form']} onSubmit={evt => {
             evt.preventDefault();
             evt.stopPropagation();
             sendChatMessage();
           }}>
+            {/* CHAT INPUT */}
             <Input sx={{
               flex: 1
             }} placeholder={translate('说点什么...')} onChange={evt => {
@@ -766,6 +940,7 @@ export default function ChatRoom({ id, translate }) {
             />
           </form>
 
+          {/* CHAT TOOLBOX */}
           <Stack sx={{
             display: 'flex',
             flexDirection: 'row',
@@ -781,19 +956,34 @@ export default function ChatRoom({ id, translate }) {
               <SendIcon />
             </IconButton>
 
-            <IconButton size='sm' disabled={isLoading}>
+            {/* <IconButton size='sm' disabled={isLoading}>
               <TuneIcon />
             </IconButton>
 
             <IconButton size='sm' disabled={isLoading}>
               <MicIcon />
+            </IconButton> */}
+
+            <IconButton size='sm' color={uiProperty.isPublishingVideo ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
+              evt.preventDefault();
+              evt.stopPropagation();
+              if(uiProperty.isPublishingVideo) {
+                stopScreen();
+              }
+              else {
+                shareScreen();
+              }
+            }}>
+              { uiProperty.isPublishingVideo ? <CancelPresentationIcon /> : <PresentToAllIcon /> }
             </IconButton>
+
+            <Divider orientation="vertical"></Divider>
 
             <Tooltip
               disableHoverListener
               placement="top-end"
               variant="outlined"
-              open={uiProperties.emoji}
+              open={uiProperty.status.isEmojiDisplayed}
               arrow
               title={
                 <Box sx={{
@@ -805,23 +995,41 @@ export default function ChatRoom({ id, translate }) {
                   { EMOJIS.map((code, key) => {
                     const emoji = String.fromCodePoint(parseInt(code, 16));
                     return <IconButton key={key} onClick={evt => {
-                      setVars({ ...vars, status: { ...vars.status, emoji } });
-                      setUiProperties({ ...uiProperties, emoji: false });
-                      onStatusChange(emoji);
+                      streamService.setEmoji(emoji);
+                      setVars({ ...vars, status: { emoji } });
+                      changeStatus();
+                      setUiProperty({ ...uiProperty, status: { ...uiProperty.status, isEmojiDisplayed: false } });
                       setChat({ ...chat, input: chat.input + emoji });
                       focusInput();
                     }}>
                       <span>{ emoji }</span>
                     </IconButton>
                   }) }
+
+                  <Stack sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    gap: 0.5,
+                  }}>
+                    <Button size='sm' variant='soft' onClick={evt => {
+                      streamService.setEmoji('');
+                      setVars({ ...vars, status: { emoji: '' } });
+                      changeStatus();
+                      setUiProperty({ ...uiProperty, status: { ...uiProperty.status, isEmojiDisplayed: false } });
+                    }}>Clear</Button>
+                    <span>{vars.status.emoji}</span>
+                    <Button size='sm' variant='outline' onClick={evt => {
+                      setUiProperty({ ...uiProperty, status: { ...uiProperty.status, isEmojiDisplayed: false } });
+                    }}>Close</Button>
+                  </Stack>
                 </Box>
               }
             >
               <IconButton size='sm' disabled={isLoading} onClick={evt => {
-                if(vars.status.emoji !== '') {
-                  setVars({ ...vars, status: { ...vars.status, emoji: '' } });
-                }
-                setUiProperties({ ...uiProperties, emoji: !uiProperties.emoji });
+                setUiProperty({ ...uiProperty, status: { ...uiProperty.status, isEmojiDisplayed: !uiProperty.status.isEmojiDisplayed } });
               }}>
                 <SentimentSatisfiedAltIcon />
               </IconButton>

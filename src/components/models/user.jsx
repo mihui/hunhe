@@ -142,20 +142,17 @@ export class ChatVideo {
   isPublishing;
   /** @type {boolean} */
   isReceiving;
-  /** @type {Peer} */
-  peer;
+
   constructor() {
     this.isStreaming = false;
     this.localStream = null;
     this.remoteStream = null;
-    this.peer = null;
   }
   toJSON() {
     return {
       isStreaming: this.isStreaming,
       localStream: this.localStream,
       remoteStream: this.remoteStream,
-      peer: this.peer,
     }
   }
 }

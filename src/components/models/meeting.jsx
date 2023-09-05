@@ -34,18 +34,73 @@ export class Meeting {
     }
   }
 }
-
+export class Device {
+  /** @type {string} */
+  kind;
+  /** @type {string} */
+  label;
+  /** @type {string} */
+  deviceId;
+}
 export class Media {
   /** @type {string} */
   id;
-  /** @type {boolean} */
-  streaming;
   /** @type {MediaStream} */
   stream;
-  /** @type {import('peerjs').default} */
-  peer;
+}
+
+export class UIError {
+  /** @type {number} */
+  code = 0;
+  /** @type {string} */
+  message = '';
+  toJSON() {
+    return {
+      code: this.code,
+      message: this.message
+    }
+  }
+}
+
+export class UIStatus {
   /** @type {boolean} */
-  localMute;
+  isEmojiDisplayed = false;
+  toJSON() {
+    return {
+      isEmojiDisplayed: this.isEmojiDisplayed,
+    }
+  }
+}
+
+export class UIProperty {
+  /** @type {boolean} */
+  isProfileDisplayed = false;
+  /** @type {boolean} */
+  isLinkDisplayed = false;
+  /** @type {boolean} */
+  isUserListDisplayed = false;
+  /** @type {boolean} */
+  isScrolling = true;
+  /** @type {boolean} */
+  isPublishingVideo = false;
+  /** @type {boolean} */
+  isReceivingVideo = false;
+  /** @type {{ code: number, message: string }} */
+  error = new UIError();
+  /** @type {{ isEmojiDisplayed: boolean }} */
+  status = new UIStatus();
+  toJSON() {
+    return {
+      isProfileDisplayed: this.isProfileDisplayed,
+      isLinkDisplayed: this.isLinkDisplayed,
+      isUserListDisplayed: this.isUserListDisplayed,
+      isScrolling: this.isScrolling,
+      isPublishingVideo: this.isPublishingVideo,
+      isReceivingVideo: this.isReceivingVideo,
+      error: this.error.toJSON(),
+      status: this.status.toJSON(),
+    }
+  }
 }
 
 export const NOTIFICATION_STYLES = {
