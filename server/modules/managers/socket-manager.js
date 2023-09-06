@@ -233,7 +233,7 @@ class SocketManager {
       // Welcome event to all users
       this.getSockets(chatUser.room).emit(EVENTS.USER_WELCOME_PUBLIC, chatUser);
       // Welcome event to myself
-      socket.emit(EVENTS.USER_WELCOME_PRIVATE, chatUser, this.getScreen(chatUser.room));
+      socket.emit(EVENTS.USER_WELCOME_PRIVATE, this.getScreen(chatUser.room));
       this.fetchUsers(chatUser.room);
     });
 
@@ -275,7 +275,6 @@ class SocketManager {
     () => {
       /** @type {ChatUser} */
       const sharer = socket.data;
-      logger.debug('server:screen:stop');
       this.deleteScreen(sharer.room);
       this.getSockets(sharer.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, sharer);
     });

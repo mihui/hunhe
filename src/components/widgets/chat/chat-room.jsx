@@ -21,6 +21,8 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import InfoIcon from '@mui/icons-material/Info';
 import PresentToAllIcon from '@mui/icons-material/PresentToAll';
 import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
+import StopScreenShareIcon from '@mui/icons-material/StopScreenShare';
+import DesktopAccessDisabledIcon from '@mui/icons-material/DesktopAccessDisabled';
 
 import Stack from '@mui/joy/Stack';
 import Box from '@mui/joy/Box';
@@ -114,12 +116,13 @@ export default function ChatRoom({ id, translate }) {
     onClientWelcomePublic: user => {
       notifyUser(utility.format(translate('网友【{0}】兴高采烈地来到了会议室， 大家热烈欢迎 ^_^！'), user.name), NOTIFICATION_STYLES.INFO, true);
     },
-    /** @type {(user: User, screenId) => void} */
-    onClientWelcomePrivate: (user, screenId) => {
+    /** @type {(remoteScreenId: string) => void} */
+    onClientWelcomePrivate: (remoteScreenId) => {
       // joinScreenSharing(screenId);
-      setScreenId(screenId);
       onSocketChanged(true);
       setIsSocketReady(true);
+      setScreenId(remoteScreenId);
+      console.log('who is sharing->', remoteScreenId);
     },
     /** @type {(callee: User, caller: User, screenId: string) => void} */
     onClientJoinScreen: (callee, caller, remoteScreenId) => {
@@ -453,7 +456,6 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ chatHistory: Array<ChatRecord>, setChatHistory: (chatHistory: Array<ChatRecord>) => void ]} */
   const [ chatHistory, setChatHistory ] = useState([]);
   /** @type {[ chatVideo: ChatVideo, setChatVideo: (chatVideo: ChatVideo) => void ]} */
-  const [ chatVideo, setChatVideo ] = useState(new ChatVideo().toJSON());
 
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
   const [ chatUsers, setChatUsers ] = useState([]);
@@ -636,6 +638,16 @@ export default function ChatRoom({ id, translate }) {
       STATUS.AWAY;
     const microphoneStatus = streamService.isMuted ? STATUS.MUTED : STATUS.SPEAKING;
     streamService.getWebSocket().emit('server:status', browserStatus, microphoneStatus, streamService.emoji);
+  },
+  playRemoteVideo = () => {
+    const played = remoteVideoRef.current.play();
+    if(played) {
+      played.then(() => {
+        setUiProperty({ ...uiProperty, isPlayingVideo: true });
+      }).catch(error => {
+        setUiProperty({ ...uiProperty, isPlayingVideo: false });
+      });
+    }
   };
 
   // Handle join screen sharing
@@ -733,7 +745,6 @@ export default function ChatRoom({ id, translate }) {
       // disposeStatusChangeEvent();
       disposeNotificationEvent();
       disposeUpdateMeeting();
-
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -840,24 +851,49 @@ export default function ChatRoom({ id, translate }) {
             <div className={styles['chat-screen']}>
               <div className={styles['videos']}>
                 <div className={styles['remote']}>
-                  <video autoPlay disablePictureInPicture ref={remoteVideoRef}></video>
+                  <video autoPlay={false} disablePictureInPicture ref={remoteVideoRef} onLoadedMetadata={evt => {
+                    playRemoteVideo();
+                  }} onClick={evt => {
+                    playRemoteVideo();
+                  }} onEnded={() => {
+                    if(uiProperty.isReceivingVideo || uiProperty.isPublishingVideo) {
+                      stopScreen();
+                    }
+                  }} onPause={() => {
+                    setUiProperty({ ...uiProperty, isPlayingVideo: false });
+                  }}
+                  ></video>
                 </div>
               </div>
               <div className={styles['controls']}>
-                <IconButton onClick={evt => {
+                { uiProperty.isPlayingVideo === false && <IconButton size='sm' onClick={evt => {
                   // Play
-                  remoteVideoRef.current.play();
+                  playRemoteVideo();
                 }}>
                   <SlideshowIcon />
-                </IconButton>
-                <IconButton onClick={evt => {
-                  // Fullscreen
+                </IconButton> }
+                { uiProperty.isPublishingVideo && <IconButton size='sm'  color='danger' onClick={evt => {
+                  stopScreen();
+                }}>
+                  <DesktopAccessDisabledIcon />
+                </IconButton> }
+                { uiProperty.isReceivingVideo && <IconButton size='sm'  onClick={evt => {
+                  try {
+                    if(document.fullscreenElement) {
+                      document.exitFullscreen();
+                    }
+                    else {
+                      remoteVideoRef.current.requestFullscreen();
+                    }
+                  }
+                  catch(error) {}
                 }}>
                   <FullscreenIcon />
-                </IconButton>
+                </IconButton> }
               </div>
             </div>
           </div>
+
           {/* Chat content */}
           <div className={styles['chat-content']}>
             {/* Chat history */}
