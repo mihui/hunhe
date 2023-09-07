@@ -86,7 +86,9 @@ export class UIProperty {
   /** @type {boolean} */
   isReceivingVideo = false;
   /** @type {boolean} */
-  isPlayingVideo = false;
+  isPlayingLocalVideo = false;
+  /** @type {boolean} */
+  isPlayingRemoteVideo = false;
   /** @type {{ code: number, message: string }} */
   error = new UIError();
   /** @type {{ isEmojiDisplayed: boolean }} */
@@ -99,7 +101,8 @@ export class UIProperty {
       isScrolling: this.isScrolling,
       isPublishingVideo: this.isPublishingVideo,
       isReceivingVideo: this.isReceivingVideo,
-      isPlayingVideo: this.isPlayingVideo,
+      isPlayingLocalVideo: this.isPlayingLocalVideo,
+      isPlayingRemoteVideo: this.isPlayingRemoteVideo,
       error: this.error.toJSON(),
       status: this.status.toJSON(),
     }

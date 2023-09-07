@@ -39,7 +39,9 @@
     "找不到该房间": "The room is not found",
     "房间已满": "The room is full",
     "未知错误": "Unknown error",
-    "浏览器不支持语音或视频": "The client's browser does not support some or all WebRTC features that you are trying to use"
+    "浏览器不支持语音或视频": "The client's browser does not support some or all WebRTC features that you are trying to use",
+    "【{0}】停止了屏幕共享": "[{0}] stopped screen share",
+    "【{0}】开始了屏幕共享": "[{0}] started screen share"
   },
   "zh": {
     "浑河网": "浑河网",

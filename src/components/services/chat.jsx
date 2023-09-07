@@ -68,6 +68,8 @@ class StreamService {
   /** @type {MediaStream} */
   remoteVideoStream = null;
   /** @type {MediaStream} */
+  localVideoStream = null;
+  /** @type {MediaStream} */
   remoteAudioStream = null;
 
   /** @type {boolean} */
@@ -100,11 +102,13 @@ class StreamService {
    */
   publishVideoStream(stream) {
     this.isPublishingVideo = true;
-    this.remoteVideoStream = stream;
+    this.isReceivingVideo = false;
+    this.localVideoStream = stream;
   }
 
   receiveVideoStream(stream) {
     this.isReceivingVideo = true;
+    this.isPublishingVideo = false;
     this.remoteVideoStream = stream;
   }
 

@@ -126,9 +126,11 @@ export default function ChatRoom({ id, translate }) {
     },
     /** @type {(callee: User, caller: User, screenId: string) => void} */
     onClientJoinScreen: (callee, caller, remoteScreenId) => {
+      console.log('callee->', callee, '\n\rcaller->', caller, '\n\rremoteScreenId->', remoteScreenId);
       if(caller) {
         if(caller.id === me.id) {
-          streamService.videoCall(getScreenId(callee.id, true), streamService.remoteVideoStream);
+          setScreenId(remoteScreenId);
+          // streamService.videoCall(getScreenId(callee.id, true), streamService.localVideoStream);
         }
       }
       else if(callee) {
@@ -140,23 +142,28 @@ export default function ChatRoom({ id, translate }) {
     },
     /** @type {(caller: User, users: Array<User>, remoteScreenId: string) => void} */
     onClientStartScreen: (caller, users, remoteScreenId) => {
+      console.log('onClientStartScreen->', remoteScreenId);
       // beeper.publish(Events.StartScreenShareCallback, { caller, users, remoteScreenId });
       notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
-      setVars({ ...vars, screen: { id: remoteScreenId } });
       for(const receiver of users) {
-        if(receiver.id !== me.id) {
-          streamService.videoCall(getScreenId(receiver.id, true), streamService.remoteVideoStream);
+        if(receiver.id === remoteScreenId) {
+          console.log(receiver.id === me.id, 'receiver.id->', receiver.id, '\n\rme.id->', me.id);
+          console.log('### ME ###');
+          continue;
         }
+        streamService.videoCall(getScreenId(receiver.id, true), streamService.localVideoStream);
       }
     },
     /** @type {(sharer: User) => void} */
     onClientStopScreen: (sharer) => {
-      // console.log('client:screen:stop:callback');
+      console.log('client:screen:stop:callback');
       // beeper.publish(Events.StopScreenShareCallback, { sharer });
       setScreenId('');
-      notifyUser(utility.format('{0} 停止了屏幕共享', sharer.name))
+      notifyUser(utility.format(translate('【{0}】停止了屏幕共享'), sharer.name), NOTIFICATION_STYLES.INFO, true);
       if(sharer.id !== me.id) {
-        stopVideo();
+        console.log('client:screen:stop:callback', '->stop');
+        // stopRemoteVideo();
+        stopScreen();
       }
     },
     onClientLeave: data => {
@@ -321,7 +328,7 @@ export default function ChatRoom({ id, translate }) {
           remoteVideoRef.current.srcObject = stream;
           remoteVideoRef.current.muted = muted;
           setUiProperty(current => {
-            return { ...current, isReceivingVideo: true };
+            return { ...current, isReceivingVideo: true, isPublishingVideo: false, isPlayingLocalVideo: false };
           });
         },
 
@@ -376,10 +383,9 @@ export default function ChatRoom({ id, translate }) {
           const peerScreenId = getScreenId(call.peer);
           tryVideoCover(peerScreenId);
           // I was sharing, but somebody interrupted
-          if(streamService.isPublishingVideo || streamService.isReceivingVideo) {
-            if(screenId !== peerScreenId) {
-              stopScreen(true);
-            }
+          console.log(`[${screenId !== peerScreenId}]`, screenId, peerScreenId);
+          if(screenId !== peerScreenId) {
+            stopScreen();
           }
           call.answer();
           call.on('stream', remoteStream => {
@@ -478,6 +484,8 @@ export default function ChatRoom({ id, translate }) {
   const chatHistoryRef = useRef(null);
   /** @type {{ current: HTMLVideoElement }} */
   const remoteVideoRef = useRef(null);
+  /** @type {{ current: HTMLVideoElement }} */
+  const localVideoRef = useRef(null);
 
   /** @type {(num: number) => string} */
   const prefixDigit = (num) => {
@@ -562,22 +570,29 @@ export default function ChatRoom({ id, translate }) {
       });
     }
   },
-  stopVideo = () => {
+  stopRemoteVideo = () => {
     stopTracks(streamService.remoteVideoStream);
     stopStream(remoteVideoRef.current);
-    streamService.isPublishingVideo = false;
-    streamService.isReceivingVideo = false;
-
-    setUiProperty({ ...uiProperty,
-      isReceivingVideo: streamService.isReceivingVideo,
-      isPublishingVideo: streamService.isPublishingVideo
-    });
   },
-  stopScreen = (isLocal = false) => {
-    stopVideo();
-
-    if(isLocal) return;
-    streamService.getWebSocket().emit('server:screen:stop');
+  stopLocalVideo = () => {
+    stopTracks(streamService.localVideoStream);
+    stopStream(localVideoRef.current);
+  },
+  stopScreen = () => {
+    console.log('### STOP SCREEN ###');
+    if(streamService.isReceivingVideo) {
+      stopRemoteVideo();
+      streamService.isReceivingVideo = false;
+      setUiProperty({ ...uiProperty, isReceivingVideo: streamService.isReceivingVideo });
+      console.log('### STOP REMOTE ###');
+    }
+    if(streamService.isPublishingVideo) {
+      stopLocalVideo();
+      streamService.isPublishingVideo = false;
+      setUiProperty({ ...uiProperty, isPublishingVideo: streamService.isPublishingVideo });
+      console.log('### STOP LOCAL ###');
+      streamService.getWebSocket().emit('server:screen:stop');
+    }
   },
   getDisplayMedia = async () => {
     const video = { width: { max: 3840 }, height: { max: 2160 }, deviceId: undefined };
@@ -602,34 +617,30 @@ export default function ChatRoom({ id, translate }) {
       const stream = await getDisplayMedia();
       if(stream) {
         // Stop local stream if it is being shared, remote stream should be cleaned after callback <- @todo
-        stopTracks(streamService.remoteVideoStream);
-        streamService.publishVideoStream(stream);
-        setUiProperty({ ...uiProperty, isPublishingVideo: streamService.isPublishingVideo });
+        stopLocalVideo();
         // // Notify server
         // streamService.getWebSocket().emit('server:user:screen', getScreenId(me.id));
         // // Notify user
         // notifyUser('屏幕共享已开启', NOTIFICATION_STYLES.SUCCESS);
-        remoteVideoRef.current.muted = streamService.isMuted;
-        remoteVideoRef.current.srcObject = stream;
+        localVideoRef.current.muted = streamService.isMuted;
+        localVideoRef.current.srcObject = stream;
+        //
+        streamService.publishVideoStream(stream);
+        setUiProperty({ ...uiProperty, isPublishingVideo: streamService.isPublishingVideo, isReceivingVideo: streamService.isReceivingVideo });
         return true;
       }
     }
     catch(error) {
-      console.log(error);
+      console.warn('### ERROR CAPTURE ###');
+      console.warn(error);
       // What if someone is sharing, but I cam cancelling... @todo
     }
     return false;
   },
   shareScreen = async () => {
-    if(streamService.isPublishingVideo) {
-      stopScreen();
-    }
     const isOK = await captureScreen();
     if(isOK) {
       streamService.setEmoji('📽');
-      setVars({ ...vars, status: { emoji: streamService.emoji } });
-      changeStatus();
-      streamService.getWebSocket().emit('server:screen:start', getScreenId(me.id));
     }
   },
   changeStatus = () => {
@@ -643,9 +654,19 @@ export default function ChatRoom({ id, translate }) {
     const played = remoteVideoRef.current.play();
     if(played) {
       played.then(() => {
-        setUiProperty({ ...uiProperty, isPlayingVideo: true });
+        setUiProperty({ ...uiProperty, isPlayingRemoteVideo: true });
       }).catch(error => {
-        setUiProperty({ ...uiProperty, isPlayingVideo: false });
+        setUiProperty({ ...uiProperty, isPlayingRemoteVideo: false });
+      });
+    }
+  },
+  playLocalVideo = () => {
+    const played = localVideoRef.current.play();
+    if(played) {
+      played.then(() => {
+        setUiProperty({ ...uiProperty, isPlayingLocalVideo: true });
+      }).catch(error => {
+        setUiProperty({ ...uiProperty, isPlayingLocalVideo: false });
       });
     }
   };
@@ -653,6 +674,7 @@ export default function ChatRoom({ id, translate }) {
   // Handle join screen sharing
   useEffect(() => {
     if(screenId && peerStatus.video) {
+      console.log('### PEER READY AND JOIN ###');
       streamService.getWebSocket().emit('server:screen:join', screenId);
     }
   }, [ screenId, peerStatus.video ]);
@@ -677,6 +699,23 @@ export default function ChatRoom({ id, translate }) {
     if(uiProperty.isScrolling)
       scrollToBottom();
   }, [chatHistory, uiProperty.isScrolling]);
+
+  useEffect(() => {
+    // console.log('uiProperty.isPublishingVideo->', uiProperty.isPublishingVideo, 'uiProperty.isReceivingVideo->', uiProperty.isReceivingVideo);
+    if(uiProperty.isPublishingVideo) {
+      setVars(current => {
+        return {
+          ...current,
+          status: { emoji: streamService.emoji }
+        }
+      })
+      changeStatus();
+      streamService.getWebSocket().emit('server:screen:start', getScreenId(me.id));
+    }
+  }, [me.id, uiProperty.isPublishingVideo]);
+
+
+
 
   // Handle events and setup peers
   useEffect(() => {
@@ -781,7 +820,7 @@ export default function ChatRoom({ id, translate }) {
             size="sm"
             variant="plain"
             sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
-            onClick={_evt => {
+            onClick={evt => {
               setUiProperty({ ...uiProperty, isLinkDisplayed: true });
           }} className={styles['chat-menu']} disabled={isLoading}>
             <InfoIcon />
@@ -792,7 +831,7 @@ export default function ChatRoom({ id, translate }) {
             size="sm"
             variant="soft"
             sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
-            onClick={_evt => {
+            onClick={evt => {
               setUiProperty({ ...uiProperty, isProfileDisplayed: true });
             }} className={styles['chat-menu']} disabled={isLoading}>
             <PersonIcon />
@@ -804,7 +843,7 @@ export default function ChatRoom({ id, translate }) {
               size="sm"
               variant="soft"
               sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
-              onClick={_evt => {
+              onClick={evt => {
                 setUiProperty({ ...uiProperty, isUserListDisplayed: !uiProperty.isUserListDisplayed });
               }} className={styles['chat-menu']} disabled={isLoading}>
               <PeopleIcon />
@@ -847,7 +886,7 @@ export default function ChatRoom({ id, translate }) {
           flexWrap: 'wrap',
         }}>
           {/* Video/Screen sharing */}
-          <div className={`${styles['chat-media']}${(uiProperty.isReceivingVideo || uiProperty.isPublishingVideo) ? ` ${styles['show']}` : ''}`}>
+          <div className={`${styles['chat-media']}${uiProperty.isReceivingVideo ? ` ${styles['receive']}` : ''}${uiProperty.isPublishingVideo ? ` ${styles['publish']}` : ''}`}>
             <div className={styles['chat-screen']}>
               <div className={styles['videos']}>
                 <div className={styles['remote']}>
@@ -856,17 +895,22 @@ export default function ChatRoom({ id, translate }) {
                   }} onClick={evt => {
                     playRemoteVideo();
                   }} onEnded={() => {
-                    if(uiProperty.isReceivingVideo || uiProperty.isPublishingVideo) {
-                      stopScreen();
-                    }
+                    console.log('### END ###');
+                    stopScreen();
                   }} onPause={() => {
-                    setUiProperty({ ...uiProperty, isPlayingVideo: false });
+                    setUiProperty({ ...uiProperty, isPlayingRemoteVideo: false });
                   }}
-                  ></video>
+                  />
+                </div>
+                <div className={styles['local']}>
+                  <video autoPlay={false} disablePictureInPicture ref={localVideoRef} onLoadedMetadata={evt => {
+                    playLocalVideo();
+                  }}
+                  />
                 </div>
               </div>
               <div className={styles['controls']}>
-                { uiProperty.isPlayingVideo === false && <IconButton size='sm' onClick={evt => {
+                { uiProperty.isPlayingRemoteVideo === false && uiProperty.isPublishingVideo === false && <IconButton size='sm' onClick={evt => {
                   // Play
                   playRemoteVideo();
                 }}>
@@ -1070,6 +1114,7 @@ export default function ChatRoom({ id, translate }) {
                 <SentimentSatisfiedAltIcon />
               </IconButton>
             </Tooltip>
+
           </Stack>
         </Box>
       </Layout.Footer>

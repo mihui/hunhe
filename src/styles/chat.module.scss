@@ -239,7 +239,10 @@
       display: none;
       overflow: hidden;
       position: relative;
-      &.show {
+      &.receive {
+        display: flex;
+      }
+      &.publish {
         display: flex;
       }
       .chat-screen {

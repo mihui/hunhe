@@ -273,10 +273,17 @@ class SocketManager {
 
     socket.on('server:screen:stop',
     () => {
+      logger.debug('server:screen:stop');
       /** @type {ChatUser} */
       const sharer = socket.data;
-      this.deleteScreen(sharer.room);
-      this.getSockets(sharer.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, sharer);
+      if(sharer.id === this.getScreen(sharer.room)) {
+        this.deleteScreen(sharer.room);
+        logger.debug(EVENTS.USER_SCREEN_STOP_CALLBACK);
+        this.getSockets(sharer.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, sharer);
+      }
+      else {
+        logger.debug('### NO PERMISSIONS ###');
+      }
     });
 
     socket.on('server:screen:start',
