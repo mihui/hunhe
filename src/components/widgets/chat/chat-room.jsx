@@ -122,27 +122,20 @@ export default function ChatRoom({ id, translate }) {
       onSocketChanged(true);
       setIsSocketReady(true);
       setScreenId(remoteScreenId);
-      console.log('who is sharing->', remoteScreenId);
     },
-    /** @type {(callee: User, caller: User, screenId: string) => void} */
-    onClientJoinScreen: (callee, caller, remoteScreenId) => {
-      console.log('callee->', callee, '\n\rcaller->', caller, '\n\rremoteScreenId->', remoteScreenId);
-      if(caller) {
-        if(caller.id === me.id) {
-          setScreenId(remoteScreenId);
-          // streamService.videoCall(getScreenId(callee.id, true), streamService.localVideoStream);
-        }
-      }
-      else if(callee) {
-        if(callee.id === me.id) {
-          // @todo: What is this logic for
+    /** @type {(callee: User, remoteScreenId: string) => void} */
+    onClientJoinScreen: (callee, remoteScreenId) => {
+      if(callee && remoteScreenId) {
+        if(remoteScreenId === me.id) {
+          console.log('### CALLING CALLEE ###');
+          streamService.videoCall(getScreenId(callee.id, true), streamService.localVideoStream);
         }
       }
       // beeper.publish(Events.JoinScreenShareCallback, { callee, caller, remoteScreenId });
     },
     /** @type {(caller: User, users: Array<User>, remoteScreenId: string) => void} */
     onClientStartScreen: (caller, users, remoteScreenId) => {
-      console.log('onClientStartScreen->', remoteScreenId);
+      console.log('remoteScreenId->', remoteScreenId);
       // beeper.publish(Events.StartScreenShareCallback, { caller, users, remoteScreenId });
       notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
       for(const receiver of users) {
@@ -156,12 +149,10 @@ export default function ChatRoom({ id, translate }) {
     },
     /** @type {(sharer: User) => void} */
     onClientStopScreen: (sharer) => {
-      console.log('client:screen:stop:callback');
       // beeper.publish(Events.StopScreenShareCallback, { sharer });
       setScreenId('');
       notifyUser(utility.format(translate('【{0}】停止了屏幕共享'), sharer.name), NOTIFICATION_STYLES.INFO, true);
       if(sharer.id !== me.id) {
-        console.log('client:screen:stop:callback', '->stop');
         // stopRemoteVideo();
         stopScreen();
       }
@@ -674,7 +665,7 @@ export default function ChatRoom({ id, translate }) {
   // Handle join screen sharing
   useEffect(() => {
     if(screenId && peerStatus.video) {
-      console.log('### PEER READY AND JOIN ###');
+      console.log('### PEER READY AND REQUEST TO JOIN ###');
       streamService.getWebSocket().emit('server:screen:join', screenId);
     }
   }, [ screenId, peerStatus.video ]);
@@ -1114,7 +1105,6 @@ export default function ChatRoom({ id, translate }) {
                 <SentimentSatisfiedAltIcon />
               </IconButton>
             </Tooltip>
-
           </Stack>
         </Box>
       </Layout.Footer>

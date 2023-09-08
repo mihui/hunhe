@@ -259,15 +259,8 @@ class SocketManager {
       async (screenId) => {
         /** @type {ChatUser} */
         const callee = socket.data;
-        const users = await this.fetchUsers(callee.room, [], false);
-        const rooms = [ callee.id ];
-        const caller = users.find(x => x.id === screenId);
-        if(caller) {
-          if(rooms.includes(caller.id) === false)
-            rooms.push(caller.id);
-        }
-        logger.debug('rooms->', rooms, 'caller->', caller);
-        this.getSockets(rooms).emit(EVENTS.USER_SCREEN_JOIN_CALLBACK, callee, caller, screenId);
+        const rooms = this.getRooms(MODES.PRIVATE, screenId, callee.id, callee.room);
+        this.getSockets(rooms).emit(EVENTS.USER_SCREEN_JOIN_CALLBACK, callee, screenId);
       }
     );
 
