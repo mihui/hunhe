@@ -243,7 +243,10 @@ class SocketManager {
       /** @type {ChatUser} */
       const chatUser = socket.data;
       if(chatUser.id === this.getScreen(chatUser.room)) {
+        logger.warn('### DISCONNECTING VIDEO/AUDIO ###');
         this.getSockets(chatUser.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, chatUser);
+      }
+      if(chatUser.__status.microphone === STATUS.AUDIO) {
         // Need to know if this user is in a call
         this.getSockets(chatUser.room).emit(EVENTS.USER_AUDIO_HANGUP_CALLBACK, chatUser);
       }
@@ -270,6 +273,7 @@ class SocketManager {
       /** @type {ChatUser} */
       const sharer = socket.data;
       if(sharer.id === this.getScreen(sharer.room)) {
+        logger.debug('server:screen:stop:room->', sharer.id);
         this.deleteScreen(sharer.room);
         logger.debug(EVENTS.USER_SCREEN_STOP_CALLBACK);
         this.getSockets(sharer.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, sharer);

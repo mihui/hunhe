@@ -1,3 +1,5 @@
+import { MediaStatus } from "../services/chat";
+
 export class Meeting {
   /** @type {string} */
   id;
@@ -82,13 +84,13 @@ export class UIProperty {
   /** @type {boolean} */
   isScrolling = true;
   /** @type {boolean} */
-  isPublishingVideo = false;
-  /** @type {boolean} */
-  isReceivingVideo = false;
-  /** @type {boolean} */
   isPlayingLocalVideo = false;
   /** @type {boolean} */
   isPlayingRemoteVideo = false;
+  /** @type {number} */
+  videoStatus = MediaStatus.IDLE;
+  /** @type {number} */
+  audioStatus = MediaStatus.IDLE;
   /** @type {{ code: number, message: string }} */
   error = new UIError();
   /** @type {{ isEmojiDisplayed: boolean }} */
@@ -99,8 +101,8 @@ export class UIProperty {
       isLinkDisplayed: this.isLinkDisplayed,
       isUserListDisplayed: this.isUserListDisplayed,
       isScrolling: this.isScrolling,
-      isPublishingVideo: this.isPublishingVideo,
-      isReceivingVideo: this.isReceivingVideo,
+      videoStatus: this.videoStatus,
+      audioStatus: this.audioStatus,
       isPlayingLocalVideo: this.isPlayingLocalVideo,
       isPlayingRemoteVideo: this.isPlayingRemoteVideo,
       error: this.error.toJSON(),

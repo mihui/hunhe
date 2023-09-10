@@ -56,6 +56,12 @@ class ChatService {
   }
 }
 
+export const MediaStatus = {
+  IDLE: 0,
+  PUBLISHING: 1,
+  RECEIVING: 2,
+}
+
 class StreamService {
   /** @type {import('socket.io-client').Socket} */
   socket;
@@ -73,12 +79,7 @@ class StreamService {
   remoteAudioStream = null;
 
   /** @type {boolean} */
-  isPublishingVideo = false;
-  /** @type {boolean} */
-  isReceivingVideo = false;
-
-  /** @type {boolean} */
-  isReceivingAudio = false;
+  videoStatus = MediaStatus.IDLE;
   /** @type {boolean} */
   isMuted = true;
   /** @type {string} */
@@ -101,14 +102,12 @@ class StreamService {
    * @param {MediaStream} stream Stream
    */
   publishVideoStream(stream) {
-    this.isPublishingVideo = true;
-    this.isReceivingVideo = false;
+    this.videoStatus = MediaStatus.PUBLISHING;
     this.localVideoStream = stream;
   }
 
   receiveVideoStream(stream) {
-    this.isReceivingVideo = true;
-    this.isPublishingVideo = false;
+    this.videoStatus = MediaStatus.RECEIVING;
     this.remoteVideoStream = stream;
   }
 
@@ -128,10 +127,11 @@ class StreamService {
    * Video call
    * @param {string} peerId Peer ID
    * @param {MediaStream} stream Stream
+   * @param {} data Metadata
    */
-  videoCall(peerId, stream) {
+  videoCall(peerId, stream, data = {}) {
     if(this.videoPeer)
-      this.videoPeer.call(peerId, stream, { metadata: {} });
+      this.videoPeer.call(peerId, stream, { metadata: data });
   }
 
 }
