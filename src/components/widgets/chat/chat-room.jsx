@@ -144,6 +144,7 @@ export default function ChatRoom({ id, translate }) {
           console.log('### ME ###');
           continue;
         }
+        console.log(`### CALLING ${receiver.name} ###`);
         streamService.videoCall(getScreenId(receiver.id, true), streamService.localVideoStream, { nickname: caller.name });
       }
     },
@@ -392,6 +393,9 @@ export default function ChatRoom({ id, translate }) {
           const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : 'Video server connection error.';
           console.warn(message);
           beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
+        },
+        onVideoPeerClose = () => {
+          console.warn('### SCREEN PEER CLOSED ###');
         };
         console.log('### START ###');
         if(streamService.audioPeer === null && streamService.videoPeer === null) {
@@ -413,11 +417,11 @@ export default function ChatRoom({ id, translate }) {
               .on('call', onAudioPeerCall)
               .on('error', onAudioPeerError);
 
-    
             streamService.videoPeer.on('open', onVideoPeerOpen)
               .on('disconnected', onVideoPeerDisconnected)
               .on('call', onVideoPeerCall)
-              .on('error', onVideoPeerError);
+              .on('error', onVideoPeerError)
+              .on('close', onVideoPeerClose);
           });
         }
         return () => {
@@ -482,13 +486,9 @@ export default function ChatRoom({ id, translate }) {
   const prefixDigit = (num) => {
     if(num <= 9) return new String(`0${num}`);
     return new String(num);
-  },
+  };
   /** @type {(date: Date) => string} */
-  getMinuteFormat = 
-  /**
-   * @param {Date} date Date
-   */
-  (date) => {
+  const getMinuteFormat = (date) => {
     return `${prefixDigit(date.getHours())}:${prefixDigit(date.getMinutes())}`;
   },
   /**
@@ -498,10 +498,7 @@ export default function ChatRoom({ id, translate }) {
     if(chatHistoryRef)
       chatHistoryRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
   };
-  const getFakeMessage = () => {
-    const str = 'Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
-    return str.substring(Math.random() * str.length/2, Math.random() * str.length/2);
-  }, focusInput = () => {
+  const focusInput = () => {
     if(chatInputRef.current) {
       chatInputRef.current.focus();
     }
@@ -547,9 +544,9 @@ export default function ChatRoom({ id, translate }) {
   },
   stopStream = (nativeElement) => {
     if(nativeElement) {
-      const stream = nativeElement.srcObject;
-      stopTracks(stream);
+      stopTracks(nativeElement.srcObject);
       nativeElement.srcObject = null;
+      nativeElement.pause();
     }
   },
   /** @type {(stream: MediaStream) => void} */
@@ -587,6 +584,7 @@ export default function ChatRoom({ id, translate }) {
       streamService.setEmoji('');
       setVars({ ...vars, status: { ...vars.status, emoji: streamService.emoji } });
     }
+    streamService.cleanConnections();
   },
   getDisplayMedia = async () => {
     const video = { width: { max: 3840 }, height: { max: 2160 }, deviceId: undefined };
@@ -896,20 +894,24 @@ export default function ChatRoom({ id, translate }) {
             <div className={styles['chat-screen']}>
               <div className={styles['videos']}>
                 <div className={styles['remote']}>
-                  <video autoPlay={false} disablePictureInPicture ref={remoteVideoRef} onLoadedMetadata={evt => {
+                  <video autoPlay={true} playsInline disablePictureInPicture ref={remoteVideoRef} onLoadedMetadata={evt => {
                     playRemoteVideo();
                   }} onClick={evt => {
                     playRemoteVideo();
                   }} onEnded={() => {
-                    console.log('### END ###');
-                    stopScreen();
+                    console.log('### ENDED ###');
+                    // stopScreen();
+                    // streamService.videoStatus = MediaStatus.IDLE;
+                    // setUiProperty({ ...uiProperty, videoStatus: streamService.videoStatus });
                   }} onPause={() => {
+                    console.log('### PAUSE ###');
+                    // stopScreen();
                     setUiProperty({ ...uiProperty, isPlayingRemoteVideo: false });
-                  }}
+                  }} 
                   />
                 </div>
                 <div className={styles['local']}>
-                  <video autoPlay={false} disablePictureInPicture ref={localVideoRef} onLoadedMetadata={evt => {
+                  <video autoPlay={false} playsInline disablePictureInPicture ref={localVideoRef} onLoadedMetadata={evt => {
                     playLocalVideo();
                   }}
                   />
@@ -1050,7 +1052,7 @@ export default function ChatRoom({ id, translate }) {
               <MicIcon />
             </IconButton> */}
 
-            <IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
+            { arePeersOK && <IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               if(uiProperty.videoStatus === MediaStatus.PUBLISHING) {
@@ -1061,7 +1063,7 @@ export default function ChatRoom({ id, translate }) {
               }
             }}>
               { uiProperty.videoStatus === MediaStatus.PUBLISHING ? <CancelPresentationIcon /> : <PresentToAllIcon /> }
-            </IconButton>
+            </IconButton> }
 
             <Divider orientation="vertical"></Divider>
 
@@ -1120,7 +1122,6 @@ export default function ChatRoom({ id, translate }) {
                 <SentimentSatisfiedAltIcon />
               </IconButton>
             </Tooltip>
-
           </Stack>
         </Box>
       </Layout.Footer>

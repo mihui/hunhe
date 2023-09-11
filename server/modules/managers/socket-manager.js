@@ -246,6 +246,7 @@ class SocketManager {
         logger.warn('### DISCONNECTING VIDEO/AUDIO ###');
         this.getSockets(chatUser.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, chatUser);
       }
+      // @todo, this may crash the app
       if(chatUser.__status.microphone === STATUS.AUDIO) {
         // Need to know if this user is in a call
         this.getSockets(chatUser.room).emit(EVENTS.USER_AUDIO_HANGUP_CALLBACK, chatUser);

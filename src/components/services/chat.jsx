@@ -70,6 +70,8 @@ class StreamService {
   audioPeer = null;
   /** @type {import('peerjs').Peer} */
   videoPeer = null;
+  /** @type {Array<import('peerjs').MediaConnection>} */
+  videoConnections = [];
 
   /** @type {MediaStream} */
   remoteVideoStream = null;
@@ -87,6 +89,7 @@ class StreamService {
 
   constructor() {
     this.socket = io({ autoConnect: false, path: '/api/messaging' });
+    this.videoConnections = [];
   }
 
   getWebSocket() {
@@ -130,8 +133,19 @@ class StreamService {
    * @param {} data Metadata
    */
   videoCall(peerId, stream, data = {}) {
-    if(this.videoPeer)
-      this.videoPeer.call(peerId, stream, { metadata: data });
+    if(this.videoPeer) {
+      const newConnection = this.videoPeer.call(peerId, stream, { metadata: data });
+      this.videoConnections.push(newConnection);
+    }
+  }
+
+  cleanConnections() {
+    this.videoConnections.forEach(x => {
+      if(x)
+        x.close();
+    });
+    this.videoConnections.length = 0;
+    this.videoConnections = [];
   }
 
 }

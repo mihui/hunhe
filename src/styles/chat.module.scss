@@ -241,9 +241,29 @@
       position: relative;
       &.receive {
         display: flex;
+        .chat-screen {
+          .videos {
+            .local {
+              display: none;
+            }
+            .remote {
+              display: flex;
+            }
+          }
+        }
       }
       &.publish {
         display: flex;
+        .chat-screen {
+          .videos {
+            .local {
+              display: flex;
+            }
+            .remote {
+              display: none;
+            }
+          }
+        }
       }
       .chat-screen {
         flex: 1;
@@ -291,17 +311,7 @@
             z-index: 20;
             overflow: hidden;
           }
-          .local {
-            position: absolute;
-            background-color: #000;
-            aspect-ratio: 16 / 9;
-            z-index: 10;
-            margin: 1rem;
-            right: 0px;
-            top: 0px;
-            width: 30%;
-            opacity: 0.85;
-          }
+          .local,
           .remote {
             overflow: hidden;
             width: 100%;
@@ -311,10 +321,37 @@
             video {
               z-index: 10;
               cursor: pointer;
+              pointer-events: none;
               &.playing {
                 pointer-events: none;
                 cursor: default;
               }
+            }
+          }
+          .local {
+            &::after {
+              content: 'Publishing';
+              right: 0.5rem;
+              top: 0.5rem;
+              background: #fff;
+              opacity: 0.75;
+              position: absolute;
+              padding: 0.2rem 0.5rem;
+              border-radius: var(--border-radius);
+              font-size: 0.75rem;
+            }
+          }
+          .remote {
+            &::after {
+              content: 'Receiving';
+              right: 0.5rem;
+              top: 0.5rem;
+              background: #fff;
+              opacity: 0.75;
+              position: absolute;
+              padding: 0.2rem 0.5rem;
+              border-radius: var(--border-radius);
+              font-size: 0.75rem;
             }
           }
         }
