@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client';
-import { HttpCodes } from '../config/vars';
+import { CustomCodes, HttpCodes } from '../config/vars';
 import { Meeting } from '../models/meeting';
 
 class ChatService {
@@ -139,6 +139,39 @@ class StreamService {
     }
   }
 
+  /**
+   * Setup Peers
+   * @param {string} audioPeerId 
+   * @param {string} videoPeerId 
+   * @returns {Promise<{}>} Returns Promise with nothing :)
+   */
+  setupPeers(audioPeerId, videoPeerId) {
+    return new Promise((resolve, reject) => {
+      if(this.audioPeer === null && this.videoPeer === null) {
+        try {
+          import('peerjs').then(imported => {
+            const Peer = imported.default;
+            const peerOptions = {
+              host: window.location.host, path: '/live/audio',
+              config: { iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+              ] }
+            };
+            this.audioPeer = new Peer(audioPeerId, peerOptions);
+            this.videoPeer = new Peer(videoPeerId, peerOptions);
+            resolve(CustomCodes.PEERS_READY);
+          });
+        }
+        catch(error) {
+          reject(CustomCodes.PEERS_ERROR);
+        }
+      }
+      else {
+        reject(CustomCodes.PEERS_INITIALIZED);
+      }
+    });
+  }
+
   cleanConnections() {
     this.videoConnections.forEach(x => {
       if(x)
@@ -146,6 +179,21 @@ class StreamService {
     });
     this.videoConnections.length = 0;
     this.videoConnections = [];
+  }
+
+  reset() {
+    if(this.videoPeer) {
+      this.videoPeer.disconnect();
+      // this.videoPeer.destroy();
+      // this.videoPeer = null;
+    }
+
+    if(this.audioPeer) {
+      this.audioPeer.disconnect();
+      // this.audioPeer.destroy();
+      // this.audioPeer = null;
+    }
+    this.cleanConnections();
   }
 
 }

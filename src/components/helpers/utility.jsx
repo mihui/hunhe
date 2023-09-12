@@ -114,7 +114,9 @@ export const Events = {
   StartScreenShareCallback: 'StartScreenShareCallback',
   ClientNotification: 'ClientNotification',
   UserMessage: 'UserMessage',
-  UpdateMeeting: 'UpdateMeeting'
+  UpdateMeeting: 'UpdateMeeting',
+  PeerVideoCall: 'PeerVideoCall',
+  PeerAudioCall: 'PeerAudioCall'
 };
 
 class Beeper {

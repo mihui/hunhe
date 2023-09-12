@@ -328,32 +328,32 @@
               }
             }
           }
-          .local {
-            &::after {
-              content: 'Publishing';
-              right: 0.5rem;
-              top: 0.5rem;
-              background: #fff;
-              opacity: 0.75;
-              position: absolute;
-              padding: 0.2rem 0.5rem;
-              border-radius: var(--border-radius);
-              font-size: 0.75rem;
-            }
-          }
-          .remote {
-            &::after {
-              content: 'Receiving';
-              right: 0.5rem;
-              top: 0.5rem;
-              background: #fff;
-              opacity: 0.75;
-              position: absolute;
-              padding: 0.2rem 0.5rem;
-              border-radius: var(--border-radius);
-              font-size: 0.75rem;
-            }
-          }
+          // .local {
+          //   &::after {
+          //     content: 'Publishing';
+          //     right: 0.5rem;
+          //     top: 0.5rem;
+          //     background: #fff;
+          //     opacity: 0.75;
+          //     position: absolute;
+          //     padding: 0.2rem 0.5rem;
+          //     border-radius: var(--border-radius);
+          //     font-size: 0.75rem;
+          //   }
+          // }
+          // .remote {
+          //   &::after {
+          //     content: 'Receiving';
+          //     right: 0.5rem;
+          //     top: 0.5rem;
+          //     background: #fff;
+          //     opacity: 0.75;
+          //     position: absolute;
+          //     padding: 0.2rem 0.5rem;
+          //     border-radius: var(--border-radius);
+          //     font-size: 0.75rem;
+          //   }
+          // }
         }
         .controls {
           position: absolute;

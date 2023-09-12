@@ -151,16 +151,16 @@ export const DEVICE = {
 export const PEER = {
   ERRORS: {
     'browser-incompatible': `浏览器不支持语音或视频`,
-    'disconnected': `You've already disconnected this peer from the server and can no longer make any new connections on it.`,
-    'invalid-id': `The ID contains illegal characters.`,
+    'disconnected': `媒体服务器断开`,
+    'invalid-id': `用户编号错误`,
     'invalid-key': `The API key contains illegal characters or is not in the system.`,
-    'network': `Lost or cannot establish a connection to the signalling server.`,
-    'peer-unavailable': `The client you're trying to connect to does not exist.`,
-    'ssl-unavailable': `SSL error with the server`,
-    'server-error': `Unable to reach the server.`,
-    'socket-error': `An error from the underlying socket.`,
-    'socket-closed': `The underlying socket closed unexpectedly.`,
-    'unavailable-id': `The ID is already taken.`,
-    'webrtc': `Native WebRTC errors.`
+    'network': `网络连接不稳定`,
+    'peer-unavailable': `尝试连接的客户端不存在`,
+    'ssl-unavailable': `证书错误`,
+    'server-error': `服务错误`,
+    'socket-error': `套接字错误`,
+    'socket-closed': `服务异常关闭`,
+    'unavailable-id': `用户已经被占用`,
+    'webrtc': `端到端服务错误`
   }
 };

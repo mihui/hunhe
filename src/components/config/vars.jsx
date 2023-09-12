@@ -26,6 +26,12 @@ export const HttpCodes = {
   OK: 200
 };
 
+export const CustomCodes = {
+  PEERS_READY: 1,
+  PEERS_INITIALIZED: 2,
+  PEERS_ERROR: 3,
+};
+
 export const ROOMS = {
   DEFAULT: {
     ID: '00000000-0000-0000-0000-000000000000',

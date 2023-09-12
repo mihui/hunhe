@@ -244,6 +244,7 @@ class SocketManager {
       const chatUser = socket.data;
       if(chatUser.id === this.getScreen(chatUser.room)) {
         logger.warn('### DISCONNECTING VIDEO/AUDIO ###');
+        this.deleteScreen(chatUser.room);
         this.getSockets(chatUser.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, chatUser);
       }
       // @todo, this may crash the app
@@ -274,13 +275,8 @@ class SocketManager {
       /** @type {ChatUser} */
       const sharer = socket.data;
       if(sharer.id === this.getScreen(sharer.room)) {
-        logger.debug('server:screen:stop:room->', sharer.id);
         this.deleteScreen(sharer.room);
-        logger.debug(EVENTS.USER_SCREEN_STOP_CALLBACK);
         this.getSockets(sharer.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, sharer);
-      }
-      else {
-        logger.debug('### NO PERMISSIONS ###');
       }
     });
 
@@ -335,18 +331,18 @@ class SocketManager {
        */
       async () => {
         /** @type {ChatUser} */
-        const user = socket.data;
+        const chatUser = socket.data;
         logger.warn(`### LEAVE ROOM ###`);
-        logger.warn(user);
+        logger.warn(chatUser);
 
-        await socket.leave(user.room);
+        await socket.leave(chatUser.room);
 
-        const users = await this.fetchUsers(user.room, [ user.room ], false);
+        const users = await this.fetchUsers(chatUser.room, [ chatUser.room ], false);
         for (const u of users) {
           logger.warn(`[${u.id}]: ${u.name}`);
         }
         socket.disconnect(true);
-        return this.getSockets(user.room).emit(EVENTS.USER_LEAVE, { users, user });
+        return this.getSockets(chatUser.room).emit(EVENTS.USER_LEAVE, { users, user: chatUser });
       }
     );
 

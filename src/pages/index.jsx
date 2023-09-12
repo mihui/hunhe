@@ -96,7 +96,6 @@ export default function Index({ translate }) {
     }
   }, doCancelRequest = () => {
     setIsCalling(false);
-    setOpenDialModal(false);
   };
 
   useEffect(() => {
