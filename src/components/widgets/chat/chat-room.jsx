@@ -415,11 +415,11 @@ export default function ChatRoom({ id, translate }) {
             .on('error', onVideoPeerError)
             .on('close', onVideoPeerClose);
           // Ready
-          setArePeersOK(true);
+          setArePeersOK(isShareSupported());
         }).catch(code => {
           console.log(`### REJECT CODE: ${code} ###`);
           if(code === CustomCodes.PEERS_INITIALIZED) {
-            setArePeersOK(true);
+            setArePeersOK(isShareSupported());
           }
         });
       }
