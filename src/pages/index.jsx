@@ -59,16 +59,7 @@ export default function Index({ translate }) {
     return false;
   };
 
-  /** @type {(data: User) => void} Returns user */
-  const storeUser = (data) => {
-    storage.save(StorageKeys.User, data, 'json');
-  },
-  /** @type {() => User} Returns user */
-  getUser = () => {
-    const storedUser = storage.get(StorageKeys.User, null, 'json');
-    return storedUser;
-  },
-  doStartChatting = async () => {
+  const doStartChatting = async () => {
     setIsCalling(true);
     try {
       if(meetingId && dialog.isParticipant) {
@@ -113,7 +104,7 @@ export default function Index({ translate }) {
     // 1. Initialize user
     if(user.id === '') {
       // 2. Try cache
-      const storedUser = getUser();
+      const storedUser = chatService.getUser();
       // 2.1 Initialize user from cache
       if(storedUser) {
         // 2.2 Set user from cache
@@ -123,7 +114,7 @@ export default function Index({ translate }) {
       else {
         const userWithId = { ...user, id: crypto.randomUUID() };
         setUser(userWithId);
-        storeUser(userWithId);
+        chatService.storeUser(userWithId);
       }
     }
   }, [ user ]);
@@ -196,7 +187,7 @@ export default function Index({ translate }) {
                 <Input placeholder={ translate('昵称') } value={user.name} autoFocus required onChange={evt => {
                   const newUser = { ...user, name: evt.target.value };
                   setUser(newUser);
-                  storeUser(newUser);
+                  chatService.storeUser(newUser);
                 }} disabled={isCalling} />
               </FormControl>
               <FormControl>
@@ -229,7 +220,7 @@ export default function Index({ translate }) {
                         onChange={evt => {
                           const newUser = { ...user, avatar: evt.target.value };
                           setUser(newUser);
-                          storeUser(newUser);
+                          chatService.storeUser(newUser);
                         }}
                       />
                       <Avatar src={`/images/avatars/${avatarItem.key}.png`} />

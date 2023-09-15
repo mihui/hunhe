@@ -8,7 +8,9 @@ const VARS = {
 export default VARS;
 
 export const StorageKeys = {
-  User: 'User'
+  User: 'User',
+  AudioDeviceId: 'AudioDeviceId',
+  VideoDeviceId: 'VideoDeviceId',
 };
 
 /** @type {Array<{ key: string, url: string }>} */

@@ -82,6 +82,8 @@ export class UIProperty {
   /** @type {boolean} */
   isUserListDisplayed = false;
   /** @type {boolean} */
+  isSettingsDisplayed = false;
+  /** @type {boolean} */
   isScrolling = true;
   /** @type {boolean} */
   isPlayingLocalVideo = false;
@@ -100,6 +102,7 @@ export class UIProperty {
       isProfileDisplayed: this.isProfileDisplayed,
       isLinkDisplayed: this.isLinkDisplayed,
       isUserListDisplayed: this.isUserListDisplayed,
+      isSettingsDisplayed: this.isSettingsDisplayed,
       isScrolling: this.isScrolling,
       videoStatus: this.videoStatus,
       audioStatus: this.audioStatus,

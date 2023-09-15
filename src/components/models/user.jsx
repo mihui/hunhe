@@ -1,4 +1,5 @@
 import { STATUS } from "../config/vars";
+import { DEVICE } from "./meeting";
 export const ChatModes = {
   Private: 'Private',
   Public: 'Public',
@@ -11,10 +12,10 @@ export class Device {
   muted;
   /** @type {string} */
   deviceId;
-  constructor() {
+  constructor(deviceId = '') {
     this.enabled = false;
     this.muted = true;
-    this.deviceId = '';
+    this.deviceId = deviceId;
   }
   toJSON() {
     return {
@@ -35,8 +36,8 @@ export class Devices {
   /** @type {Video} */
   video;
   constructor() {
-    this.audio = new Audio();
-    this.video = new Video();
+    this.audio = new Audio(DEVICE.MICROPHONE);
+    this.video = new Video(DEVICE.SCREEN);
   }
 
   toJSON() {

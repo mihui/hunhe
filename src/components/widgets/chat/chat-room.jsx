@@ -42,6 +42,7 @@ import { DEVICE, Device, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER, UIPr
 import { MediaStatus, chatService, streamService } from '@/components/services/chat';
 import { ChatErrorModal } from '../modals/chat-error';
 import Button from '@mui/joy/Button';
+import { ChatSettingsModal } from '../modals/chat-settings';
 
 /**
  * Chatroom
@@ -64,10 +65,7 @@ export default function ChatRoom({ id, translate }) {
   }, [translate]);
 
   /** @type {() => User} */
-  const getUser = () => {
-    const storedUser = storage.get(StorageKeys.User, null, 'json');
-    return storedUser;
-  }, goBackHome = useCallback((isIdValid = true) => {
+  const goBackHome = useCallback((isIdValid = true) => {
     let route = '/';
     if(id && id !== ROOMS.DEFAULT.ID && isIdValid) {
       route = route.concat(`?meeting=${id}`);
@@ -328,7 +326,7 @@ export default function ChatRoom({ id, translate }) {
     useEffect(() => {
       // 1. Initialize user
       // 2. Try cache
-      const storedUser = getUser();
+      const storedUser = chatService.getUser();
       // 2.1 Initialize user from cache
       if(storedUser && utility.validateUUID(storedUser.id) && storedUser.name && storedUser.avatar) {
         setMe(storedUser);
@@ -446,10 +444,10 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
   const [ chatUsers, setChatUsers ] = useState([]);
 
-  /** @type {[ vars: { audio: Media, screen: Media, status: { emoji: string }, devices: Array<Device> }, setVars: (vars: { audio: Media, screen: Media, status: { emoji: string }, devices: Array<Device> }) => void ]} */
+  /** @type {[ vars: { audio: Media, video: Media, status: { emoji: string }, devices: Array<Device> }, setVars: (vars: { audio: Media, video: Media, status: { emoji: string }, devices: Array<Device> }) => void ]} */
   const [ vars, setVars ] = useState({
     audio: { id: DEVICE.MICROPHONE },
-    screen: { id: DEVICE.SCREEN },
+    video: { id: DEVICE.SCREEN },
     status: { emoji: '' },
     devices: []
   });
@@ -527,30 +525,13 @@ export default function ChatRoom({ id, translate }) {
   isShareSupported = () => {
     return typeof (window.navigator.mediaDevices.getDisplayMedia) !== 'undefined';
   },
-  stopStream = (nativeElement) => {
-    if(nativeElement) {
-      stopTracks(nativeElement.srcObject);
-      nativeElement.srcObject = null;
-      nativeElement.pause();
-    }
-  },
-  /** @type {(stream: MediaStream) => void} */
-  stopTracks = (stream) => {
-    if(stream) {
-      const tracks = stream.getTracks();
-      tracks.forEach(track => {
-        track.stop();
-        stream.removeTrack(track);
-      });
-    }
-  },
   stopRemoteVideo = () => {
-    stopTracks(streamService.remoteVideoStream);
-    stopStream(remoteVideoRef.current);
+    utility.stopTracks(streamService.remoteVideoStream);
+    utility.stopStream(remoteVideoRef.current);
   },
   stopLocalVideo = () => {
-    stopTracks(streamService.localVideoStream);
-    stopStream(localVideoRef.current);
+    utility.stopTracks(streamService.localVideoStream);
+    utility.stopStream(localVideoRef.current);
   },
   stopScreen = () => {
     console.log('### STOP SCREEN ###');
@@ -572,22 +553,7 @@ export default function ChatRoom({ id, translate }) {
     streamService.cleanConnections();
   },
   getDisplayMedia = async () => {
-    const video = { width: { max: 3840 }, height: { max: 2160 }, deviceId: undefined };
-    const isScreenOnly = vars.screen.id === DEVICE.SCREEN || vars.devices.findIndex(x => x.deviceId === vars.screen.id) === -1;
-    if(isScreenOnly) {
-      delete video.deviceId;
-    }
-    else {
-      video.deviceId = vars.screen.id;
-    }
-    // Audio
-    const audio = vars.audio.id === DEVICE.MICROPHONE ? true : { deviceId: vars.audio.id };
-    /** @type {DisplayMediaStreamOptions|MediaStreamConstraints} */
-    const constraints = { video, audio };
-    // If the device ID equas default screen share or can not find the selected device
-    return isScreenOnly ?
-      await navigator.mediaDevices.getDisplayMedia(constraints) :
-      await navigator.mediaDevices.getUserMedia(constraints);
+    return utility.getDisplayMedia(vars.video.id, vars.audio.id, vars.devices);
   },
   captureScreen = async () => {
     try {
@@ -701,6 +667,16 @@ export default function ChatRoom({ id, translate }) {
       default:
         return ('???');
     }
+  }, refreshDevices = () => {
+    // Find browser supported devices
+    utility.getDevices().then(systemDevices => {
+      const devices = [{ kind: 'videoinput', label: translate('仅屏幕'), deviceId: DEVICE.SCREEN }].concat(systemDevices);
+      setVars({
+        ...vars, devices,
+        audio: { ...vars.audio, id: storage.get(StorageKeys.AudioDeviceId, DEVICE.MICROPHONE) },
+        video: { ...vars.video, id: storage.get(StorageKeys.VideoDeviceId, DEVICE.SCREEN) }
+      });
+    });
   };
   // useEffect(() => {
   //   console.log('uiProperty.videoStatus->', logVideoStatus(uiProperty.videoStatus), logVideoStatus(streamService.videoStatus));
@@ -785,11 +761,7 @@ export default function ChatRoom({ id, translate }) {
       }
     });
 
-    // Find browser supported devices
-    utility.getDevices().then(systemDevices => {
-      const devices = [{ kind: 'videoinput', label: translate('仅屏幕'), deviceId: DEVICE.SCREEN }].concat(systemDevices);
-      setVars({ ...vars, devices });
-    });
+    refreshDevices();
 
     return () => {
       disposeSocketConnectedEvent();
@@ -875,6 +847,10 @@ export default function ChatRoom({ id, translate }) {
       <ChatUserModal user={me} open={uiProperty.isProfileDisplayed} translate={translate} handleClose={() => {
         setUiProperty({ ...uiProperty, isProfileDisplayed: false });
       }} />
+      {/* CHAT SETTINGS */}
+      <ChatSettingsModal user={me} open={uiProperty.isSettingsDisplayed} translate={translate} handleClose={() => {
+        setUiProperty({ ...uiProperty, isSettingsDisplayed: false });
+      }} vars={vars} setVars={setVars} refreshDevices={refreshDevices} />
       {/* CHAT LINK */}
       <ChatLinkModal user={me} open={uiProperty.isLinkDisplayed} translate={translate} handleClose={() => {
         setUiProperty({ ...uiProperty, isLinkDisplayed: false });
@@ -1060,12 +1036,16 @@ export default function ChatRoom({ id, translate }) {
             </IconButton>
 
             {/* <IconButton size='sm' disabled={isLoading}>
-              <TuneIcon />
-            </IconButton>
-
-            <IconButton size='sm' disabled={isLoading}>
               <MicIcon />
             </IconButton> */}
+
+            { arePeersOK && <IconButton size='sm' disabled={isLoading} onClick={evt => {
+              evt.preventDefault();
+              evt.stopPropagation();
+              setUiProperty({ ...uiProperty, isSettingsDisplayed: !uiProperty.isSettingsDisplayed });
+            }}>
+              <TuneIcon />
+            </IconButton> }
 
             { arePeersOK && <IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
               evt.preventDefault();

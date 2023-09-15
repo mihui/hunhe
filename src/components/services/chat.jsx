@@ -1,6 +1,8 @@
 import { io } from 'socket.io-client';
-import { CustomCodes, HttpCodes } from '../config/vars';
+import { CustomCodes, HttpCodes, StorageKeys } from '../config/vars';
 import { Meeting } from '../models/meeting';
+import { storage } from '../helpers/utility';
+import { User } from '../models/user';
 
 class ChatService {
   /**
@@ -53,6 +55,22 @@ class ChatService {
       console.warn(error.message);
     }
     return null;
+  }
+
+  /**
+   * Get user information
+   * @returns {User} Returns user
+   */
+  getUser () {
+    const storedUser = storage.get(StorageKeys.User, null, 'json');
+    return storedUser;
+  }
+  /**
+   * Store user information
+   * @param {User} data User data
+   */
+  storeUser (data) {
+    storage.save(StorageKeys.User, data, 'json');
   }
 }
 

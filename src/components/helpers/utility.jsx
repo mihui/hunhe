@@ -103,6 +103,45 @@ class Utility {
     catch(error) { /* empty */ }
     return systemDevices.filter(x => x.kind ==='audioinput' || x.kind === 'videoinput');
   }
+
+  async getDisplayMedia (screenId = DEVICE.SCREEN, audioId = DEVICE.MICROPHONE, devices = []) {
+    const video = { width: { max: 3840 }, height: { max: 2160 }, deviceId: undefined };
+    const isScreenOnly = screenId === DEVICE.SCREEN || devices.findIndex(x => x.deviceId === screenId) === -1;
+    if(isScreenOnly) {
+      delete video.deviceId;
+    }
+    else {
+      video.deviceId = screenId;
+    }
+    // Audio
+    const audio = audioId === DEVICE.MICROPHONE ? true : { deviceId: audioId };
+    /** @type {DisplayMediaStreamOptions|MediaStreamConstraints} */
+    const constraints = { video, audio };
+    // If the device ID equas default screen share or can not find the selected device
+    return isScreenOnly ?
+      await navigator.mediaDevices.getDisplayMedia(constraints) :
+      await navigator.mediaDevices.getUserMedia(constraints);
+  }
+
+  /** @type {(stream: MediaStream) => void} */
+  stopTracks (stream) {
+    if(stream) {
+      const tracks = stream.getTracks();
+      tracks.forEach(track => {
+        track.stop();
+        stream.removeTrack(track);
+      });
+    }
+  }
+
+  /** @type {(nativeElement: HTMLVideoElement) => void} */
+  stopStream (nativeElement) {
+    if(nativeElement) {
+      this.stopTracks(nativeElement.srcObject);
+      nativeElement.srcObject = null;
+      nativeElement.pause();
+    }
+  }
 }
 
 export const Events = {
