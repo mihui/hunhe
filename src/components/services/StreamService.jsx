@@ -77,6 +77,7 @@ export class StreamService {
     this.audioStatus = MediaStatus.PUBLISHING;
     this.localAudioStream = stream;
     this.getUserAudio(userId).createStream(this.localAudioStream);
+    this.getUserAudio(userId).volume(0);
   }
 
   /**
@@ -99,10 +100,10 @@ export class StreamService {
       });
     }
     if (this.videoStatus === MediaStatus.PUBLISHING) {
-      // const enabled = this.isMuted === false;
+      const enabled = this.isMuted === false;
       const tracks = this.localVideoStream.getTracks();
       tracks.forEach(track => {
-        track.enabled = true;
+        track.enabled = enabled;
       });
     }
   }
@@ -116,8 +117,8 @@ export class StreamService {
     this.remoteVideoStream = stream;
   }
 
-  receiveAudioStream(userId, stream) {
-    this.getUserAudio(userId).createStream(stream);
+  receiveAudioStream(userId, remoteStream) {
+    this.getUserAudio(userId).createStream(remoteStream);
   }
 
   toggleMute() {

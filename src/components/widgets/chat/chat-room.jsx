@@ -658,7 +658,6 @@ export default function ChatRoom({ id, translate }) {
     });
   },
   startMeeting = async () => {
-    console.log('streamService.audioStatus->', streamService.audioStatus);
     if(streamService.audioStatus === MediaStatus.PUBLISHING) {
       utility.stopTracks(streamService.localAudioStream);
       // utility.stopStream(streamService.getUserAudio(me.id));

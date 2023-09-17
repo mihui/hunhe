@@ -134,9 +134,9 @@ export class ChatAudio {
 
   constructor(id) {
     this.context = new AudioContext();
+    this.gain = this.context.createGain();
     this.id = id;
   }
-
 
   /**
    * Create stream
@@ -144,7 +144,16 @@ export class ChatAudio {
    */
   createStream(stream) {
     this.source = this.context.createMediaStreamSource(stream);
-    this.source.connect(this.context.destination);
+    this.source.connect(this.gain);
+    this.gain.connect(this.context.destination);
+  }
+
+  /**
+   * Volume
+   * @param {number} val Volume value, 1 - on, 0 - off
+   */
+  volume(val = 1) {
+    this.gain.gain.setValueAtTime(val, this.context.currentTime);
   }
 }
 
