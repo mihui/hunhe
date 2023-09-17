@@ -51,7 +51,15 @@
     "用户编号错误": "The ID contains illegal characters.",
     "证书错误": "SSL error with the server",
     "【{0}】停止了屏幕共享": "[{0}] stopped screen share",
-    "【{0}】开始了屏幕共享": "[{0}] started screen share"
+    "【{0}】开始了屏幕共享": "[{0}] started screen share",
+    "设置": "Settings",
+    "音频源": "Audio source",
+    "视频源": "Video source",
+    "音频输入 - {0}": "Audio input - {0}",
+    "视频输入 - {0}": "Video input - {0}",
+    "仅屏幕": "Screen only",
+    "预览": "Preview",
+    "刷新": "Refresh"
   },
   "zh": {
     "浑河网": "浑河网",

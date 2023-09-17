@@ -123,6 +123,10 @@ class Utility {
       await navigator.mediaDevices.getUserMedia(constraints);
   }
 
+  async getUserMedia() {
+    return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+  }
+
   /** @type {(stream: MediaStream) => void} */
   stopTracks (stream) {
     if(stream) {
@@ -139,7 +143,7 @@ class Utility {
     if(nativeElement) {
       this.stopTracks(nativeElement.srcObject);
       nativeElement.srcObject = null;
-      nativeElement.pause();
+      // nativeElement.pause();
     }
   }
 }

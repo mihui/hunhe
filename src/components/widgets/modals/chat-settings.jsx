@@ -84,7 +84,7 @@ export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, han
                 storage.save(StorageKeys.AudioDeviceId, audioDeviceId);
               }}>
                 { vars.devices.filter(x => x.kind === 'audioinput').map((x, index) => {
-                  return <Option key={index} value={x.deviceId}>{x.label || utility.format(translate('音频输入 {0}'), index)}</Option>;
+                  return <Option key={index} value={x.deviceId}>{x.label || utility.format(translate('音频输入 - {0}'), index)}</Option>;
                 }) }
               </Select>
             </FormControl>
@@ -97,7 +97,7 @@ export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, han
                 storage.save(StorageKeys.VideoDeviceId, screenDeviceId);
               }}>
                 { vars.devices.filter(x => x.kind === 'videoinput').map((x, index) => {
-                  return <Option key={index} value={x.deviceId}>{x.label || utility.format(translate('视频输入 {0}'), index)}</Option>;
+                  return <Option key={index} value={x.deviceId}>{x.label || utility.format(translate('视频输入 - {0}'), index)}</Option>;
                 }) }
               </Select>
             </FormControl>

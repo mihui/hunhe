@@ -80,7 +80,7 @@ export class UIProperty {
   /** @type {boolean} */
   isLinkDisplayed = false;
   /** @type {boolean} */
-  isUserListDisplayed = false;
+  isUserListDisplayed = true;
   /** @type {boolean} */
   isSettingsDisplayed = false;
   /** @type {boolean} */
@@ -89,6 +89,8 @@ export class UIProperty {
   isPlayingLocalVideo = false;
   /** @type {boolean} */
   isPlayingRemoteVideo = false;
+  /** @type {boolean} */
+  isMuted = true;
   /** @type {number} */
   videoStatus = MediaStatus.IDLE;
   /** @type {number} */
@@ -97,6 +99,7 @@ export class UIProperty {
   error = new UIError();
   /** @type {{ isEmojiDisplayed: boolean }} */
   status = new UIStatus();
+
   toJSON() {
     return {
       isProfileDisplayed: this.isProfileDisplayed,
@@ -104,13 +107,44 @@ export class UIProperty {
       isUserListDisplayed: this.isUserListDisplayed,
       isSettingsDisplayed: this.isSettingsDisplayed,
       isScrolling: this.isScrolling,
-      videoStatus: this.videoStatus,
-      audioStatus: this.audioStatus,
       isPlayingLocalVideo: this.isPlayingLocalVideo,
       isPlayingRemoteVideo: this.isPlayingRemoteVideo,
+      isMuted: this.isMuted,
+      //
+      videoStatus: this.videoStatus,
+      audioStatus: this.audioStatus,
+      //
       error: this.error.toJSON(),
       status: this.status.toJSON(),
     }
+  }
+}
+
+export class ChatAudio {
+  /** @type {string} */
+  id;
+  /** @type {MediaStreamAudioSourceNode} */
+  source = null;
+  /** @type {AnalyserNode} */
+  analyser = null;
+  /** @type {GainNode} */
+  gain = null;
+  /** @type {AudioContext} */
+  context = null;
+
+  constructor(id) {
+    this.context = new AudioContext();
+    this.id = id;
+  }
+
+
+  /**
+   * Create stream
+   * @param {MediaStream} stream Stream
+   */
+  createStream(stream) {
+    this.source = this.context.createMediaStreamSource(stream);
+    this.source.connect(this.context.destination);
   }
 }
 

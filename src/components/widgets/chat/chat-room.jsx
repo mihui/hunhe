@@ -14,6 +14,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import HomeIcon from '@mui/icons-material/Home';
 import TuneIcon from '@mui/icons-material/Tune';
 import MicIcon from '@mui/icons-material/Mic';
+import MicOffIcon from '@mui/icons-material/MicOff';
 import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
 import SendIcon from '@mui/icons-material/Send';
 import SlideshowIcon from '@mui/icons-material/Slideshow';
@@ -21,8 +22,9 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import InfoIcon from '@mui/icons-material/Info';
 import PresentToAllIcon from '@mui/icons-material/PresentToAll';
 import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
-import StopScreenShareIcon from '@mui/icons-material/StopScreenShare';
 import DesktopAccessDisabledIcon from '@mui/icons-material/DesktopAccessDisabled';
+import AddIcCallIcon from '@mui/icons-material/AddIcCall';
+import CallEndIcon from '@mui/icons-material/CallEnd';
 
 import Stack from '@mui/joy/Stack';
 import Box from '@mui/joy/Box';
@@ -126,7 +128,7 @@ export default function ChatRoom({ id, translate }) {
       if(callee && remoteScreenId) {
         if(remoteScreenId === me.id) {
           console.log('### CALLING CALLEE ###');
-          streamService.videoCall(getScreenId(callee.id, true), streamService.localVideoStream);
+          streamService.videoCall(getScreenId(callee.id, true));
         }
       }
       // beeper.publish(Events.JoinScreenShareCallback, { callee, caller, remoteScreenId });
@@ -142,7 +144,7 @@ export default function ChatRoom({ id, translate }) {
           continue;
         }
         console.log(`### CALLING ${receiver.name} ###`);
-        streamService.videoCall(getScreenId(receiver.id, true), streamService.localVideoStream, { nickname: caller.name });
+        streamService.videoCall(getScreenId(receiver.id, true), { nickname: caller.name });
       }
     },
     /** @type {(sharer: User) => void} */
@@ -181,12 +183,28 @@ export default function ChatRoom({ id, translate }) {
       beeper.publish(Events.ClientError, { code, message });
     },
     /** @type {(users: Array<User>) => void} */
-    onUsers: (users) => {
-      users.unshift(new All(translate));
-      // for(let i = 0; i < 100; i++) {
-      //   users.push(new User(crypto.randomUUID(), 'Fake user', '/images/avatars/00.png'));
-      // }
-      setChatUsers(users);
+    onDisplayingUsers: (users) => {
+      const uniqueUsers = users.reduce(
+      /**
+       * Reduce
+       * @param {Array<User>} accumulator User accumulator
+       * @param {User} calculateUser User being calculated
+       * @returns {Array<User>} Returns User Array
+       */
+      (accumulator, calculateUser) => {
+        calculateUser.windows = 1;
+        var indexFound = accumulator.findIndex(indexUser => {
+          return calculateUser.id === indexUser.id;
+        });
+        if(indexFound === -1) {
+          return [ ...accumulator, calculateUser ];
+        }
+        accumulator[indexFound].windows += 1;
+        return [ ...accumulator ];
+      }, []);
+      //
+      streamService.maintainAudios(uniqueUsers);
+      setChatUsers([new All(translate)].concat(uniqueUsers));
     },
     onUserMessage: (id, fromUser, data) => {
       /** @type {ChatRecord} */
@@ -225,15 +243,10 @@ export default function ChatRoom({ id, translate }) {
   onAudioPeerCall = call => {
     console.info(`### AUDIO ON CALL: ${call.peer} ###`);
     // Automatically join
-    // if(vars.audio.isAlive) {
-    //   return methods.startAudio({ isCaller: false, call, isAuto: true });
-    // }
-    // methods.chatAudioConfirm(async () => {
-    //   await methods.startAudio({ isCaller: false, call });
-    // }, () => {
-    //   methods.rejectAudio(call);
-    // });
-    // return true;
+    call.answer(streamService.localAudioStream);
+    call.on('stream', callerStream => {
+      streamService.receiveAudioStream(call.peer, callerStream);
+    });
   },
   /** @type {(error: { type: string }) => void} */
   onAudioPeerError = error => {
@@ -353,7 +366,7 @@ export default function ChatRoom({ id, translate }) {
           .on('client:welcome:private', socketEvents.onClientWelcomePrivate)
           .on('client:leave', socketEvents.onClientLeave)
           .on('client:error', socketEvents.onClientError)
-          .on('client:users', socketEvents.onUsers)
+          .on('client:users', socketEvents.onDisplayingUsers)
           .on('client:user:message', socketEvents.onUserMessage)
           .on('client:meeting:update:callback', socketEvents.onMeetingUpdated)
           // Screen share
@@ -373,7 +386,7 @@ export default function ChatRoom({ id, translate }) {
             .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
             .off('client:leave', socketEvents.onClientLeave)
             .off('client:error', socketEvents.onClientError)
-            .off('client:users', socketEvents.onUsers)
+            .off('client:users', socketEvents.onDisplayingUsers)
             .off('client:user:message', socketEvents.onUserMessage)
             .off('client:meeting:update:callback', socketEvents.onMeetingUpdated);
         }
@@ -439,15 +452,15 @@ export default function ChatRoom({ id, translate }) {
   const [ uiProperty, setUiProperty ] = useState(new UIProperty().toJSON());
   /** @type {[ chatHistory: Array<ChatRecord>, setChatHistory: (chatHistory: Array<ChatRecord>) => void ]} */
   const [ chatHistory, setChatHistory ] = useState([]);
-  /** @type {[ chatVideo: ChatVideo, setChatVideo: (chatVideo: ChatVideo) => void ]} */
+
+  // /** @type {[ chatVideo: ChatVideo, setChatVideo: (chatVideo: ChatVideo) => void ]} */
 
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
   const [ chatUsers, setChatUsers ] = useState([]);
 
   /** @type {[ vars: { audio: Media, video: Media, status: { emoji: string }, devices: Array<Device> }, setVars: (vars: { audio: Media, video: Media, status: { emoji: string }, devices: Array<Device> }) => void ]} */
   const [ vars, setVars ] = useState({
-    audio: { id: DEVICE.MICROPHONE },
-    video: { id: DEVICE.SCREEN },
+    audio: { id: DEVICE.MICROPHONE }, video: { id: DEVICE.SCREEN },
     status: { emoji: '' },
     devices: []
   });
@@ -550,7 +563,7 @@ export default function ChatRoom({ id, translate }) {
       streamService.setEmoji('');
       setVars({ ...vars, status: { ...vars.status, emoji: streamService.emoji } });
     }
-    streamService.cleanConnections();
+    streamService.cleanVideoConnections();
   },
   getDisplayMedia = async () => {
     return utility.getDisplayMedia(vars.video.id, vars.audio.id, vars.devices);
@@ -558,23 +571,21 @@ export default function ChatRoom({ id, translate }) {
   captureScreen = async () => {
     try {
       const stream = await getDisplayMedia();
-      if(stream) {
-        // Stop local stream if it is being shared, remote stream should be cleaned after callback <- @todo
-        stopLocalVideo();
-        // // Notify server
-        // streamService.getWebSocket().emit('server:user:screen', getScreenId(me.id));
-        // // Notify user
-        // notifyUser('屏幕共享已开启', NOTIFICATION_STYLES.SUCCESS);
-        localVideoRef.current.muted = streamService.isMuted;
-        localVideoRef.current.srcObject = stream;
-        //
-        streamService.publishVideoStream(stream);
-        setUiProperty({ ...uiProperty, videoStatus: streamService.videoStatus });
-        return true;
-      }
+      // Stop local stream if it is being shared, remote stream should be cleaned after callback <- @todo
+      stopLocalVideo();
+      // // Notify server
+      // streamService.getWebSocket().emit('server:user:screen', getScreenId(me.id));
+      // // Notify user
+      // notifyUser('屏幕共享已开启', NOTIFICATION_STYLES.SUCCESS);
+      localVideoRef.current.muted = streamService.isMuted;
+      localVideoRef.current.srcObject = stream;
+      //
+      streamService.publishVideoStream(stream);
+      setUiProperty({ ...uiProperty, videoStatus: streamService.videoStatus });
+      return true;
     }
     catch(error) {
-      console.warn('### ERROR CAPTURE ###');
+      console.warn('### ERROR CAPTURING VIDEO ###');
       console.warn(error);
       // What if someone is sharing, but I cam cancelling... @todo
     }
@@ -587,7 +598,7 @@ export default function ChatRoom({ id, translate }) {
     }
   },
   changeStatus = () => {
-    const browserStatus = streamService.videoStatus === MediaStatus.PUBLISHING ? STATUS.AUDIO :
+    const browserStatus = streamService.audioStatus === MediaStatus.PUBLISHING ? STATUS.AUDIO :
       document.visibilityState === 'visible' ? STATUS.ONLINE :
       STATUS.AWAY;
     const microphoneStatus = streamService.isMuted ? STATUS.MUTED : STATUS.SPEAKING;
@@ -612,6 +623,55 @@ export default function ChatRoom({ id, translate }) {
         setUiProperty({ ...uiProperty, isPlayingLocalVideo: false });
       });
     }
+  },
+  enableTracks = () => {
+    streamService.enableTracks((uiProperty.videoStatus === MediaStatus.IDLE || vars.video.id === DEVICE.SCREEN));
+  },
+  /** @type {(options: { isCaller: Boolean, call: { peer: string, answer: (stream: ReadableStream) => void, on: (eventName: string, callback: (stream: ReadableStream) => void) => void }? }) => Promise} */
+  startLocalAudio = async (options) => {
+    try {
+      const stream = await utility.getUserMedia();
+      streamService.publishAudioStream(me.id, stream);
+      enableTracks();
+      // if(options.isCaller) {
+      //   // vars.audio.addReceiver(w.__user.sub, w.__user.first_name, w.__user.email, w.__user.avatar, true);
+      //   // vars.audio.addReceiver(aiMessage.to.pid, aiMessage.to.name, aiMessage.to.email, aiMessage.to.avatar);
+      //   // // Share with one person
+      //   // await methods.chatAudioShare([ chat.to.id ]);
+      // }
+      // else if(options.call) {
+      //   options.call.answer(streamService.localAudioStream);
+      //   options.call.on('stream', callerStream => {
+      //     // methods.chatAudioShare([]);
+      //   });
+      // }
+    }
+    catch(error) {
+      console.warn('### ERROR CAPTURING AUDIO ###');
+      console.warn(error);
+    }
+  },
+  connectUsers = () => {
+    chatUsers.filter(x => x.__status.browser === STATUS.AUDIO && x.id !== me.id).forEach(x => {
+      console.log('CALLING->', x.name);
+      streamService.audioCall(x.id, { nickname: me.name });
+    });
+  },
+  startMeeting = async () => {
+    console.log('streamService.audioStatus->', streamService.audioStatus);
+    if(streamService.audioStatus === MediaStatus.PUBLISHING) {
+      utility.stopTracks(streamService.localAudioStream);
+      // utility.stopStream(streamService.getUserAudio(me.id));
+      streamService.stopAudioStream(me.id);
+      setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus });
+      streamService.cleanAudioConnections();
+    }
+    else {
+      await startLocalAudio({ isCaller: true });
+      setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus });
+      connectUsers();
+    }
+    changeStatus();
   };
 
   // Handle join screen sharing
@@ -623,17 +683,21 @@ export default function ChatRoom({ id, translate }) {
   }, [ screenId, peerStatus.video ]);
 
   // useEffect(() => {
+  //   changeStatus();
+  // }, [uiProperty.audioStatus]);
+
+  // useEffect(() => {
   //   console.log('streamService.isReceivingAudio->', streamService.isReceivingAudio);
   //   if(streamService.isReceivingAudio) {
   //     const enabled = (streamService.isMuted === false);
-  //     const tracks = streamService.remoteAudioStream.getTracks();
+  //     const tracks = streamService.localAudioStream.getTracks();
   //     tracks.forEach(track => {
   //       if(track.kind === 'audio') {
   //         track.enabled = enabled;
   //       }
   //     });
   //     remoteVideoRef.current.muted = streamService.isMuted;
-  //     remoteVideoRef.current.srcObject = streamService.remoteAudioStream;
+  //     remoteVideoRef.current.srcObject = streamService.localAudioStream;
   //   }
   // }, []);
 
@@ -957,32 +1021,28 @@ export default function ChatRoom({ id, translate }) {
           { uiProperty.isUserListDisplayed && <div className={styles['chat-users']}>
             <div className={styles['chat-layer']}>
               <ul>
-              { chatUsers.reduce(
-                /**
-                 * Reduce
-                 * @param {Array<User>} accumulator User accumulator
-                 * @param {User} calculateUser User being calculated
-                 * @returns {Array<User>} Returns User Array
-                 */
-                (accumulator, calculateUser) => {
-                  calculateUser.windows = 1;
-                  var indexFound = accumulator.findIndex(indexUser => {
-                    return calculateUser.id === indexUser.id;
-                  });
-                  if(indexFound === -1) {
-                    return [ ...accumulator, calculateUser ];
-                  }
-                  accumulator[indexFound].windows += 1;
-                  return [ ...accumulator ];
-                }, [ ]).map(x => {
+              { chatUsers.map(x => {
                   const emoji = x.__status.emoji ? ` ${x.__status.emoji}` : '';
+                  const style =
+                    x.__status.browser === STATUS.AUDIO && x.__status.microphone === STATUS.SPEAKING ?
+                    'speaking' :
+                    x.__status.browser === STATUS.AUDIO && x.__status.microphone === STATUS.MUTED ?
+                    'muted' :
+                    x.__status.browser === STATUS.AUDIO ?
+                    'audio' :
+                    x.__status.browser === STATUS.AWAY ?
+                    'away' :
+                    x.__status.browser === STATUS.OFFLINE ?
+                    'offline' :
+                    'online';
+
                   return <li onClick={evt => {
                     evt.preventDefault();
                     evt.stopPropagation();
                     setUiProperty({ ...uiProperty, users: !uiProperty.isUserListDisplayed });
                     setChat({ ...chat, from: me, to: x });
                     focusInput();
-                  }} key={x.id} id={x.id} data-avatar={x.avatar} data-window={x.windows && x.windows > 1 ? x.windows : ''} style={{'--background-avatar-placeholder': `url(${x.avatar})` }}>
+                  }} className={styles[style]} key={x.id} id={x.id} data-avatar={x.avatar} data-window={x.windows && x.windows > 1 ? x.windows : ''} style={{'--background-avatar-placeholder': `url(${x.avatar})` }}>
                     <a>{x.name}{ emoji && <span className={styles['emoji']} dangerouslySetInnerHTML={{ __html: emoji }}></span> }</a>
                   </li>
                 }) }
@@ -1035,9 +1095,24 @@ export default function ChatRoom({ id, translate }) {
               <SendIcon />
             </IconButton>
 
-            {/* <IconButton size='sm' disabled={isLoading}>
-              <MicIcon />
-            </IconButton> */}
+            { uiProperty.audioStatus !== MediaStatus.IDLE && <IconButton size='sm' disabled={isLoading} onClick={evt => {
+              streamService.toggleMute();
+              setUiProperty({ ...uiProperty, isMuted: streamService.isMuted });
+              enableTracks();
+              changeStatus();
+            }} color={ uiProperty.isMuted ? 'neutral': 'primary' }>
+              { uiProperty.isMuted ? <MicOffIcon /> :  <MicIcon /> }
+            </IconButton> }
+
+            <IconButton size='sm' disabled={isLoading} onClick={evt => {
+              startMeeting();
+            }} color={ uiProperty.audioStatus === MediaStatus.IDLE ? 'neutral': 'danger' }>
+              { uiProperty.audioStatus === MediaStatus.IDLE ?
+                <AddIcCallIcon />
+                :
+                <CallEndIcon />
+              }
+            </IconButton>
 
             { arePeersOK && <IconButton size='sm' disabled={isLoading} onClick={evt => {
               evt.preventDefault();

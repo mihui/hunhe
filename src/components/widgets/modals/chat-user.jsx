@@ -43,6 +43,10 @@ export const ChatUserModal = ({ open, user, handleClose, translate }) => {
               <FormLabel>{ translate('形象') }</FormLabel>
               <Avatar src={user.avatar} />
             </FormControl>
+            <FormControl>
+              <FormLabel>{ translate('编号') }</FormLabel>
+              <Input autoFocus readOnly value={user.id} />
+            </FormControl>
             <Button type="submit">{ translate('关闭') }</Button>
           </Stack>
         </form>
