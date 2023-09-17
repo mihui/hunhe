@@ -104,6 +104,10 @@ class Utility {
     return systemDevices.filter(x => x.kind ==='audioinput' || x.kind === 'videoinput');
   }
 
+  /**
+   * Get display media
+   * @returns {MediaStream} Returns media stream
+   */
   async getDisplayMedia (screenId = DEVICE.SCREEN, audioId = DEVICE.MICROPHONE, devices = []) {
     const video = { width: { max: 3840 }, height: { max: 2160 }, deviceId: undefined };
     const isScreenOnly = screenId === DEVICE.SCREEN || devices.findIndex(x => x.deviceId === screenId) === -1;
@@ -123,6 +127,10 @@ class Utility {
       await navigator.mediaDevices.getUserMedia(constraints);
   }
 
+  /**
+   * Get user media
+   * @returns {Promise<MediaStream>} Returns media stream
+   */
   async getUserMedia() {
     return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
   }
@@ -143,7 +151,7 @@ class Utility {
     if(nativeElement) {
       this.stopTracks(nativeElement.srcObject);
       nativeElement.srcObject = null;
-      // nativeElement.pause();
+      nativeElement.pause();
     }
   }
 }

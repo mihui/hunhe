@@ -56,9 +56,6 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ isLoading: boolean, setIsLoading: (isLoading: boolean) => void ]} */
   const [ isLoading, setIsLoading ] = useState(true);
 
-  /** @type {[ { video: boolean, audio: boolean }, setPeerStatus: (peerStatus: { video: boolean, audio: boolean }) => void ]} */
-  const [ peerStatus, setPeerStatus ] = useState({ video: false, audio: false });
-
   /** @type {[ chatNotification: { message: string, style: string, time: Date }, setChatNotification: (chatNotification: { message: string, style: string, time: Date }) => void ]} */
   const [ chatNotification, setChatNotification ] = useState({ message: '', style: NOTIFICATION_STYLES.INFO, time: new Date() });
   //
@@ -79,6 +76,40 @@ export default function ChatRoom({ id, translate }) {
     // Disable/Enable UI
     setIsLoading(connected === false);
     beeper.publish(Events.SocketConnected, { connected, isReconnect });
+  },
+  /** @type {(audioContext: AudioContext) => void} */
+  activateAudio = (audioContext) => {
+    if(audioContext) {
+      console.log('audioContext.state->', audioContext.state);
+      if(audioContext.state === 'suspended' || audioContext.state === 'closed') {
+        audioContext.resume();
+      }
+    }
+    else {
+      console.log('error: audioContext->', audioContext);
+    }
+  },
+  reconnectAudioPeer = () => {
+    try {
+      if(streamService.audioPeer)
+        streamService.audioPeer.reconnect();
+      else
+        console.log('streamService.audioPeer is null');
+    }
+    catch(error) {
+      console.warn(error);
+    }
+  },
+  reconnectVideoPeer = () => {
+    try {
+      if(streamService.videoPeer)
+        streamService.videoPeer.reconnect();
+      else
+        console.log('streamService.videoPeer is null');
+    }
+    catch(error) {
+      console.warn(error);
+    }
   };
 
   const socketEvents = {
@@ -203,7 +234,7 @@ export default function ChatRoom({ id, translate }) {
         return [ ...accumulator ];
       }, []);
       //
-      streamService.maintainAudios(uniqueUsers);
+      streamService.maintainAudios(uniqueUsers.filter(x => x.id !== me.id));
       setChatUsers([new All(translate)].concat(uniqueUsers));
     },
     onUserMessage: (id, fromUser, data) => {
@@ -231,13 +262,7 @@ export default function ChatRoom({ id, translate }) {
   /** @type {() => void} */
   onAudioPeerDisconnected = () => {
     console.info('### PEER DISCONNECTED ###');
-    try {
-      if(streamService.audioPeer)
-        streamService.audioPeer.reconnect();
-    }
-    catch(error) {
-
-    }
+    reconnectAudioPeer();
   },
   /** @type {(call: { peer: string, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
   onAudioPeerCall = call => {
@@ -245,7 +270,7 @@ export default function ChatRoom({ id, translate }) {
     // Automatically join
     call.answer(streamService.localAudioStream);
     call.on('stream', callerStream => {
-      streamService.receiveAudioStream(call.peer, callerStream);
+      activateAudio(streamService.receiveAudioStream(call.peer, callerStream));
     });
   },
   /** @type {(error: { type: string }) => void} */
@@ -257,6 +282,7 @@ export default function ChatRoom({ id, translate }) {
   },
   onAudioPeerClose = () => {
     console.warn('### AUDIO PEER CLOSED ###');
+    setPeerStatus(current => { return { ...current, audio: false }; });
   };
   // Screen
   const
@@ -269,13 +295,7 @@ export default function ChatRoom({ id, translate }) {
   /** @type {() => void} */
   onVideoPeerDisconnected = () => {
     console.warn('### PEER DISCONNECTED ###');
-    try {
-      if(streamService.videoPeer)
-      streamService.videoPeer.reconnect();
-    }
-    catch(error) {
-
-    }
+    reconnectVideoPeer();
   },
   /** @type {(call: { peer: string, metadata: { nickname: string }, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
   onVideoPeerCall = call => {
@@ -291,6 +311,7 @@ export default function ChatRoom({ id, translate }) {
   },
   onVideoPeerClose = () => {
     console.warn('### SCREEN PEER CLOSED ###');
+    setPeerStatus(current => { return { ...current, video: false }; });
   };
 
   const useMeeting = (initialId, initialData) => {
@@ -405,7 +426,7 @@ export default function ChatRoom({ id, translate }) {
             .off('call', onAudioPeerCall)
             .off('error', onAudioPeerError);
           }
-  
+
           if(streamService.videoPeer) {
             console.log('### OFF VIDEO ###');
             streamService.videoPeer.off('open', onVideoPeerOpen)
@@ -438,6 +459,9 @@ export default function ChatRoom({ id, translate }) {
 
     return [ { me, isMeOK, arePeersOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ];
   };
+
+  /** @type {[ { video: boolean, audio: boolean }, setPeerStatus: (peerStatus: { video: boolean, audio: boolean }) => void ]} */
+  const [ peerStatus, setPeerStatus ] = useState({ video: false, audio: false });
 
   /** @type {[ { meeting: Meeting, isMeetingOK: boolean }, setMeeting: (meeting: Meeting) => void ]} */
   const [ { meeting, isMeetingOK }, setMeeting ] = useMeeting(id, new Meeting().setId(id).toJSON());
@@ -654,13 +678,17 @@ export default function ChatRoom({ id, translate }) {
   connectUsers = () => {
     chatUsers.filter(x => x.__status.browser === STATUS.AUDIO && x.id !== me.id).forEach(x => {
       console.log('CALLING->', x.name);
-      streamService.audioCall(x.id, { nickname: me.name });
+      const call = streamService.audioCall(x.id, { nickname: me.name });
+      if(call) {
+        call.on('stream', calleeStream => {
+          activateAudio(streamService.receiveAudioStream(call.peer, calleeStream));
+        });
+      }
     });
   },
   startMeeting = async () => {
     if(streamService.audioStatus === MediaStatus.PUBLISHING) {
       utility.stopTracks(streamService.localAudioStream);
-      // utility.stopStream(streamService.getUserAudio(me.id));
       streamService.stopAudioStream(me.id);
       setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus });
       streamService.cleanAudioConnections();
@@ -1103,7 +1131,7 @@ export default function ChatRoom({ id, translate }) {
               { uiProperty.isMuted ? <MicOffIcon /> :  <MicIcon /> }
             </IconButton> }
 
-            <IconButton size='sm' disabled={isLoading} onClick={evt => {
+            { peerStatus.audio && <IconButton size='sm' disabled={isLoading} onClick={evt => {
               startMeeting();
             }} color={ uiProperty.audioStatus === MediaStatus.IDLE ? 'neutral': 'danger' }>
               { uiProperty.audioStatus === MediaStatus.IDLE ?
@@ -1111,17 +1139,23 @@ export default function ChatRoom({ id, translate }) {
                 :
                 <CallEndIcon />
               }
-            </IconButton>
+            </IconButton> }
 
             { arePeersOK && <IconButton size='sm' disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               setUiProperty({ ...uiProperty, isSettingsDisplayed: !uiProperty.isSettingsDisplayed });
+              if(peerStatus.audio === false) {
+                reconnectAudioPeer();
+              }
+              if(peerStatus.video === false) {
+                reconnectVideoPeer();
+              }
             }}>
               <TuneIcon />
             </IconButton> }
 
-            { arePeersOK && <IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
+            { peerStatus.video && <IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               if(uiProperty.videoStatus === MediaStatus.PUBLISHING) {

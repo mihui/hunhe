@@ -65,7 +65,8 @@ export class StreamService {
    * @returns {ChatAudio} Returns audio element
    */
   getUserAudio(userId) {
-    return this.audios.find(x => x.id === userId);
+    const instance = this.audios.find(x => x.id === userId);
+    return instance;
   }
 
   /**
@@ -76,8 +77,8 @@ export class StreamService {
   publishAudioStream(userId, stream) {
     this.audioStatus = MediaStatus.PUBLISHING;
     this.localAudioStream = stream;
-    this.getUserAudio(userId).createStream(this.localAudioStream);
-    this.getUserAudio(userId).volume(0);
+    // return this.getUserAudio(userId).createStream(this.localAudioStream);
+    // return this.getUserAudio(userId).context;
   }
 
   /**
@@ -117,8 +118,15 @@ export class StreamService {
     this.remoteVideoStream = stream;
   }
 
+  /**
+   * Receive audio stream
+   * @param {string} userId User ID
+   * @param {MediaStream} remoteStream Remote stream
+   * @returns {AudioContext} Returns ChatAudio instance
+   */
   receiveAudioStream(userId, remoteStream) {
     this.getUserAudio(userId).createStream(remoteStream);
+    return this.getUserAudio(userId).context;
   }
 
   toggleMute() {
@@ -145,12 +153,15 @@ export class StreamService {
    * Audio call
    * @param {string} peerId Peer ID
    * @param {} data Metadata
+   * @returns {import('peerjs').MediaConnection} Returns MediaConnection instance
    */
   audioCall(peerId, data = {}) {
     if (this.audioPeer) {
       const newConnection = this.audioPeer.call(peerId, this.localAudioStream, { metadata: data });
       this.audioConnections.push(newConnection);
+      return newConnection;
     }
+    return null;
   }
 
   /**
