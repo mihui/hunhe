@@ -1131,7 +1131,7 @@ export default function ChatRoom({ id, translate }) {
               { uiProperty.isMuted ? <MicOffIcon /> :  <MicIcon /> }
             </IconButton> }
 
-            { peerStatus.audio && <IconButton size='sm' disabled={isLoading} onClick={evt => {
+            { arePeersOK && peerStatus.audio && <IconButton size='sm' disabled={isLoading} onClick={evt => {
               startMeeting();
             }} color={ uiProperty.audioStatus === MediaStatus.IDLE ? 'neutral': 'danger' }>
               { uiProperty.audioStatus === MediaStatus.IDLE ?
@@ -1155,7 +1155,7 @@ export default function ChatRoom({ id, translate }) {
               <TuneIcon />
             </IconButton> }
 
-            { peerStatus.video && <IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
+            { arePeersOK && peerStatus.video && <IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               if(uiProperty.videoStatus === MediaStatus.PUBLISHING) {
