@@ -104,7 +104,9 @@ export class StreamService {
       const enabled = this.isMuted === false;
       const tracks = this.localVideoStream.getTracks();
       tracks.forEach(track => {
-        track.enabled = enabled;
+        if(track.kind === 'audio') {
+          track.enabled = enabled;
+        }
       });
     }
   }
