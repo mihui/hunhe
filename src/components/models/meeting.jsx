@@ -125,16 +125,15 @@ export class ChatAudio {
   id;
   /** @type {MediaStreamAudioSourceNode} */
   source = null;
-  /** @type {AnalyserNode} */
-  analyser = null;
-  /** @type {GainNode} */
-  gain = null;
+  /** @type {string} */
+  name = null;
   /** @type {AudioContext} */
   context = null;
 
-  constructor(id) {
+  constructor(id, name) {
     // this.context = new AudioContext();
     this.id = id;
+    this.name = name;
   }
 
   /**

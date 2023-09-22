@@ -122,11 +122,11 @@ export class StreamService {
    * Receive audio stream
    * @param {string} userId User ID
    * @param {MediaStream} remoteStream Remote stream
-   * @returns {AudioContext} Returns ChatAudio instance
+   * @returns {ChatAudio} Returns ChatAudio instance
    */
   receiveAudioStream(userId, remoteStream) {
     this.getUserAudio(userId).createStream(remoteStream);
-    return this.getUserAudio(userId).context;
+    return this.getUserAudio(userId);
   }
 
   toggleMute() {
@@ -240,7 +240,7 @@ export class StreamService {
   maintainAudios(users) {
     users.forEach(x => {
       if (this.audios.findIndex(audio => audio.id === x.id) === -1) {
-        const audio = new ChatAudio(x.id);
+        const audio = new ChatAudio(x.id, x.name);
         this.audios.push(audio);
       }
     });

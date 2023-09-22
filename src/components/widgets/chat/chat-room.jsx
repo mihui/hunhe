@@ -40,7 +40,7 @@ import { Events, beeper, storage, utility } from '@/components/helpers/utility';
 import { Avatars, CustomCodes, ROOMS, STATUS, StorageKeys } from '@/components/config/vars';
 import { ChatLinkModal } from '@/components/widgets/modals/chat-link';
 import { ChatFormat } from '@/components/widgets/chat/chat-format';
-import { DEVICE, Device, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER, UIProperty } from '@/components/models/meeting';
+import { ChatAudio, DEVICE, Device, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER, UIProperty } from '@/components/models/meeting';
 import { MediaStatus, chatService, streamService } from '@/components/services/chat';
 import { ChatErrorModal } from '../modals/chat-error';
 import Button from '@mui/joy/Button';
@@ -77,12 +77,18 @@ export default function ChatRoom({ id, translate }) {
     setIsLoading(connected === false);
     beeper.publish(Events.SocketConnected, { connected, isReconnect });
   },
-  /** @type {(audioContext: AudioContext) => void} */
-  activateAudio = (audioContext) => {
-    if(audioContext) {
-      console.log('audioContext.state->', audioContext.state);
-      if(audioContext.state === 'suspended' || audioContext.state === 'closed') {
-        audioContext.resume();
+  /** @type {(chatAudio: ChatAudio) => void} */
+  activateAudio = (chatAudio) => {
+    if(chatAudio && chatAudio.context) {
+      if(chatAudio.context.state === 'suspended' || chatAudio.context.state === 'closed') {
+        chatAudio.context.resume().then(() => {
+          console.log(`[${chatAudio.name}]`, 'audioContext.state->', chatAudio.context.state);
+        }).catch(error => {
+          console.warn('resume error');
+        })
+      }
+      else {
+        console.log(`[${chatAudio.name}]`, 'audioContext.state->', chatAudio.context.state);
       }
     }
     else {
@@ -170,8 +176,6 @@ export default function ChatRoom({ id, translate }) {
       notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
       for(const receiver of users) {
         if(receiver.id === remoteScreenId) {
-          console.log(receiver.id === me.id, 'receiver.id->', receiver.id, '\n\rme.id->', me.id);
-          console.log('### ME ###');
           continue;
         }
         console.log(`### CALLING ${receiver.name} ###`);
@@ -773,9 +777,9 @@ export default function ChatRoom({ id, translate }) {
   //   console.log('uiProperty.videoStatus->', logVideoStatus(uiProperty.videoStatus), logVideoStatus(streamService.videoStatus));
   // }, [uiProperty.videoStatus]);
 
-  useEffect(() => {
-    console.log('arePeersOK->', arePeersOK);
-  }, [arePeersOK]);
+  // useEffect(() => {
+  //   console.log('arePeersOK->', arePeersOK);
+  // }, [arePeersOK]);
 
   // Handle events and setup peers
   useEffect(() => {
@@ -1131,7 +1135,7 @@ export default function ChatRoom({ id, translate }) {
               { uiProperty.isMuted ? <MicOffIcon /> :  <MicIcon /> }
             </IconButton> }
 
-            { arePeersOK && peerStatus.audio && <IconButton size='sm' disabled={isLoading} onClick={evt => {
+            { peerStatus.audio && <IconButton size='sm' disabled={isLoading} onClick={evt => {
               startMeeting();
             }} color={ uiProperty.audioStatus === MediaStatus.IDLE ? 'neutral': 'danger' }>
               { uiProperty.audioStatus === MediaStatus.IDLE ?

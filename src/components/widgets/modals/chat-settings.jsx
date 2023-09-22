@@ -79,7 +79,6 @@ export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, han
             <FormControl>
               <FormLabel>{ translate('音频源') }</FormLabel>
               <Select defaultValue={vars.audio.id} onChange={(evt, audioDeviceId) => {
-                console.log('audioDeviceId->', audioDeviceId);
                 setVars({ ...vars, audio: { ...vars.audio, id: audioDeviceId } });
                 storage.save(StorageKeys.AudioDeviceId, audioDeviceId);
               }}>
@@ -92,7 +91,6 @@ export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, han
             <FormControl>
               <FormLabel>{ translate('视频源') }</FormLabel>
               <Select defaultValue={vars.video.id} onChange={(evt, screenDeviceId) => {
-                console.log('screenDeviceId->', screenDeviceId);
                 setVars({ ...vars, video: { ...vars.video, id: screenDeviceId } });
                 storage.save(StorageKeys.VideoDeviceId, screenDeviceId);
               }}>
