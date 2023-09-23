@@ -702,7 +702,7 @@ export default function ChatRoom({ id, translate }) {
   startMeeting = async () => {
     if(streamService.audioStatus === MediaStatus.PUBLISHING) {
       utility.stopTracks(streamService.localAudioStream);
-      streamService.stopAudioStream(me.id);
+      streamService.stopAudioStream();
       setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus });
       streamService.cleanAudioConnections();
     }

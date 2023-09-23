@@ -146,7 +146,7 @@ class Utility {
     }
   }
 
-  /** @type {(nativeElement: HTMLVideoElement) => void} */
+  /** @type {(nativeElement: HTMLVideoElement|HTMLAudioElement) => void} */
   stopStream (nativeElement) {
     if(nativeElement) {
       this.stopTracks(nativeElement.srcObject);

@@ -2,6 +2,7 @@ import { io } from 'socket.io-client';
 import { CustomCodes } from '../config/vars';
 import { ChatAudio } from '../models/meeting';
 import { MediaStatus } from './chat';
+import { utility } from '../helpers/utility';
 
 export class StreamService {
   /** @type {import('socket.io-client').Socket} */
@@ -82,14 +83,14 @@ export class StreamService {
   }
 
   /**
-   * Publish audio stream
-   * @param {string} userId User ID
-   * @param {MediaStream} stream Stream
+   * Stop audio stream
    */
-  stopAudioStream(userId) {
-    this.localAudioStream = null;
-    this.getUserAudio(userId).stop();
+  stopAudioStream() {
     this.audioStatus = MediaStatus.IDLE;
+    this.audios.forEach(chatAudio => {
+      chatAudio.stop();
+    });
+    this.localAudioStream = null;
   }
 
   enableTracks(isScreenOnly) {

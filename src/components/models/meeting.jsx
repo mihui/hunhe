@@ -127,13 +127,6 @@ export class ChatAudio {
   user;
   /** @type {HTMLAudioElement} */
   audio = null;
-  /** @type {MediaStreamAudioSourceNode} */
-  source = null;
-  /** @type {AudioContext} */
-  context = null;
-  /** @type {GainNode} */
-  gainNode = null;
-
   /**
    * ChatAudio constructor
    * @param {User} user User
@@ -148,11 +141,6 @@ export class ChatAudio {
    * @returns {ChatAudio} Returns AudioContext
    */
   createAudio(stream) {
-    // this.context = new AudioContext();
-    // this.source = this.context.createMediaStreamSource(stream);
-    // this.gainNode = this.context.createGain();
-    // this.source.connect(this.gainNode);
-    // this.gainNode.connect(this.context.destination);
     this.audio = new Audio();
     this.audio.srcObject = stream;
     this.audio.autoplay = true;
@@ -168,9 +156,7 @@ export class ChatAudio {
   }
 
   stop() {
-    utility.stopTracks(this.getSrcObject());
-    this.audio.srcObject = null;
-    // this.audio.pause();
+    utility.stopStream(this.audio);
   }
 
   /**
