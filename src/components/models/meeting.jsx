@@ -1,4 +1,6 @@
+import { utility } from "../helpers/utility";
 import { MediaStatus } from "../services/chat";
+import { User } from "./user";
 
 export class Meeting {
   /** @type {string} */
@@ -121,31 +123,62 @@ export class UIProperty {
 }
 
 export class ChatAudio {
-  /** @type {string} */
-  id;
+  /** @type {User} */
+  user;
+  /** @type {HTMLAudioElement} */
+  audio = null;
   /** @type {MediaStreamAudioSourceNode} */
   source = null;
-  /** @type {string} */
-  name = null;
   /** @type {AudioContext} */
   context = null;
+  /** @type {GainNode} */
+  gainNode = null;
 
-  constructor(id, name) {
-    // this.context = new AudioContext();
-    this.id = id;
-    this.name = name;
+  /**
+   * ChatAudio constructor
+   * @param {User} user User
+   */
+  constructor(user) {
+    this.user = user;
   }
 
   /**
    * Create stream
    * @param {MediaStream} stream Stream
-   * @returns {AudioContext} Returns AudioContext
+   * @returns {ChatAudio} Returns AudioContext
    */
-  createStream(stream) {
-    this.context = new AudioContext();
-    this.source = this.context.createMediaStreamSource(stream);
-    this.source.connect(this.context.destination);
-    return this.context;
+  createAudio(stream) {
+    // this.context = new AudioContext();
+    // this.source = this.context.createMediaStreamSource(stream);
+    // this.gainNode = this.context.createGain();
+    // this.source.connect(this.gainNode);
+    // this.gainNode.connect(this.context.destination);
+    this.audio = new Audio();
+    this.audio.srcObject = stream;
+    this.audio.autoplay = true;
+    this.audio.onloadedmetadata = evt => {
+      evt.target.play();
+    };
+    return this;
+  }
+
+  mute() {
+    // this.gainNode.gain.setValueAtTime(0, this.context.currentTime);
+    this.audio.muted = true;
+  }
+
+  stop() {
+    utility.stopTracks(this.getSrcObject());
+    this.audio.srcObject = null;
+    // this.audio.pause();
+  }
+
+  /**
+   * Get src object
+   * @returns {MediaProvider} Returns MediaProvider instance
+   */
+  getSrcObject() {
+    return this.audio.srcObject;
   }
 }
 

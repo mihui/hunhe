@@ -65,19 +65,19 @@ export class StreamService {
    * @returns {ChatAudio} Returns audio element
    */
   getUserAudio(userId) {
-    const instance = this.audios.find(x => x.id === userId);
+    const instance = this.audios.find(x => x.user.id === userId);
     return instance;
   }
 
   /**
    * Publish audio stream
    * @param {string} userId User ID
-   * @param {MediaStream} stream Stream
+   * @param {ChatAudio} stream Stream
    */
   publishAudioStream(userId, stream) {
     this.audioStatus = MediaStatus.PUBLISHING;
     this.localAudioStream = stream;
-    // return this.getUserAudio(userId).createStream(this.localAudioStream);
+    return this.getUserAudio(userId).createAudio(stream).mute();
     // return this.getUserAudio(userId).context;
   }
 
@@ -88,7 +88,7 @@ export class StreamService {
    */
   stopAudioStream(userId) {
     this.localAudioStream = null;
-    // this.getUserAudio(userId).srcObject = null;
+    this.getUserAudio(userId).stop();
     this.audioStatus = MediaStatus.IDLE;
   }
 
@@ -127,7 +127,7 @@ export class StreamService {
    * @returns {ChatAudio} Returns ChatAudio instance
    */
   receiveAudioStream(userId, remoteStream) {
-    this.getUserAudio(userId).createStream(remoteStream);
+    this.getUserAudio(userId).createAudio(remoteStream);
     return this.getUserAudio(userId);
   }
 
@@ -154,12 +154,12 @@ export class StreamService {
   /**
    * Audio call
    * @param {string} peerId Peer ID
-   * @param {} data Metadata
+   * @param {{ id: string, nickname: string }} data Metadata
    * @returns {import('peerjs').MediaConnection} Returns MediaConnection instance
    */
   audioCall(peerId, data = {}) {
     if (this.audioPeer) {
-      const newConnection = this.audioPeer.call(peerId, this.localAudioStream, { metadata: data });
+      const newConnection = this.audioPeer.call(peerId, this.getUserAudio(data.id).getSrcObject(), { metadata: data });
       this.audioConnections.push(newConnection);
       return newConnection;
     }
@@ -242,7 +242,7 @@ export class StreamService {
   maintainAudios(users) {
     users.forEach(x => {
       if (this.audios.findIndex(audio => audio.id === x.id) === -1) {
-        const audio = new ChatAudio(x.id, x.name);
+        const audio = new ChatAudio(x);
         this.audios.push(audio);
       }
     });

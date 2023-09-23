@@ -79,16 +79,25 @@ export default function ChatRoom({ id, translate }) {
   },
   /** @type {(chatAudio: ChatAudio) => void} */
   activateAudio = (chatAudio) => {
-    if(chatAudio && chatAudio.context) {
-      if(chatAudio.context.state === 'suspended' || chatAudio.context.state === 'closed') {
-        chatAudio.context.resume().then(() => {
-          console.log(`[${chatAudio.name}]`, 'audioContext.state->', chatAudio.context.state);
-        }).catch(error => {
-          console.warn('resume error');
-        })
+    if(chatAudio) {
+      if(chatAudio.context) {
+        if(chatAudio.context.state === 'suspended' || chatAudio.context.state === 'closed') {
+          chatAudio.context.resume().then(() => {
+            console.log(`[${chatAudio.user.name}]`, 'audioContext.state->', chatAudio.context.state);
+          }).catch(error => {
+            console.warn('resume error');
+          });
+        }
+        else {
+          console.log(`[${chatAudio.user.name}]`, 'audioContext.state->', chatAudio.context.state);
+        }
       }
-      else {
-        console.log(`[${chatAudio.name}]`, 'audioContext.state->', chatAudio.context.state);
+      if(chatAudio.audio) {
+        if(chatAudio.audio.paused) {
+          chatAudio.audio.play().then(x => {
+            console.log('Played!!!');
+          });
+        }
       }
     }
     else {
@@ -238,7 +247,7 @@ export default function ChatRoom({ id, translate }) {
         return [ ...accumulator ];
       }, []);
       //
-      streamService.maintainAudios(uniqueUsers.filter(x => x.id !== me.id));
+      streamService.maintainAudios(uniqueUsers);
       setChatUsers([new All(translate)].concat(uniqueUsers));
     },
     onUserMessage: (id, fromUser, data) => {
@@ -682,7 +691,7 @@ export default function ChatRoom({ id, translate }) {
   connectUsers = () => {
     chatUsers.filter(x => x.__status.browser === STATUS.AUDIO && x.id !== me.id).forEach(x => {
       console.log('CALLING->', x.name);
-      const call = streamService.audioCall(x.id, { nickname: me.name });
+      const call = streamService.audioCall(x.id, { id: me.id, nickname: me.name });
       if(call) {
         call.on('stream', calleeStream => {
           activateAudio(streamService.receiveAudioStream(call.peer, calleeStream));
