@@ -82,7 +82,7 @@ export class UIProperty {
   /** @type {boolean} */
   isLinkDisplayed = false;
   /** @type {boolean} */
-  isUserListDisplayed = true;
+  isUserListDisplayed = false;
   /** @type {boolean} */
   isSettingsDisplayed = false;
   /** @type {boolean} */
