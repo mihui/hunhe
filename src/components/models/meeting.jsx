@@ -145,7 +145,17 @@ export class ChatAudio {
     this.audio.srcObject = stream;
     this.audio.autoplay = true;
     this.audio.onloadedmetadata = evt => {
-      evt.target.play();
+      try {
+        evt.target.play().then(() => {
+          console.info('### [onloadedmetadata] PLAYED!!! ###');
+        }).catch(error => {
+          console.warn('### PERMISSION DENIED ###');
+        });
+      }
+      catch(error) {
+        console.warn('### PLAY ERROR ###');
+        console.log(error);
+      }
     };
     return this;
   }

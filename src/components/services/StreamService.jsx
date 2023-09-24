@@ -95,6 +95,7 @@ export class StreamService {
 
   enableTracks(isScreenOnly) {
     if (this.audioStatus === MediaStatus.PUBLISHING) {
+      console.log('audio.isScreenOnly->', isScreenOnly);
       const enabled = (this.isMuted === false && isScreenOnly);
       const tracks = this.localAudioStream.getTracks();
       tracks.forEach(track => {
@@ -102,6 +103,7 @@ export class StreamService {
       });
     }
     if (this.videoStatus === MediaStatus.PUBLISHING) {
+      console.log('video.isScreenOnly->', isScreenOnly);
       const enabled = this.isMuted === false;
       const tracks = this.localVideoStream.getTracks();
       tracks.forEach(track => {

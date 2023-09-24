@@ -95,7 +95,7 @@ export default function ChatRoom({ id, translate }) {
       if(chatAudio.audio) {
         if(chatAudio.audio.paused) {
           chatAudio.audio.play().then(x => {
-            console.log('Played!!!');
+            console.log('[paused] Played!!!');
           });
         }
       }
@@ -181,6 +181,7 @@ export default function ChatRoom({ id, translate }) {
     },
     /** @type {(caller: User, users: Array<User>, remoteScreenId: string) => void} */
     onClientStartScreen: (caller, users, remoteScreenId) => {
+      // For the screen share user only!
       // beeper.publish(Events.StartScreenShareCallback, { caller, users, remoteScreenId });
       notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
       for(const receiver of users) {
@@ -188,7 +189,7 @@ export default function ChatRoom({ id, translate }) {
           continue;
         }
         console.log(`### CALLING ${receiver.name} ###`);
-        streamService.videoCall(getScreenId(receiver.id, true), { nickname: caller.name });
+        streamService.videoCall(getScreenId(receiver.id, true), { id: caller.id, nickname: caller.name });
       }
     },
     /** @type {(sharer: User) => void} */
@@ -313,7 +314,28 @@ export default function ChatRoom({ id, translate }) {
   /** @type {(call: { peer: string, metadata: { nickname: string }, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
   onVideoPeerCall = call => {
     console.log(`### VIDEO ON CALL: ${call.peer} ###`);
-    beeper.publish(Events.PeerVideoCall, { call });
+    // beeper.publish(Events.PeerVideoCall, { call });
+    const peerScreenId = getScreenId(call.peer);
+    const selectedUser = chatUsers.find(x => x.id === peerScreenId); // document.getElementById(peerScreenId);
+    if(selectedUser && remoteVideoRef && remoteVideoRef.current !== null) {
+      remoteVideoRef.current.poster = selectedUser.avatar;
+    }
+    // I was sharing, but somebody interrupted
+    stopScreen();
+    call.answer();
+    call.on('stream', remoteStream => {
+      streamService.receiveVideoStream(remoteStream);
+      // Unmute local video
+      remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.muted = false;
+      setUiProperty(current => {
+        return { ...current, videoStatus: MediaStatus.RECEIVING, isPlayingLocalVideo: false };
+      });
+      setScreenId(peerScreenId);
+    });
+    if(call.metadata && call.metadata.nickname) {
+      notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), call.metadata.nickname), NOTIFICATION_STYLES.INFO, true);
+    }
   },
   /** @type {(error: { type: string }) => void} */
   onVideoPeerError = error => {
@@ -464,7 +486,9 @@ export default function ChatRoom({ id, translate }) {
         }).catch(code => {
           console.log(`### REJECT CODE: ${code} ###`);
           if(code === CustomCodes.PEERS_INITIALIZED) {
-            setArePeersOK(isShareSupported());
+            const isOK = isShareSupported();
+            setArePeersOK(isOK);
+            setPeerStatus({ video: isOK, audio: isOK });
           }
         });
       }
@@ -595,7 +619,9 @@ export default function ChatRoom({ id, translate }) {
       streamService.getWebSocket().emit('server:screen:stop');
     }
     streamService.videoStatus = MediaStatus.IDLE;
-    setUiProperty({ ...uiProperty, videoStatus: streamService.videoStatus });
+    setUiProperty(current => {
+      return { ...current, videoStatus: streamService.videoStatus };
+    });
     if(streamService.emoji === '📽') {
       streamService.setEmoji('');
       setVars({ ...vars, status: { ...vars.status, emoji: streamService.emoji } });
@@ -618,6 +644,7 @@ export default function ChatRoom({ id, translate }) {
       localVideoRef.current.srcObject = stream;
       //
       streamService.publishVideoStream(stream);
+      enableTracks();
       setUiProperty({ ...uiProperty, videoStatus: streamService.videoStatus });
       return true;
     }
@@ -842,27 +869,7 @@ export default function ChatRoom({ id, translate }) {
     });
 
     const disposeVideoCallEvent = beeper.subscribe(Events.PeerVideoCall, ({ call }) => {
-      const peerScreenId = getScreenId(call.peer);
-      const selectedUser = document.getElementById(peerScreenId);
-      if(selectedUser && remoteVideoRef) {
-        remoteVideoRef.current.poster = selectedUser.dataset['avatar'];
-      }
-      // I was sharing, but somebody interrupted
-      stopScreen();
-      call.answer();
-      call.on('stream', remoteStream => {
-        streamService.receiveVideoStream(remoteStream);
-        // Unmute local video
-        remoteVideoRef.current.srcObject = remoteStream;
-        remoteVideoRef.current.muted = false;
-        setUiProperty(current => {
-          return { ...current, videoStatus: MediaStatus.RECEIVING, isPlayingLocalVideo: false };
-        });
-        setScreenId(peerScreenId);
-      });
-      if(call.metadata && call.metadata.nickname) {
-        notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), call.metadata.nickname), NOTIFICATION_STYLES.INFO, true);
-      }
+
     });
 
     refreshDevices();
@@ -1135,7 +1142,7 @@ export default function ChatRoom({ id, translate }) {
               <SendIcon />
             </IconButton>
 
-            { uiProperty.audioStatus !== MediaStatus.IDLE && <IconButton size='sm' disabled={isLoading} onClick={evt => {
+            { (uiProperty.audioStatus !== MediaStatus.IDLE || uiProperty.videoStatus === MediaStatus.PUBLISHING) && <IconButton size='sm' disabled={isLoading} onClick={evt => {
               streamService.toggleMute();
               setUiProperty({ ...uiProperty, isMuted: streamService.isMuted });
               enableTracks();
@@ -1154,7 +1161,7 @@ export default function ChatRoom({ id, translate }) {
               }
             </IconButton> }
 
-            { arePeersOK && <IconButton size='sm' disabled={isLoading} onClick={evt => {
+            { peerStatus.video && peerStatus.audio && arePeersOK && <IconButton size='sm' disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               setUiProperty({ ...uiProperty, isSettingsDisplayed: !uiProperty.isSettingsDisplayed });
