@@ -78,7 +78,7 @@ export class StreamService {
   publishAudioStream(userId, stream) {
     this.audioStatus = MediaStatus.PUBLISHING;
     this.localAudioStream = stream;
-    // return this.getUserAudio(userId).createAudio(stream).mute();
+    return this.getUserAudio(userId).createAudio(stream).mute();
     // return this.getUserAudio(userId).context;
   }
 
@@ -89,6 +89,7 @@ export class StreamService {
     this.audioStatus = MediaStatus.IDLE;
     this.audios.forEach(chatAudio => {
       chatAudio.stop();
+      chatAudio.setSrcObject(null);
     });
     this.localAudioStream = null;
   }

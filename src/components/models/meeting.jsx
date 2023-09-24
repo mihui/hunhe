@@ -141,22 +141,24 @@ export class ChatAudio {
    * @returns {ChatAudio} Returns AudioContext
    */
   createAudio(stream) {
-    this.audio = new Audio();
-    this.audio.srcObject = stream;
-    this.audio.autoplay = true;
-    this.audio.onloadedmetadata = evt => {
-      try {
-        evt.target.play().then(() => {
-          console.info('### [onloadedmetadata] PLAYED!!! ###');
-        }).catch(error => {
-          console.warn('### PERMISSION DENIED ###');
-        });
-      }
-      catch(error) {
-        console.warn('### PLAY ERROR ###');
-        console.log(error);
-      }
-    };
+    if(this.audio === null) {
+      this.audio = new Audio();
+      this.audio.autoplay = true;
+      this.audio.onloadedmetadata = evt => {
+        try {
+          evt.target.play().then(() => {
+            console.info('### [onloadedmetadata] PLAYED!!! ###');
+          }).catch(error => {
+            console.warn('### PERMISSION DENIED ###');
+          });
+        }
+        catch(error) {
+          console.warn('### PLAY ERROR ###');
+          console.log(error);
+        }
+      };
+    }
+    this.setSrcObject(stream);
     return this;
   }
 
@@ -175,6 +177,13 @@ export class ChatAudio {
    */
   getSrcObject() {
     return this.audio.srcObject;
+  }
+  /**
+   * Get src object
+   * @param {MediaStream} stream media stream
+   */
+  setSrcObject(stream) {
+    this.audio.srcObject = stream;
   }
 }
 
