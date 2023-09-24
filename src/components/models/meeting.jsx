@@ -162,22 +162,6 @@ export class ChatAudio {
     return this;
   }
 
-  mute() {
-    // this.gainNode.gain.setValueAtTime(0, this.context.currentTime);
-    this.audio.muted = true;
-  }
-
-  stop() {
-    utility.stopStream(this.audio);
-  }
-
-  /**
-   * Get src object
-   * @returns {MediaProvider} Returns MediaProvider instance
-   */
-  getSrcObject() {
-    return this.audio.srcObject;
-  }
   /**
    * Get src object
    * @param {MediaStream} stream media stream
@@ -185,6 +169,11 @@ export class ChatAudio {
   setSrcObject(stream) {
     this.audio.srcObject = stream;
   }
+
+  stop() {
+    utility.stopStream(this.audio);
+  }
+
 }
 
 export const NOTIFICATION_STYLES = {
