@@ -177,12 +177,10 @@ export default function ChatRoom({ id, translate }) {
           streamService.videoCall(getScreenId(callee.id, true));
         }
       }
-      // beeper.publish(Events.JoinScreenShareCallback, { callee, caller, remoteScreenId });
     },
     /** @type {(caller: User, users: Array<User>, remoteScreenId: string) => void} */
     onClientStartScreen: (caller, users, remoteScreenId) => {
       // For the screen share user only!
-      // beeper.publish(Events.StartScreenShareCallback, { caller, users, remoteScreenId });
       notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
       for(const receiver of users) {
         if(receiver.id === remoteScreenId) {
@@ -314,29 +312,8 @@ export default function ChatRoom({ id, translate }) {
   /** @type {(call: { peer: string, metadata: { nickname: string }, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
   onVideoPeerCall = call => {
     console.log(`### VIDEO ON CALL: ${call.peer} ###`);
-    // beeper.publish(Events.PeerVideoCall, { call });
-    const peerScreenId = getScreenId(call.peer);
-    const selectedUser = chatUsers.find(x => x.id === peerScreenId); // document.getElementById(peerScreenId);
-    if(selectedUser && remoteVideoRef && remoteVideoRef.current !== null) {
-      remoteVideoRef.current.poster = selectedUser.avatar;
-    }
-    // I was sharing, but somebody interrupted
-    stopScreen();
-    call.answer();
-    call.on('stream', remoteStream => {
-      console.log(`    VIDEO RECEIVING: ${call.peer} ###`);
-      streamService.receiveVideoStream(remoteStream);
-      // Unmute local video
-      remoteVideoRef.current.srcObject = remoteStream;
-      remoteVideoRef.current.muted = false;
-      setUiProperty(current => {
-        return { ...current, videoStatus: MediaStatus.RECEIVING, isPlayingLocalVideo: false };
-      });
-      setScreenId(peerScreenId);
-    });
-    if(call.metadata && call.metadata.nickname) {
-      notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), call.metadata.nickname), NOTIFICATION_STYLES.INFO, true);
-    }
+    beeper.publish(Events.PeerVideoCall, { call });
+    
   },
   /** @type {(error: { type: string }) => void} */
   onVideoPeerError = error => {
@@ -430,6 +407,7 @@ export default function ChatRoom({ id, translate }) {
           .on('client:screen:join:callback', socketEvents.onClientJoinScreen)
           .on('client:screen:stop:callback', socketEvents.onClientStopScreen)
           .on('client:screen:start:callback', socketEvents.onClientStartScreen);
+
         return () => {
           streamService.getWebSocket().emit('leave');
           streamService.getWebSocket().off('connect', socketEvents.onSocketConnect)
@@ -562,10 +540,7 @@ export default function ChatRoom({ id, translate }) {
     }
   };
 
-  const joinScreenSharing = (screenId) => {
-    // beeper.publish(Events.JoinScreenShare, screenId);
-    // streamService.getWebSocket().emit('server:screen:join', screenId);
-  }, onMeetingUpdate = () => {
+  const onMeetingUpdate = () => {
     streamService.getWebSocket().emit('server:meeting:update', meeting);
   },
   /** @type {(id: string, forPeer: string) => string} */
@@ -637,10 +612,6 @@ export default function ChatRoom({ id, translate }) {
       const stream = await getDisplayMedia();
       // Stop local stream if it is being shared, remote stream should be cleaned after callback <- @todo
       stopLocalVideo();
-      // // Notify server
-      // streamService.getWebSocket().emit('server:user:screen', getScreenId(me.id));
-      // // Notify user
-      // notifyUser('屏幕共享已开启', NOTIFICATION_STYLES.SUCCESS);
       localVideoRef.current.muted = true;
       localVideoRef.current.srcObject = stream;
       //
@@ -695,21 +666,9 @@ export default function ChatRoom({ id, translate }) {
   /** @type {(options: { isCaller: Boolean, call: { peer: string, answer: (stream: ReadableStream) => void, on: (eventName: string, callback: (stream: ReadableStream) => void) => void }? }) => Promise} */
   startLocalAudio = async (options) => {
     try {
-      const stream = await utility.getUserMedia();
+      const stream = await utility.captureUserAudio();
       streamService.publishAudioStream(me.id, stream);
       enableTracks();
-      // if(options.isCaller) {
-      //   // vars.audio.addReceiver(w.__user.sub, w.__user.first_name, w.__user.email, w.__user.avatar, true);
-      //   // vars.audio.addReceiver(aiMessage.to.pid, aiMessage.to.name, aiMessage.to.email, aiMessage.to.avatar);
-      //   // // Share with one person
-      //   // await methods.chatAudioShare([ chat.to.id ]);
-      // }
-      // else if(options.call) {
-      //   options.call.answer(streamService.localAudioStream);
-      //   options.call.on('stream', callerStream => {
-      //     // methods.chatAudioShare([]);
-      //   });
-      // }
     }
     catch(error) {
       console.warn('### ERROR CAPTURING AUDIO ###');
@@ -750,25 +709,6 @@ export default function ChatRoom({ id, translate }) {
     }
   }, [ screenId, peerStatus.video ]);
 
-  // useEffect(() => {
-  //   changeStatus();
-  // }, [uiProperty.audioStatus]);
-
-  // useEffect(() => {
-  //   console.log('streamService.isReceivingAudio->', streamService.isReceivingAudio);
-  //   if(streamService.isReceivingAudio) {
-  //     const enabled = (streamService.isMuted === false);
-  //     const tracks = streamService.localAudioStream.getTracks();
-  //     tracks.forEach(track => {
-  //       if(track.kind === 'audio') {
-  //         track.enabled = enabled;
-  //       }
-  //     });
-  //     remoteVideoRef.current.muted = streamService.isMuted;
-  //     remoteVideoRef.current.srcObject = streamService.localAudioStream;
-  //   }
-  // }, []);
-
   // Scroll chat history automatically
   useEffect(() => {
     if(uiProperty.isScrolling)
@@ -788,18 +728,7 @@ export default function ChatRoom({ id, translate }) {
     }
   }, [me.id, uiProperty.videoStatus]);
 
-  const logVideoStatus = (status) => {
-    switch(status) {
-      case MediaStatus.IDLE:
-        return ('IDLE');
-      case MediaStatus.PUBLISHING:
-        return ('PUBLISHING');
-      case MediaStatus.RECEIVING:
-        return ('RECEIVING');
-      default:
-        return ('???');
-    }
-  }, refreshDevices = () => {
+  const refreshDevices = () => {
     // Find browser supported devices
     utility.getDevices().then(systemDevices => {
       const devices = [{ kind: 'videoinput', label: translate('仅屏幕'), deviceId: DEVICE.SCREEN }].concat(systemDevices);
@@ -810,13 +739,6 @@ export default function ChatRoom({ id, translate }) {
       });
     });
   };
-  // useEffect(() => {
-  //   console.log('uiProperty.videoStatus->', logVideoStatus(uiProperty.videoStatus), logVideoStatus(streamService.videoStatus));
-  // }, [uiProperty.videoStatus]);
-
-  // useEffect(() => {
-  //   console.log('arePeersOK->', arePeersOK);
-  // }, [arePeersOK]);
 
   // Handle events and setup peers
   useEffect(() => {
@@ -830,47 +752,43 @@ export default function ChatRoom({ id, translate }) {
     const disposeClientErrorEvent = beeper.subscribe(Events.ClientError, error => {
       setUiProperty({ ...uiProperty, error });
     });
-    const disposeJoinScreenSharingEvent = beeper.subscribe(Events.JoinScreenShare, remoteScreenId => {
-      // setScreenId(remoteScreenId);
-      console.log('### JOIN SCREEN ->', remoteScreenId);
-    });
-    // const disposeStartScreenSharingCallbackEvent = beeper.subscribe(Events.StartScreenShareCallback, ({ caller, users, remoteScreenId }) => {
-      
-    // });
-    const disposeStopScreenSharingCallbackEvent = beeper.subscribe(Events.StopScreenShareCallback, ({ sharer }) => {
-      
-    });
-    // const disposeJoinScreenSharingCallbackEvent = beeper.subscribe(Events.JoinScreenShareCallback,
-    //   /**
-    //    * 
-    //    * @param {{ callee: User, caller: User, remoteScreenId: string }} param0 Callback data
-    //    */
-    //   ({ callee, caller, remoteScreenId }) => {
-    //   // console.log('callee->', callee, 'caller->', caller, 'remoteScreenId->', remoteScreenId);
-    //   if(caller) {
-    //     if(caller.id === me.id) {
-    //       streamService.videoPeer.call(getScreenId(callee.id, true), streamService.remoteVideoStream, { metadata: {  } });
-    //     }
-    //   }
-    //   else if(callee) {
-    //     if(callee.id === me.id) {
-    //       // @todo: What is this logic for
-    //     }
-    //   }
-    // });
-    // const disposeStatusChangeEvent = beeper.subscribe(Events.StatusChange, () => {
-    //   changeEmoji();
-    // });
+
     const disposeNotificationEvent = beeper.subscribe(Events.ClientNotification, ({ message, style }) => {
       notifyUser(message, style);
     });
+
     const disposeUpdateMeetingEvent = beeper.subscribe(Events.UpdateMeeting, ({ user, meeting }) => {
       setMeeting(meeting);
       notifyUser(utility.format(translate('【{0}】更新了会议信息'), user.name), NOTIFICATION_STYLES.INFO, true);
     });
 
     const disposeVideoCallEvent = beeper.subscribe(Events.PeerVideoCall, ({ call }) => {
-
+      if(remoteVideoRef?.current === null) {
+        console.warn('    NULL VIDEO REFERENCE');
+        return;
+      }
+      const peerScreenId = getScreenId(call.peer);
+      const selectedUser = chatUsers.find(x => x.id === peerScreenId); // document.getElementById(peerScreenId);
+      if(selectedUser) {
+        remoteVideoRef.current.poster = selectedUser.avatar;
+      }
+      // I was sharing, but somebody interrupted
+      stopScreen();
+      call.answer();
+      call.on('stream', remoteStream => {
+        console.log(`    VIDEO RECEIVING: ${call.peer} ###`);
+        streamService.receiveVideoStream(remoteStream);
+        // Unmute local video
+        remoteVideoRef.current.srcObject = remoteStream;
+        remoteVideoRef.current.muted = false;
+        setUiProperty(current => {
+          return { ...current, videoStatus: MediaStatus.RECEIVING, isPlayingLocalVideo: false };
+        });
+        setScreenId(peerScreenId);
+      });
+      if(call.metadata && call.metadata.nickname) {
+        notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), call.metadata.nickname), NOTIFICATION_STYLES.INFO, true);
+      }
     });
 
     refreshDevices();
@@ -878,14 +796,10 @@ export default function ChatRoom({ id, translate }) {
     return () => {
       disposeSocketConnectedEvent();
       disposeClientErrorEvent();
-      disposeJoinScreenSharingEvent();
-      // disposeJoinScreenSharingCallbackEvent();
-      disposeStopScreenSharingCallbackEvent();
-      // disposeStartScreenSharingCallbackEvent();
-      // disposeStatusChangeEvent();
       disposeNotificationEvent();
       disposeUpdateMeetingEvent();
       disposeVideoCallEvent();
+      //
       streamService.reset();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1001,13 +915,13 @@ export default function ChatRoom({ id, translate }) {
                     playRemoteVideo();
                   }} onClick={evt => {
                     playRemoteVideo();
-                  }} onEnded={() => {
+                  }} onEnded={evt => {
                     console.log('### ENDED ###');
                     // stopScreen();
                     // streamService.videoStatus = MediaStatus.IDLE;
                     // setUiProperty({ ...uiProperty, videoStatus: streamService.videoStatus });
-                  }} onPause={() => {
-                    console.log('### PAUSE ###');
+                  }} onPause={evt => {
+                    console.log('### REMOTE PAUSE ###');
                     // stopScreen();
                     setUiProperty({ ...uiProperty, isPlayingRemoteVideo: false });
                   }} 
@@ -1016,6 +930,15 @@ export default function ChatRoom({ id, translate }) {
                 <div className={styles['local']}>
                   <video autoPlay={false} playsInline disablePictureInPicture ref={localVideoRef} onLoadedMetadata={evt => {
                     playLocalVideo();
+                  }}
+                  onPause={evt => {
+                    console.log('### LOCAL PAUSE ###');
+                    stopScreen();
+                  }}
+                  onSuspend={evt => {
+                    console.log('### LOCAL SUSPEND ###');
+                    if(utility.isChromium(navigator.userAgent))
+                      stopScreen();
                   }}
                   />
                 </div>

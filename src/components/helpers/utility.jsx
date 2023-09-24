@@ -131,7 +131,7 @@ class Utility {
    * Get user media
    * @returns {Promise<MediaStream>} Returns media stream
    */
-  async getUserMedia() {
+  async captureUserAudio() {
     return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
   }
 
@@ -153,6 +153,16 @@ class Utility {
       nativeElement.srcObject = null;
       nativeElement.pause();
     }
+  }
+
+  /**
+   * If the user browser is Chromium based
+   * @param {string} userAgent User agent string
+   * @returns {boolean} Returns boolean value
+   */
+  isChromium(userAgent) {
+    const ua = userAgent.toLowerCase();
+    return ua.includes('chrome') || ua.includes('chromium');
   }
 }
 
