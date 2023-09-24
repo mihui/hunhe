@@ -324,6 +324,7 @@ export default function ChatRoom({ id, translate }) {
     stopScreen();
     call.answer();
     call.on('stream', remoteStream => {
+      console.log(`    VIDEO RECEIVING: ${call.peer} ###`);
       streamService.receiveVideoStream(remoteStream);
       // Unmute local video
       remoteVideoRef.current.srcObject = remoteStream;
@@ -640,7 +641,7 @@ export default function ChatRoom({ id, translate }) {
       // streamService.getWebSocket().emit('server:user:screen', getScreenId(me.id));
       // // Notify user
       // notifyUser('屏幕共享已开启', NOTIFICATION_STYLES.SUCCESS);
-      localVideoRef.current.muted = streamService.isMuted;
+      localVideoRef.current.muted = true;
       localVideoRef.current.srcObject = stream;
       //
       streamService.publishVideoStream(stream);
@@ -717,7 +718,7 @@ export default function ChatRoom({ id, translate }) {
   },
   connectUsers = () => {
     chatUsers.filter(x => x.__status.browser === STATUS.AUDIO && x.id !== me.id).forEach(x => {
-      console.log('CALLING->', x.name);
+      console.log('  CALLING->', x.name);
       const call = streamService.audioCall(x.id, { id: me.id, nickname: me.name });
       if(call) {
         call.on('stream', calleeStream => {

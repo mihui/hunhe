@@ -78,8 +78,6 @@ export class StreamService {
   publishAudioStream(userId, stream) {
     this.audioStatus = MediaStatus.PUBLISHING;
     this.localAudioStream = stream;
-    // return this.getUserAudio(userId).createAudio(stream).mute();
-    // return this.getUserAudio(userId).context;
   }
 
   /**
