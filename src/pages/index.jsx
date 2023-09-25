@@ -91,7 +91,6 @@ export default function Index({ translate }) {
 
   useEffect(() => {
     const { meeting } = router.query;
-    console.log('[ROUTER] meeting->', meeting);
     if(meeting) {
       if(initMeeting(meeting)) {
         setOriginalId(meeting);

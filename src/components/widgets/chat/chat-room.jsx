@@ -686,12 +686,15 @@ export default function ChatRoom({ id, translate }) {
       }
     });
   },
+  stopAudio = () => {
+    utility.stopTracks(streamService.localAudioStream);
+    streamService.stopAudioStream();
+    setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus });
+    streamService.cleanAudioConnections();
+  },
   toggleAudio = async () => {
     if(streamService.audioStatus === MediaStatus.PUBLISHING) {
-      utility.stopTracks(streamService.localAudioStream);
-      streamService.stopAudioStream();
-      setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus });
-      streamService.cleanAudioConnections();
+      stopAudio();
     }
     else {
       await startLocalAudio({ isCaller: true });
@@ -801,6 +804,8 @@ export default function ChatRoom({ id, translate }) {
       disposeVideoCallEvent();
       //
       streamService.reset();
+      stopScreen();
+      stopAudio();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
