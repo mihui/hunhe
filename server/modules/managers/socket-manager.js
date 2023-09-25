@@ -332,6 +332,7 @@ class SocketManager {
         const fromUser = socket.data;
         const rooms = this.getRooms(mode, to.id, fromUser.id, fromUser.room);
         this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, fromUser, data);
+        logger.debug('to->', to);
         if(to.kind === KINDS.ROBOT) {
           data.to = fromUser;
           try {
