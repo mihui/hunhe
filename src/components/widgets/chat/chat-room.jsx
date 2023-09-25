@@ -354,7 +354,7 @@ export default function ChatRoom({ id, translate }) {
       else {
         console.log('  MEETING.DEFAULT');
         setIsMeetingOK(true);
-        setMeeting({ id: ROOMS.DEFAULT.ID, subject: ROOMS.DEFAULT.SUBJECT, locked: ROOMS.DEFAULT.LOCKED, limitation: ROOMS.DEFAULT.LIMITATION, updated_time: ROOMS.DEFAULT.TIME });
+        setMeeting({ id: ROOMS.DEFAULT.ID, subject: translate(ROOMS.DEFAULT.SUBJECT), locked: ROOMS.DEFAULT.LOCKED, limitation: ROOMS.DEFAULT.LIMITATION, updated_time: ROOMS.DEFAULT.TIME });
       }
     }, [ meetingId ]);
 
@@ -686,7 +686,7 @@ export default function ChatRoom({ id, translate }) {
       }
     });
   },
-  startMeeting = async () => {
+  toggleAudio = async () => {
     if(streamService.audioStatus === MediaStatus.PUBLISHING) {
       utility.stopTracks(streamService.localAudioStream);
       streamService.stopAudioStream();
@@ -833,7 +833,7 @@ export default function ChatRoom({ id, translate }) {
         }} className={styles['chat-menus']}
         >
           {/* OPEN MEETING INFORMATION */}
-          { ROOMS.DEFAULT.ID !== meeting.id && <IconButton
+          <IconButton
             size="sm"
             variant="plain"
             sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
@@ -841,7 +841,7 @@ export default function ChatRoom({ id, translate }) {
               setUiProperty({ ...uiProperty, isLinkDisplayed: true });
           }} className={styles['chat-menu']} disabled={isLoading}>
             <InfoIcon />
-          </IconButton> }
+          </IconButton>
 
           {/* OPEN MY PROFILE */}
           <IconButton
@@ -1058,34 +1058,35 @@ export default function ChatRoom({ id, translate }) {
             gap: 0.5,
           }}
           >
-            <IconButton size='sm' variant="soft" disabled={isLoading} onClick={evt => {
+            <Tooltip title={translate('发送')}><IconButton size='sm' variant="soft" disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               sendChatMessage();
             }}>
-              <SendIcon />
-            </IconButton>
+                <SendIcon />
+            </IconButton></Tooltip>
+            
 
-            { (uiProperty.audioStatus !== MediaStatus.IDLE || uiProperty.videoStatus === MediaStatus.PUBLISHING) && <IconButton size='sm' disabled={isLoading} onClick={evt => {
+            { (uiProperty.audioStatus !== MediaStatus.IDLE || uiProperty.videoStatus === MediaStatus.PUBLISHING) && <Tooltip title={uiProperty.isMuted ? translate('打开麦克风') : translate('关闭麦克风')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
               streamService.toggleMute();
               setUiProperty({ ...uiProperty, isMuted: streamService.isMuted });
               enableTracks();
               changeStatus();
             }} color={ uiProperty.isMuted ? 'neutral': 'primary' }>
               { uiProperty.isMuted ? <MicOffIcon /> :  <MicIcon /> }
-            </IconButton> }
+            </IconButton></Tooltip> }
 
-            { peerStatus.audio && <IconButton size='sm' disabled={isLoading} onClick={evt => {
-              startMeeting();
+            { peerStatus.audio && <Tooltip title={uiProperty.audioStatus === MediaStatus.IDLE ? translate('加入音频通话') : translate('挂断')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
+              toggleAudio();
             }} color={ uiProperty.audioStatus === MediaStatus.IDLE ? 'neutral': 'danger' }>
               { uiProperty.audioStatus === MediaStatus.IDLE ?
                 <AddIcCallIcon />
                 :
                 <CallEndIcon />
               }
-            </IconButton> }
+            </IconButton></Tooltip> }
 
-            { peerStatus.video && peerStatus.audio && arePeersOK && <IconButton size='sm' disabled={isLoading} onClick={evt => {
+            { peerStatus.video && peerStatus.audio && arePeersOK && <Tooltip title={translate('设置')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               setUiProperty({ ...uiProperty, isSettingsDisplayed: !uiProperty.isSettingsDisplayed });
@@ -1097,9 +1098,9 @@ export default function ChatRoom({ id, translate }) {
               }
             }}>
               <TuneIcon />
-            </IconButton> }
+            </IconButton></Tooltip> }
 
-            { arePeersOK && peerStatus.video && <IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
+            { arePeersOK && peerStatus.video && <Tooltip title={uiProperty.videoStatus === MediaStatus.PUBLISHING ? translate('取消屏幕共享') : translate('共享屏幕')}><IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               if(uiProperty.videoStatus === MediaStatus.PUBLISHING) {
@@ -1110,7 +1111,7 @@ export default function ChatRoom({ id, translate }) {
               }
             }}>
               { uiProperty.videoStatus === MediaStatus.PUBLISHING ? <CancelPresentationIcon /> : <PresentToAllIcon /> }
-            </IconButton> }
+            </IconButton></Tooltip> }
 
             <Divider orientation="vertical"></Divider>
 
@@ -1149,16 +1150,16 @@ export default function ChatRoom({ id, translate }) {
                     width: '100%',
                     gap: 0.5,
                   }}>
-                    <Button size='sm' variant='soft' onClick={evt => {
+                    { vars.status.emoji !== '' && <Button size='sm' variant='soft' onClick={evt => {
                       streamService.setEmoji('');
                       setVars({ ...vars, status: { emoji: '' } });
                       changeStatus();
                       setUiProperty({ ...uiProperty, status: { ...uiProperty.status, isEmojiDisplayed: false } });
-                    }}>Clear</Button>
+                    }}>{ translate('重置') }</Button> }
                     <span>{vars.status.emoji}</span>
                     <Button size='sm' variant='outline' onClick={evt => {
                       setUiProperty({ ...uiProperty, status: { ...uiProperty.status, isEmojiDisplayed: false } });
-                    }}>Close</Button>
+                    }}>{ translate('关闭') }</Button>
                   </Stack>
                 </Box>
               }

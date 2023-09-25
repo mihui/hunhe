@@ -59,7 +59,18 @@
     "视频输入 - {0}": "Video input - {0}",
     "仅屏幕": "Screen only",
     "预览": "Preview",
-    "刷新": "Refresh"
+    "刷新": "Refresh",
+    "复制链接": "Copy link",
+    "复制成功": "Copied",
+    "复制失败": "Copy failed",
+    "共享屏幕": "Share screen",
+    "取消屏幕共享": "Stop screen share",
+    "加入音频通话": "Join audio call",
+    "挂断": "Hangup",
+    "打开麦克风": "Unmute",
+    "关闭麦克风": "Mute",
+    "发送": "Send",
+    "重置": "Reset"
   },
   "zh": {
     "浑河网": "浑河网",

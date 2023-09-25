@@ -4,6 +4,8 @@ import FormLabel from '@mui/joy/FormLabel';
 import Button from '@mui/joy/Button';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
+import ModalClose from '@mui/joy/ModalClose';
+
 import Typography from '@mui/joy/Typography';
 import Stack from '@mui/joy/Stack';
 import Input from '@mui/joy/Input';
@@ -25,6 +27,7 @@ export const ChatUserModal = ({ open, user, handleClose, translate }) => {
         aria-describedby="basic-modal-dialog-description"
         sx={{ minWidth: 300 }}
       >
+        <ModalClose />
         <Typography id="basic-modal-dialog-title" level="h2">
           { translate('简介') }
         </Typography>
