@@ -3,6 +3,8 @@ import crypto from 'crypto';
 export const MAX_USERS = 10;
 
 export class ChatUser {
+  /** @type {number} */
+  kind;
   /** @type {string} */
   room;
   /** @type {string} */

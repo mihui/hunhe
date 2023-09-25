@@ -4,6 +4,7 @@ import { Server, Socket } from 'socket.io';
 import { ChatUser } from '../models/chat.js';
 import { meetingService } from '../services/data.js';
 import { httpCodes } from '../http-manager.js';
+import { aiService } from '../services/ai.js';
 
 const { logger } = Logger('socket-manager');
 
@@ -19,6 +20,17 @@ const STATUS = {
   SPEAKING: 5,
   MUTED: 6,
 };
+
+export const KINDS = {
+  PERSON: 1,
+  ROBOT: 2,
+  ALL: 3,
+};
+
+export const ROBOTS = {
+  LLAMA: '__llama'
+};
+
 
 const REASON = {
   JOIN: 1,
@@ -187,7 +199,7 @@ class SocketManager {
       /** @type {ChatUser} User data - One time usage */
       const chatUser = { 
         room,
-        id: newUser.id, avatar: newUser.avatar, name: newUser.name,
+        id: newUser.id, avatar: newUser.avatar, name: newUser.name, kind: newUser.kind,
         __id: socket.id,
         __status: { browser: STATUS.ONLINE, microphone: STATUS.MUTED, emoji: '' }
       };
@@ -320,6 +332,19 @@ class SocketManager {
         const fromUser = socket.data;
         const rooms = this.getRooms(mode, to.id, fromUser.id, fromUser.room);
         this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, fromUser, data);
+        if(to.kind === KINDS.ROBOT) {
+          data.to = fromUser;
+          try {
+            if(to.__id === ROBOTS.LLAMA) {
+              data.message = await aiService.askLlama(data.message);
+              this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, to, data);
+            }
+          }
+          catch(error) {
+            data.message = error.message;
+            this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, to, data);
+          }
+        }
         if(typeof ack === 'function') ack();
       }
     );

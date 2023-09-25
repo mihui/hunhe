@@ -1,8 +1,15 @@
 import { STATUS } from "../config/vars";
 import { DEVICE } from "./meeting";
+
 export const ChatModes = {
   Private: 'Private',
   Public: 'Public',
+};
+
+export const Kinds = {
+  PERSON: 1,
+  ROBOT: 2,
+  ALL: 3,
 };
 
 export class Device {
@@ -49,6 +56,8 @@ export class Devices {
 }
 
 export class User {
+  /** @type {number} */
+  kind;
   /** @type {string} */
   id;
   /** @type {string} */
@@ -63,6 +72,7 @@ export class User {
   __status;
 
   constructor(id = '', name = '', avatar = '/images/avatars/00.png') {
+    this.kind = Kinds.PERSON;
     this.id = id;
     this.name = name;
     this.avatar = avatar;
@@ -73,6 +83,7 @@ export class User {
 
   toJSON() {
     return {
+      kind: this.kind,
       id: this.id,
       name: this.name,
       avatar: this.avatar,
@@ -82,10 +93,19 @@ export class User {
   }
 }
 
-export class All extends User{
+export class All extends User {
   static __id = '__everyone';
   constructor(translate = (str) => str) {
     super(All.__id, translate('大家'), '/images/avatars/00.png');
+    this.kind = Kinds.ROBOT;
+  }
+}
+
+export class BotLlama extends User {
+  static __id = '__llama';
+  constructor(translate = (str) => str) {
+    super(BotLlama.__id, translate('羊驼'), '/images/avatars/llama.png');
+    this.kind = Kinds.ROBOT;
   }
 }
 

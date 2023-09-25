@@ -95,6 +95,9 @@ const VARS = {
   //
   CHAT_LOBBY_ID: '00000000-0000-0000-0000-000000000000',
   PEER_PORT: processor.getPeerPort(),
+  //
+  AI_LLAMA_API_URL: process.env.AI_LLAMA_API_URL ?? 'https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf',
+  AI_LLAMA_API_KEY: process.env.AI_LLAMA_API_KEY ?? '',
 };
 
 BigInt.prototype.toJSON = function() {

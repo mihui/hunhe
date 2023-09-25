@@ -34,7 +34,7 @@ import Divider from '@mui/joy/Divider';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { User, ChatPayload, ChatRecord, ChatVideo, All } from '@/components/models/user';
+import { User, ChatPayload, ChatRecord, ChatVideo, All, BotLlama, Kinds } from '@/components/models/user';
 import { ChatUserModal } from '@/components/widgets/modals/chat-user';
 import { Events, beeper, storage, utility } from '@/components/helpers/utility';
 import { Avatars, CustomCodes, ROOMS, STATUS, StorageKeys } from '@/components/config/vars';
@@ -247,7 +247,7 @@ export default function ChatRoom({ id, translate }) {
       }, []);
       //
       streamService.maintainAudios(uniqueUsers);
-      setChatUsers([new All(translate)].concat(uniqueUsers));
+      setChatUsers([new All(translate), new BotLlama(translate)].concat(uniqueUsers));
     },
     onUserMessage: (id, fromUser, data) => {
       /** @type {ChatRecord} */
@@ -862,7 +862,7 @@ export default function ChatRoom({ id, translate }) {
           </IconButton>
 
           {/* OPEN USER LIST */}
-          <Badge badgeContent={chatUsers.length ? chatUsers.length - 1 : ''}>
+          <Badge badgeContent={chatUsers.filter(x => x.kind === Kinds.PERSON).length}>
             <IconButton
               size="sm"
               variant="soft"
