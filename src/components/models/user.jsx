@@ -101,14 +101,6 @@ export class All extends User {
   }
 }
 
-export class BotLlama extends User {
-  static __id = '__llama';
-  constructor(translate = (str) => str) {
-    super(BotLlama.__id, translate('羊驼'), '/images/avatars/llama.png');
-    this.kind = Kinds.ROBOT;
-  }
-}
-
 export class ChatPayload {
   /** @type {string} */
   input = '';
@@ -152,28 +144,4 @@ export class ChatMessage {
   to;
   /** @type {string} */
   message;
-}
-
-export class ChatVideo {
-  /** @type {MediaStream} */
-  remoteStream;
-  /** @type {MediaStream} */
-  localStream;
-  /** @type {boolean} */
-  isPublishing;
-  /** @type {boolean} */
-  isReceiving;
-
-  constructor() {
-    this.isStreaming = false;
-    this.localStream = null;
-    this.remoteStream = null;
-  }
-  toJSON() {
-    return {
-      isStreaming: this.isStreaming,
-      localStream: this.localStream,
-      remoteStream: this.remoteStream,
-    }
-  }
 }
