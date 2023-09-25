@@ -37,7 +37,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { User, ChatPayload, ChatRecord, All, Kinds } from '@/components/models/user';
 import { ChatUserModal } from '@/components/widgets/modals/chat-user';
 import { Events, beeper, storage, utility } from '@/components/helpers/utility';
-import { Avatars, CustomCodes, ROOMS, STATUS, StorageKeys } from '@/components/config/vars';
+import { CustomCodes, ROOMS, STATUS, StorageKeys } from '@/components/config/vars';
 import { ChatLinkModal } from '@/components/widgets/modals/chat-link';
 import { ChatFormat } from '@/components/widgets/chat/chat-format';
 import { ChatAudio, DEVICE, Device, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER, UIProperty } from '@/components/models/meeting';

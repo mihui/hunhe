@@ -6,9 +6,7 @@ const { logger } = Logger('peer-manager');
 
 class PeerManager {
 
-  constructor() {
-    
-  }
+  constructor() {}
 
   boot(sslOptions) {
     const app = express();
@@ -43,7 +41,7 @@ class PeerManager {
       },
       ssl: sslOptions,
     });
-    
+
     peerServer.on('connection', (client) => {
       logger.debug('### PEER CONNECTED ###');
       logger.debug(client.getId());
@@ -52,7 +50,7 @@ class PeerManager {
       logger.debug('### PEER DISCONNECTED ###');
       logger.debug(client.getId());
     });
-    
+
     app.use(`${VARS.APP_CONTEXT}/live`, peerServer);
   }
 }

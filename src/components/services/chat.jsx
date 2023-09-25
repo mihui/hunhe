@@ -1,4 +1,4 @@
-import { HttpCodes, StorageKeys } from '../config/vars';
+import VARS, { HttpCodes, StorageKeys } from '../config/vars';
 import { Meeting } from '../models/meeting';
 import { storage } from '../helpers/utility';
 import { User } from '../models/user';
@@ -12,7 +12,7 @@ class ChatService {
    */
   async getMeeting(meetingId) {
     try {
-      const response = await fetch(`/api/chat/meeting/${meetingId}`);
+      const response = await fetch(`${VARS.APP_URL}/api/chat/meeting/${meetingId}`);
       if(response.status === HttpCodes.OK) {
         /** @type {{ meeting: Meeting }} */
         const json = await response.json();
@@ -25,7 +25,7 @@ class ChatService {
 
   async createMeeting(maxUsers = 10) {
     try {
-      const response = await fetch(`/api/chat/meeting`, { method: 'POST', body: JSON.stringify({ max_users: maxUsers }) });
+      const response = await fetch(`${VARS.APP_URL}/api/chat/meeting`, { method: 'POST', body: JSON.stringify({ max_users: maxUsers }) });
       if(response.ok) {
         /** @type {{ meeting: Meeting }} */
         const json = await response.json();
@@ -42,7 +42,7 @@ class ChatService {
    */
   async updateMeeting(meeting) {
     try {
-      const response = await fetch(`/api/chat/meeting/${meeting.id}`, { method: 'PUT', body: JSON.stringify(meeting), headers: {
+      const response = await fetch(`${VARS.APP_URL}/api/chat/meeting/${meeting.id}`, { method: 'PUT', body: JSON.stringify(meeting), headers: {
         'Content-Type': 'application/json'
       } });
       if(response.ok) {

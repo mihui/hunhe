@@ -1,9 +1,16 @@
+const DEFAULT_HOST = 'hunhe.app.com';
+
 const VARS = {
   APP_TITLE: process.env.NEXT_PUBLIC_APP_TITLE || '',
   APP_KEYWORDS: process.env.NEXT_PUBLIC_APP_KEYWORDS || '',
   APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION || '',
-  APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://hunhe.app.com',
+  APP_HOST: process.env.NEXT_PUBLIC_APP_HOST || DEFAULT_HOST,
+  APP_URL: '',
 };
+
+VARS.APP_URL = `https://${VARS.APP_HOST}`;
+
+console.log(VARS);
 
 export default VARS;
 

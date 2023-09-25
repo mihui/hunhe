@@ -10,6 +10,8 @@ import mongoManager from './server/modules/managers/mongo-manager.js';
 import health from './server/modules/health.js'
 import socketManager from './server/modules/managers/socket-manager.js';
 import { globSync } from 'glob';
+import cors from 'cors';
+
 import path from 'path';
 
 import peerManager from './server/modules/managers/peer-manager.js'
@@ -17,6 +19,9 @@ import peerManager from './server/modules/managers/peer-manager.js'
 const { logger } = Logger('boot');
 
 const app = express();
+
+app.use(cors({ origin: true, credentials: true }));
+
 app.set('trust proxy', 1);
 
 app.use(staticModule('server/public'));

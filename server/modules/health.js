@@ -1,8 +1,6 @@
-import express, { Router } from 'express';
 import { httpCodes } from './http-manager.js';
-const healthRouter = Router();
 
-export default{
+const healthChecker = {
   /**
    * Terminate app
    * @param {number} code Exit code
@@ -12,7 +10,7 @@ export default{
   },
   /**
    * Mount health check router
-   * @param {express.Express} app App
+   * @param {import('express').Express} app App
    */
   mountCheck: (app) => {
     app.use('/api/health', (req, res, next) => {
@@ -20,3 +18,5 @@ export default{
     });
   }
 };
+
+export default healthChecker;

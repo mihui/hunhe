@@ -23,6 +23,7 @@
     "@mui/icons-material": "latest",
     "@mui/joy": "latest",
     "@mui/material": "latest",
+    "cors": "^2.8.5",
     "dotenv": "latest",
     "ejs": "latest",
     "express": "latest",

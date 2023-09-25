@@ -29,6 +29,7 @@ class SessionService {
     }
     return verifyPayload;
   }
+
   /**
    * Authenticate the token
    *

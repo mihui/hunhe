@@ -1,8 +1,12 @@
-import { io } from 'socket.io-client';
-import { CustomCodes } from '../config/vars';
+import { Socket, io } from 'socket.io-client';
+import VARS, { CustomCodes } from '../config/vars';
 import { ChatAudio } from '../models/meeting';
 import { MediaStatus } from './chat';
-import { utility } from '../helpers/utility';
+
+const PATHS = {
+  WEBSOCKET: `${VARS.APP_URL}/api/messaging`,
+  PEER: `/live/audio`
+};
 
 export class StreamService {
   /** @type {import('socket.io-client').Socket} */
@@ -38,15 +42,22 @@ export class StreamService {
   emoji = '';
 
   constructor() {
-    this.socket = io({ autoConnect: false, path: '/api/messaging' });
+    this.socket = io({ autoConnect: false, path: PATHS.WEBSOCKET });
     this.videoConnections = [];
     this.audioConnections = [];
   }
 
+  /**
+   * Get WebSocket instance
+   * @returns {Socket} Returns Socket instance
+   */
   getWebSocket() {
     return this.socket;
   }
 
+  /**
+   * Connect with WebSocket server
+   */
   connectWebSocket() {
     this.socket.connect();
   }
@@ -91,9 +102,12 @@ export class StreamService {
     this.localAudioStream = null;
   }
 
+  /**
+   * Enable media tracks
+   * @param {boolean} isScreenOnly Is screen share only
+   */
   enableTracks(isScreenOnly) {
     if (this.audioStatus === MediaStatus.PUBLISHING) {
-      console.log('audio.isScreenOnly->', isScreenOnly);
       const enabled = (this.isMuted === false && isScreenOnly);
       const tracks = this.localAudioStream.getTracks();
       tracks.forEach(track => {
@@ -101,7 +115,6 @@ export class StreamService {
       });
     }
     if (this.videoStatus === MediaStatus.PUBLISHING) {
-      console.log('video.isScreenOnly->', isScreenOnly);
       const enabled = this.isMuted === false;
       const tracks = this.localVideoStream.getTracks();
       tracks.forEach(track => {
@@ -132,10 +145,17 @@ export class StreamService {
     return this.getUserAudio(userId);
   }
 
+  /**
+   * Mute/unmute
+   */
   toggleMute() {
     this.isMuted = !this.isMuted;
   }
 
+  /**
+   * Set emoji
+   * @param {string} emoji Emoji string
+   */
   setEmoji(emoji) {
     this.emoji = emoji;
   }
@@ -169,9 +189,9 @@ export class StreamService {
 
   /**
    * Setup Peers
-   * @param {string} audioPeerId
-   * @param {string} videoPeerId
-   * @returns {Promise<{}>} Returns Promise with nothing :)
+   * @param {string} audioPeerId Audio Peer ID
+   * @param {string} videoPeerId Video Peer ID
+   * @returns {Promise<number>} Returns status code
    */
   setupPeers(audioPeerId, videoPeerId) {
     return new Promise((resolve, reject) => {
@@ -180,7 +200,7 @@ export class StreamService {
           import('peerjs').then(imported => {
             const Peer = imported.default;
             const peerOptions = {
-              host: window.location.host, path: '/live/audio',
+              host: VARS.APP_HOST, path: PATHS.PEER,
               config: {
                 iceServers: [
                   { urls: 'stun:stun.l.google.com:19302' },
@@ -202,6 +222,9 @@ export class StreamService {
     });
   }
 
+  /**
+   * Clean video connections
+   */
   cleanVideoConnections() {
     this.videoConnections.forEach(x => {
       if (x)
@@ -211,6 +234,9 @@ export class StreamService {
     this.videoConnections = [];
   }
 
+  /**
+   * Clean audio connections
+   */
   cleanAudioConnections() {
     this.audioConnections.forEach(x => {
       if (x)
@@ -220,6 +246,9 @@ export class StreamService {
     this.audioConnections = [];
   }
 
+  /**
+   * Reset Peer connections
+   */
   reset() {
     if (this.videoPeer) {
       this.videoPeer.disconnect();
