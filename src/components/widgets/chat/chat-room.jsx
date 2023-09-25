@@ -689,7 +689,8 @@ export default function ChatRoom({ id, translate }) {
   stopAudio = () => {
     utility.stopTracks(streamService.localAudioStream);
     streamService.stopAudioStream();
-    setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus });
+    streamService.isMuted = true;
+    setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus, isMuted: streamService.isMuted });
     streamService.cleanAudioConnections();
   },
   toggleAudio = async () => {
@@ -804,6 +805,7 @@ export default function ChatRoom({ id, translate }) {
       disposeVideoCallEvent();
       //
       streamService.reset();
+      //
       stopScreen();
       stopAudio();
     };
