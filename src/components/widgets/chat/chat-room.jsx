@@ -388,8 +388,6 @@ export default function ChatRoom({ id, translate }) {
       if(meeting.id && me && me.name && me.avatar && me.id) {
         console.log('### CONNECTING WITH SOCKET ###');
         streamService.connectWebSocket();
-        // setSocket(io({ path: '/api/messaging', query: { room: meeting.id, id: me.id, avatar: me.avatar, name: me.name } }));
-
         streamService.getWebSocket().on('connect', socketEvents.onSocketConnect)
           .on('reconnect', socketEvents.onSocketReconnect)
           .on('reconnect_failed', socketEvents.onSocketReconnectFailed)

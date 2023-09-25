@@ -4,11 +4,9 @@ import { ChatAudio } from '../models/meeting';
 import { MediaStatus } from './chat';
 
 const PATHS = {
-  WEBSOCKET: `${VARS.APP_URL}/api/messaging`,
+  WEBSOCKET: `/api/messaging`,
   PEER: `/live/audio`
 };
-
-console.log(PATHS);
 
 export class StreamService {
   /** @type {import('socket.io-client').Socket} */
@@ -44,7 +42,8 @@ export class StreamService {
   emoji = '';
 
   constructor() {
-    this.socket = io({ autoConnect: false, path: PATHS.WEBSOCKET });
+    console.log('### INIT STREAM SERVICE ###');
+    this.socket = io(VARS.APP_URL, { path: PATHS.WEBSOCKET, host: VARS.APP_HOST, autoConnect: false });
     this.videoConnections = [];
     this.audioConnections = [];
   }
