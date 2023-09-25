@@ -8,6 +8,8 @@ const PATHS = {
   PEER: `/live/audio`
 };
 
+console.log(PATHS);
+
 export class StreamService {
   /** @type {import('socket.io-client').Socket} */
   socket;

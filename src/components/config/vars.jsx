@@ -10,8 +10,6 @@ const VARS = {
 
 VARS.APP_URL = `https://${VARS.APP_HOST}`;
 
-console.log(VARS);
-
 export default VARS;
 
 export const StorageKeys = {
