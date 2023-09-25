@@ -9,6 +9,7 @@ class AiService {
    * @returns {Promise<string>} Returns answer
    */
   async askLlama(prompt) {
+    logger.debug('prompt->', prompt);
     const response = await fetch(
       VARS.AI_LLAMA_API_URL,
       {

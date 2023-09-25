@@ -332,18 +332,17 @@ class SocketManager {
         const fromUser = socket.data;
         const rooms = this.getRooms(mode, to.id, fromUser.id, fromUser.room);
         this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, fromUser, data);
-        logger.debug('to->', to);
         if(to.kind === KINDS.ROBOT) {
           data.to = fromUser;
           try {
-            if(to.__id === ROBOTS.LLAMA) {
-              data.message = await aiService.askLlama(data.message);
-              this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, to, data);
+            if(to.id === ROBOTS.LLAMA) {
+              data.message = await aiService.askLlama(message);
+              this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, `reply-${id}`, to, data);
             }
           }
           catch(error) {
             data.message = error.message;
-            this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, to, data);
+            this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, `reply-${id}`, to, data);
           }
         }
         if(typeof ack === 'function') ack();
