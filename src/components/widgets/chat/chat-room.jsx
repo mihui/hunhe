@@ -94,13 +94,15 @@ export default function ChatRoom({ id, translate }) {
         chatNotifications.push(notification);
       }
       else {
-        notifyHeader(error, NOTIFICATION_STYLES.WARNING);
+        console.warn(error);
+        // notifyHeader(error.message, NOTIFICATION_STYLES.WARNING);
       }
     });
     notifyAudio.play().then(() => {
       notifyAudio.muted = false;
     }).catch(error => {
-      notifyHeader(error, NOTIFICATION_STYLES.WARNING);
+      console.warn(error);
+      // notifyHeader(error.message, NOTIFICATION_STYLES.WARNING);
     });
     return notifyAudio;
   };
@@ -870,9 +872,9 @@ export default function ChatRoom({ id, translate }) {
         </IconButton>
 
         {/* CHAT NOTIFICATION */}
-        <span className={styles['chat-subject']}>{ chatHeader.message ? <>
-          {chatHeader.message} <i>({getMinuteFormat(chatHeader.time)})</i>
-          </> : meeting.id === ROOMS.DEFAULT.ID ? translate(ROOMS.DEFAULT.SUBJECT) : meeting.subject }
+        <span className={styles['chat-subject']}>{ chatHeader.message ?
+          <>{chatHeader.message} <i>({getMinuteFormat(chatHeader.time)})</i></> :
+          meeting.id === ROOMS.DEFAULT.ID ? translate(ROOMS.DEFAULT.SUBJECT) : meeting.subject }
         </span>
 
         {/* MENU - RIGHT */}
