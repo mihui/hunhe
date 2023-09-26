@@ -12,6 +12,7 @@ class ChatService {
   getRequestPath(path) {
     return `${VARS.IS_DEBUGGING ? VARS.APP_URL : ''}${path}`;
   }
+
   /**
    * Get meeting information
    * @param {string} meetingId Meeting ID
