@@ -79,29 +79,19 @@ export default function ChatRoom({ id, translate }) {
   },
   /** @type {(chatAudio: ChatAudio) => void} */
   activateAudio = (chatAudio) => {
-    if(chatAudio) {
-      if(chatAudio.context) {
-        if(chatAudio.context.state === 'suspended' || chatAudio.context.state === 'closed') {
-          chatAudio.context.resume().then(() => {
-            console.log(`[${chatAudio.user.name}]`, 'audioContext.state->', chatAudio.context.state);
-          }).catch(error => {
-            console.warn('resume error');
-          });
-        }
-        else {
-          console.log(`[${chatAudio.user.name}]`, 'audioContext.state->', chatAudio.context.state);
-        }
-      }
-      if(chatAudio.audio) {
-        if(chatAudio.audio.paused) {
-          chatAudio.audio.play().then(x => {
-            console.log('[paused] Played!!!');
-          });
-        }
+    if(chatAudio && chatAudio.audio) {
+      if(chatAudio.audio.paused) {
+        console.log('### [PAUSED] ACTIVATING AUDIO ###');
+        chatAudio.audio.play().then(x => {
+          console.log('    [PAUSED] PLAYED!!!');
+        }).catch(error => {
+          console.warn('    [PAUSED] SOUND PLAY ERROR!');
+          console.warn(error);
+        });
       }
     }
     else {
-      console.log('error: audioContext->', audioContext);
+      console.log('### [ERROR] NO AUDIO CAN BE PLAYED ###');
     }
   },
   reconnectAudioPeer = () => {
@@ -129,7 +119,6 @@ export default function ChatRoom({ id, translate }) {
 
   const socketEvents = {
     onSocketConnect: () => {
-      console.log('### CONNECTED ###');
       streamService.getWebSocket().emit('server:join', meeting.id, me);
     },
     onSocketReconnect: () => {
@@ -151,10 +140,11 @@ export default function ChatRoom({ id, translate }) {
     },
     onSocketDisconnect: reason => {
       console.warn('### DISCONNECTED ###');
+      console.warn(reason);
       onSocketChanged(false);
       notifyUser('连接已断开，请重试', NOTIFICATION_STYLES.ERROR);
       setChatUsers([]);
-      if(reason === "io server disconnect") {
+      if(reason === 'io server disconnect' && isMeetingOK && isMeOK) {
         streamService.connectWebSocket();
       }
     },
@@ -267,7 +257,6 @@ export default function ChatRoom({ id, translate }) {
   const
   /** @type {() => void} */
   onAudioPeerOpen = () => {
-    console.log(`Your device ID is: ${streamService.audioPeer.id}`);
     console.log('### AUDIO READY ###');
     setPeerStatus(current => { return { ...current, audio: true }; });
   },
@@ -300,8 +289,7 @@ export default function ChatRoom({ id, translate }) {
   const
   /** @type {() => void} */
   onVideoPeerOpen = () => {
-    console.log(`Your share ID is: ${streamService.videoPeer.id}`);
-    console.log('### SCREEN READY ###');
+    console.log('### VIDEO READY ###');
     setPeerStatus(current => { return { ...current, video: true }; });
   },
   /** @type {() => void} */
@@ -336,7 +324,6 @@ export default function ChatRoom({ id, translate }) {
 
     // Fetch and verify meeting information
     useEffect(() => {
-      console.log('### MEETING ###');
       if(meetingId && utility.validateUUID(meetingId)) {
         chatService.getMeeting(meetingId).then(m => {
           if(m) {
@@ -352,7 +339,6 @@ export default function ChatRoom({ id, translate }) {
         });
       }
       else {
-        console.log('  MEETING.DEFAULT');
         setIsMeetingOK(true);
         setMeeting({ id: ROOMS.DEFAULT.ID, subject: translate(ROOMS.DEFAULT.SUBJECT), locked: ROOMS.DEFAULT.LOCKED, limitation: ROOMS.DEFAULT.LIMITATION, updated_time: ROOMS.DEFAULT.TIME });
       }
@@ -429,10 +415,9 @@ export default function ChatRoom({ id, translate }) {
     // Setup Peers
     useEffect(() => {
       if(isMeOK && isMeetingOK && isSocketReady) {
-        console.log('### START ###');
         streamService.setupPeers(me.id, getScreenId(me.id, true)).then(code => {
           if(streamService.audioPeer) {
-            console.log('### OFF AUDIO ###');
+
             streamService.audioPeer.off('open', onAudioPeerOpen)
             .off('disconnected', onAudioPeerDisconnected)
             .off('call', onAudioPeerCall)
@@ -440,7 +425,7 @@ export default function ChatRoom({ id, translate }) {
           }
 
           if(streamService.videoPeer) {
-            console.log('### OFF VIDEO ###');
+
             streamService.videoPeer.off('open', onVideoPeerOpen)
               .off('disconnected', onVideoPeerDisconnected)
               .off('call', onVideoPeerCall)
@@ -461,7 +446,7 @@ export default function ChatRoom({ id, translate }) {
           // Ready
           setArePeersOK(isShareSupported());
         }).catch(code => {
-          console.log(`### REJECT CODE: ${code} ###`);
+          console.log(`### EXCEPTION CODE: ${code} ###`);
           if(code === CustomCodes.PEERS_INITIALIZED) {
             const isOK = isShareSupported();
             setArePeersOK(isOK);
@@ -742,9 +727,8 @@ export default function ChatRoom({ id, translate }) {
 
   // Handle events and setup peers
   useEffect(() => {
-    console.log('### LOADED ###');
     const disposeSocketConnectedEvent = beeper.subscribe(Events.SocketConnected, ({ connected, isReconnect }) => {
-      console.info(`### SOCKET CONNECTED: ${connected} ###`);
+      console.log(`### SOCKET CONNECTED: ${connected} ###`);
       if(connected) {
         focusInput();
       }

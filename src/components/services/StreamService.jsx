@@ -42,7 +42,6 @@ export class StreamService {
   emoji = '';
 
   constructor() {
-    console.log('### INIT STREAM SERVICE ###');
     this.socket = io(VARS.APP_URL, { path: PATHS.WEBSOCKET, host: VARS.APP_HOST, autoConnect: false });
     this.videoConnections = [];
     this.audioConnections = [];
@@ -142,8 +141,7 @@ export class StreamService {
    * @returns {ChatAudio} Returns ChatAudio instance
    */
   receiveAudioStream(userId, remoteStream) {
-    this.getUserAudio(userId).createAudio(remoteStream);
-    return this.getUserAudio(userId);
+    return this.getUserAudio(userId).createAudio(remoteStream);
   }
 
   /**
@@ -182,6 +180,18 @@ export class StreamService {
   audioCall(peerId, data = {}) {
     if (this.audioPeer) {
       const newConnection = this.audioPeer.call(peerId, this.localAudioStream, { metadata: data });
+      newConnection.on('close', () => {
+        console.error('### PEER CONNECTION CLOSED ###');
+        console.error(`    WITH ${this.getUserAudio(newConnection.peer).user.name}`);
+      });
+      newConnection.on('open', () => {
+        console.log('### ESTABLISHED CONNECTION ###');
+        console.info(`    WITH ${this.getUserAudio(newConnection.peer).user.name}`);
+      });
+      newConnection.on('error', error => {
+        console.warn('### PEER CONNECTION ERROR ###');
+        console.warn(`    WITH ${this.getUserAudio(newConnection.peer).user.name}`);
+      });
       this.audioConnections.push(newConnection);
       return newConnection;
     }

@@ -106,8 +106,9 @@ class MeetingService extends BaseDataService {
    */
   async updateMeeting(id, { subject, locked, limitation }) {
     const result = await this.update({ id }, { subject, locked, limitation });
-    if(result.ok) {
-      return result.value;
+
+    if(result) {
+      return result;
     }
     return null;
   }

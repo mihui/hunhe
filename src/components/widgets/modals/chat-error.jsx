@@ -20,7 +20,7 @@ export const ChatErrorModal = ({ open, message, translate, handleBack }) => {
             { translate('出错了 -_-!') }
           </Typography>
           <Typography id="variant-modal-description" textColor="inherit">
-            {message}
+            { translate(message) }
           </Typography>
           <Box
             sx={{
@@ -31,7 +31,7 @@ export const ChatErrorModal = ({ open, message, translate, handleBack }) => {
             }}
           >
             <Button variant="solid" color="neutral" onClick={() => handleBack()}>
-              返回首页
+              { translate('返回首页') }
             </Button>
           </Box>
       </ModalDialog>

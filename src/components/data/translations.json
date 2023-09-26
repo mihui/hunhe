@@ -39,6 +39,7 @@
     "找不到该房间": "The room is not found",
     "房间已满": "The room is full",
     "未知错误": "Unknown error",
+    "返回首页": "Go back",
     "浏览器不支持语音或视频": "The client's browser does not support some or all WebRTC features that you are trying to use",
     "网络连接不稳定": "Lost or cannot establish a connection to the signalling server.",
     "媒体服务器断开": "You've already disconnected this peer from the server and can no longer make any new connections on it.",
