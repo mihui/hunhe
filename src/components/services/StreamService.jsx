@@ -46,7 +46,8 @@ export class StreamService {
   translate = (str) => str;
 
   constructor() {
-    this.socket = io(VARS.APP_URL, { path: PATHS.WEBSOCKET, host: VARS.APP_HOST, autoConnect: false });
+    this.socket = VARS.IS_DEBUGGING ? io(VARS.APP_URL, { path: PATHS.WEBSOCKET, host: VARS.APP_HOST, autoConnect: false }) :
+      io({ path: PATHS.WEBSOCKET, autoConnect: false });
     this.videoConnections = [];
     this.audioConnections = [];
   }
@@ -253,13 +254,17 @@ export class StreamService {
           import('peerjs').then(imported => {
             const Peer = imported.default;
             const peerOptions = {
-              host: VARS.APP_HOST, path: PATHS.PEER,
+              path: PATHS.PEER,
               config: {
                 iceServers: [
                   { urls: 'stun:stun.l.google.com:19302' },
                 ]
-              }
+              },
+              host: window.location.host
             };
+            if(VARS.IS_DEBUGGING) {
+              peerOptions.host = VARS.APP_HOST;
+            }
             this.audioPeer = new Peer(audioPeerId, peerOptions);
             this.videoPeer = new Peer(videoPeerId, peerOptions);
             resolve(CustomCodes.PEERS_READY);

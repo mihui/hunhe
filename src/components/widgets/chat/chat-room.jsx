@@ -887,7 +887,7 @@ export default function ChatRoom({ id, translate }) {
           <IconButton
             size="sm"
             variant="plain"
-            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+            sx={{ display: { sm: 'inline-flex' } }}
             onClick={evt => {
               setUiProperty({ ...uiProperty, isLinkDisplayed: true });
           }} className={styles['chat-menu']} disabled={isLoading}>
@@ -898,7 +898,7 @@ export default function ChatRoom({ id, translate }) {
           <IconButton
             size="sm"
             variant="soft"
-            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+            sx={{ display: { sm: 'inline-flex' } }}
             onClick={evt => {
               setUiProperty({ ...uiProperty, isProfileDisplayed: true });
             }} className={styles['chat-menu']} disabled={isLoading}>
@@ -910,7 +910,7 @@ export default function ChatRoom({ id, translate }) {
             <IconButton
               size="sm"
               variant="soft"
-              sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+              sx={{ display: { sm: 'inline-flex' } }}
               onClick={evt => {
                 setUiProperty({ ...uiProperty, isUserListDisplayed: !uiProperty.isUserListDisplayed });
               }} className={styles['chat-menu']} disabled={isLoading}>

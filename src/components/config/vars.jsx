@@ -5,7 +5,8 @@ const VARS = {
   APP_KEYWORDS: process.env.NEXT_PUBLIC_APP_KEYWORDS || '',
   APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION || '',
   APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://hunhe.app.com',
-  APP_HOST: ''
+  APP_HOST: '',
+  IS_DEBUGGING: process.env.NEXT_PUBLIC_IS_DEBUGGING === 'true' || false,
 };
 
 VARS.APP_HOST = new URL(VARS.APP_URL).host;
