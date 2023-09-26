@@ -116,14 +116,11 @@ export const ChatLinkModal = ({ open, user, handleClose, meeting, setMeeting, ha
                 <Tooltip title={copyStatus === STATUS.INITIAL ? translate('复制链接') : copyStatus === STATUS.COPIED ? translate('复制成功') : translate('复制失败') }>
                   <Button variant={copyStatus === STATUS.INITIAL ? 'soft' : copyStatus === STATUS.ERROR ? 'solid' : 'plain' } onClick={evt => {
                     copyLink().then(() => {
-                      console.log('copied');
                       setCopyStatus(STATUS.COPIED);
                       setTimeout(() => {
-                        console.log('initial');
                         setCopyStatus(STATUS.INITIAL);
                       }, 5000);
                     }).catch(error => {
-                      console.log('error');
                       console.warn(error);
                       setCopyStatus(STATUS.ERROR);
                     });

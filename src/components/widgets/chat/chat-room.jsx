@@ -160,26 +160,32 @@ export default function ChatRoom({ id, translate }) {
   };
 
   const socketEvents = {
+    /** @type {() => void} */
     onSocketConnect: () => {
       streamService.getWebSocket().emit('server:join', meeting.id, me);
     },
+    /** @type {() => void} */
     onSocketReconnect: () => {
       console.log('### RECONNECTED ###');
       onSocketChanged(true, true);
     },
+    /** @type {() => void} */
     onSocketReconnectFailed: () => {
       console.warn('### CONNECTION FAILED ###');
       onSocketChanged(false);
       notifyHeader('重新连接失败，请刷新页面重试', NOTIFICATION_STYLES.ERROR);
     },
+    /** @type {() => void} */
     onSocketReconnectAttempt: () => {
       notifyHeader('正在重新连接...（第 {0} 次尝试）', NOTIFICATION_STYLES.WARNING);
     },
+    /** @type {(error: Error) => void} */
     onSocketError: error => {
       console.warn('### SOCKET ERROR ###');
       onSocketChanged(false);
       notifyHeader('连接错误', NOTIFICATION_STYLES.ERROR);
     },
+    /** @type {(reason: string) => void} */
     onSocketDisconnect: reason => {
       console.warn('### DISCONNECTED ###');
       console.warn(reason);
@@ -238,6 +244,7 @@ export default function ChatRoom({ id, translate }) {
       console.info(data);
       notifyHeader(utility.format(translate('【{0}】离开了'), data.user.name), NOTIFICATION_STYLES.INFO, true);
     },
+    /** @type {(code: number) => void} */
     onClientError: code => {
       console.warn('client:error');
       let message = '';
@@ -286,6 +293,7 @@ export default function ChatRoom({ id, translate }) {
       // }
       setChatUsers([ new All(translate) ].concat(uniqueUsers));
     },
+    /** @type {(id: string, fromUser: User, data: { to: User, message: string }) => void} */
     onUserMessage: (id, fromUser, data) => {
       /** @type {ChatRecord} */
       const chatRecord = {
@@ -294,11 +302,12 @@ export default function ChatRoom({ id, translate }) {
         from: fromUser, to: data.to,
         time: new Date()
       };
-      if(chatRecord.to.id === me.id) {
+      if(chatRecord.to.id === me.id && chatRecord.from.id !== me.id) {
         notifyUser(chatRecord.from.name, chatRecord.message, chatRecord.from.avatar);
       }
       setChatHistory(x => [ ...x, chatRecord ]);
     },
+    /** @type {(user: User, meeting: Meeting) => void} */
     onMeetingUpdated: (user, meeting) => {
       beeper.publish(Events.UpdateMeeting, { user, meeting });
     }
@@ -332,6 +341,7 @@ export default function ChatRoom({ id, translate }) {
     console.warn(message);
     beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
   },
+  /** @type {() => void} */
   onAudioPeerClose = () => {
     console.warn('### AUDIO PEER CLOSED ###');
     setPeerStatus(current => { return { ...current, audio: false }; });
@@ -361,6 +371,7 @@ export default function ChatRoom({ id, translate }) {
     console.warn(message);
     beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
   },
+  /** @type {() => void} */
   onVideoPeerClose = () => {
     console.warn('### SCREEN PEER CLOSED ###');
     setPeerStatus(current => { return { ...current, video: false }; });
@@ -1023,7 +1034,7 @@ export default function ChatRoom({ id, translate }) {
                   if(hasTime) {
                     lastCheckTime = x.time;
                   }
-                  return <ChatFormat key={x.id} payload={x} isMe={x.from.id === me.id} hasTime={hasTime} displayTime={displayTime} />;
+                  return <ChatFormat key={x.id} payload={x} isMe={x.from.id === me.id} isToMe={x.to.id === me.id} hasTime={hasTime} displayTime={displayTime} />;
                 } ) }
                 <div ref={chatHistoryRef}></div>
               </div>

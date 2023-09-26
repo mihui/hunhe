@@ -8,10 +8,13 @@ import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
  * @param {{ payload: ChatRecord }} props Props
  * @returns {HTMLDivElement} Returns HTML
  */
-export const ChatFormat = ({ payload, isMe, hasTime, displayTime }) => {
+export const ChatFormat = ({ payload, isMe, isToMe, hasTime, displayTime }) => {
   let classes = styles['chat-item'];
   if(isMe) {
     classes = classes.concat(' ').concat(styles['me']);
+  }
+  if(isToMe) {
+    classes = classes.concat(' ').concat(styles['target']);
   }
   return (
     <>
