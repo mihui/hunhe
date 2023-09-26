@@ -147,13 +147,13 @@ export class ChatAudio {
       this.audio.onloadedmetadata = evt => {
         try {
           evt.target.play().then(() => {
-            console.info('### [onloadedmetadata] PLAYED!!! ###');
+            console.info('### [ONLOADEDMETADATA] AUDIO STARTED ###');
           }).catch(error => {
             console.warn('### PERMISSION DENIED ###');
           });
         }
         catch(error) {
-          console.warn('### PLAY ERROR ###');
+          console.warn('### AUDIO START ERROR ###');
           console.log(error);
         }
       };

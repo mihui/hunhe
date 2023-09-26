@@ -1,7 +1,8 @@
 import { Socket, io } from 'socket.io-client';
 import VARS, { CustomCodes } from '../config/vars';
-import { ChatAudio } from '../models/meeting';
+import { ChatAudio, NOTIFICATION_STYLES } from '../models/meeting';
 import { MediaStatus } from './chat';
+import { Events, beeper, utility } from '../helpers/utility';
 
 const PATHS = {
   WEBSOCKET: `/api/messaging`,
@@ -41,10 +42,21 @@ export class StreamService {
   /** @type {string} */
   emoji = '';
 
+  /** @type {((str: string) => string)} */
+  translate = (str) => str;
+
   constructor() {
     this.socket = io(VARS.APP_URL, { path: PATHS.WEBSOCKET, host: VARS.APP_HOST, autoConnect: false });
     this.videoConnections = [];
     this.audioConnections = [];
+  }
+
+  /**
+   * Initialize translation method
+   * @param {(str: string) => string} translate Translation function
+   */
+  initTranslation(translate) {
+    this.translate = translate;
   }
 
   /**
@@ -141,7 +153,7 @@ export class StreamService {
    * @returns {ChatAudio} Returns ChatAudio instance
    */
   receiveAudioStream(userId, remoteStream) {
-    return this.getUserAudio(userId).createAudio(remoteStream);
+    return this.getUserAudio(userId)?.createAudio(remoteStream);
   }
 
   /**
@@ -172,6 +184,45 @@ export class StreamService {
   }
 
   /**
+   * Handles the openning audio connection
+   * @param {import('peerjs').MediaConnection} newConnection New connection
+   * @returns {() => void} Returns function callback
+   */
+  onAudioOpen(newConnection) {
+    return () => {
+      console.log('### ESTABLISHED CONNECTION ###');
+      console.info(`    WITH ${this.getUserAudio(newConnection.peer)?.user.name}`);
+      beeper.publish(Events.ClientNotification, { message: utility.format(this.translate('与【{0}】成功建立语音连接'), this.getUserAudio(newConnection.peer)?.user.name), style: NOTIFICATION_STYLES.WARNING, hasTranslation: true });
+    };
+  }
+
+  /**
+   * Handles the closed audio connection
+   * @param {import('peerjs').MediaConnection} newConnection New connection
+   * @returns {() => void} Returns function callback
+   */
+  onAudioClosed(newConnection) {
+    return () => {
+      console.log('### PEER CONNECTION CLOSED ###');
+      console.info(`    WITH ${this.getUserAudio(newConnection.peer)?.user.name}`);
+      beeper.publish(Events.ClientNotification, { message: utility.format(this.translate('与【{0}】断开语音连接'), this.getUserAudio(newConnection.peer)?.user.name), style: NOTIFICATION_STYLES.WARNING, hasTranslation: true });
+    };
+  }
+
+  /**
+   * Handles the error of audio connection
+   * @param {import('peerjs').MediaConnection} newConnection New connection
+   * @returns {(error: Error) => void} Returns function callback
+   */
+  onAudioError(newConnection) {
+    return error => {
+      console.warn('### PEER CONNECTION ERROR ###');
+      console.warn(`    WITH ${this.getUserAudio(newConnection.peer)?.user.name}`);
+      beeper.publish(Events.ClientNotification, { message: utility.format(this.translate('与【{0}】的语音通信发生错误'), this.getUserAudio(newConnection.peer)?.user.name), style: NOTIFICATION_STYLES.WARNING, hasTranslation: true });
+    };
+  }
+
+  /**
    * Audio call
    * @param {string} peerId Peer ID
    * @param {{ id: string, nickname: string }} data Metadata
@@ -180,18 +231,9 @@ export class StreamService {
   audioCall(peerId, data = {}) {
     if (this.audioPeer) {
       const newConnection = this.audioPeer.call(peerId, this.localAudioStream, { metadata: data });
-      newConnection.on('close', () => {
-        console.error('### PEER CONNECTION CLOSED ###');
-        console.error(`    WITH ${this.getUserAudio(newConnection.peer).user.name}`);
-      });
-      newConnection.on('open', () => {
-        console.log('### ESTABLISHED CONNECTION ###');
-        console.info(`    WITH ${this.getUserAudio(newConnection.peer).user.name}`);
-      });
-      newConnection.on('error', error => {
-        console.warn('### PEER CONNECTION ERROR ###');
-        console.warn(`    WITH ${this.getUserAudio(newConnection.peer).user.name}`);
-      });
+      newConnection.on('close', this.onAudioClosed(newConnection));
+      newConnection.on('open', this.onAudioOpen(newConnection));
+      newConnection.on('error', this.onAudioError(newConnection));
       this.audioConnections.push(newConnection);
       return newConnection;
     }
@@ -246,12 +288,27 @@ export class StreamService {
   }
 
   /**
+   * Add connection
+   * @param {import('peerjs').MediaConnection} newConnection New connection
+   */
+  addAudioConnection(newConnection) {
+    newConnection.on('close', this.onAudioClosed(newConnection));
+    newConnection.on('open', this.onAudioOpen(newConnection));
+    newConnection.on('error', this.onAudioError(newConnection));
+    this.audioConnections.push(newConnection);
+  }
+
+  /**
    * Clean audio connections
    */
   cleanAudioConnections() {
     this.audioConnections.forEach(x => {
-      if (x)
+      if (x) {
+        x.off('close', this.onAudioClosed(x));
+        x.off('open', this.onAudioOpen(x));
+        x.off('error', this.onAudioError(x));
         x.close();
+      }
     });
     this.audioConnections.length = 0;
     this.audioConnections = [];

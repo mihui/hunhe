@@ -20,8 +20,6 @@ const { logger } = Logger('boot');
 
 const app = express();
 
-app.use(cors({ origin: true, credentials: true }));
-
 app.set('trust proxy', 1);
 
 app.use(staticModule('server/public'));
@@ -29,6 +27,9 @@ app.use(json());
 app.set('view engine', 'ejs');
 app.set('views', 'server/views');
 app.set('x-powered-by', false);
+
+if(VARS.IS_DEBUGGING)
+  app.use(cors({ origin: true, credentials: true }));
 
 health.mountCheck(app);
 

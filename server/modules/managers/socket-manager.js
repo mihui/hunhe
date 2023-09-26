@@ -1,7 +1,7 @@
 import { VARS } from '../vars.js';
 import { Logger } from '../logger.js'; 
 import { Server, Socket } from 'socket.io';
-import { ChatUser } from '../models/chat.js';
+import { ChatUser, Meeting } from '../models/chat.js';
 import { meetingService } from '../services/data.js';
 import { httpCodes } from '../http-manager.js';
 
@@ -18,14 +18,6 @@ const STATUS = {
   AUDIO: 4,
   SPEAKING: 5,
   MUTED: 6,
-};
-
-const REASON = {
-  JOIN: 1,
-  STATUS: 2,
-  LEAVE: 3,
-  AUDIO: 4,
-  SCREEN: 5,
 };
 
 const EVENTS = {
@@ -171,8 +163,6 @@ class SocketManager {
    */
   async #onConnected(socket) {
 
-    // const { room = ROOM.DEFAULT, id, avatar, name } = socket.handshake.query;
-
     const setStatus = (value) => {
       socket.data['__status'] = Object.assign({}, socket.data['__status'], value);
     };
@@ -237,25 +227,6 @@ class SocketManager {
       this.fetchUsers(chatUser.room);
     });
 
-    socket.on('disconnect',
-    async () => {
-      logger.warn('### SOCKET DISCONNECTED ###');
-      /** @type {ChatUser} */
-      const chatUser = socket.data;
-      if(chatUser.id === this.getScreen(chatUser.room)) {
-        logger.warn('### DISCONNECTING VIDEO/AUDIO ###');
-        this.deleteScreen(chatUser.room);
-        this.getSockets(chatUser.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, chatUser);
-      }
-      // @todo, this may crash the app
-      if(chatUser.__status && chatUser.__status.microphone === STATUS.AUDIO) {
-        // Need to know if this user is in a call
-        this.getSockets(chatUser.room).emit(EVENTS.USER_AUDIO_HANGUP_CALLBACK, chatUser);
-      }
-      // Use socket.id in case one user have multiple windows
-      this.fetchUsers(chatUser.room, [ socket.id ]);
-    });
-
     socket.on('server:screen:join',
       /**
        * Start a call
@@ -294,6 +265,12 @@ class SocketManager {
     });
 
     socket.on('server:status',
+    /**
+     * Set user status
+     * @param {number} browser Browser status
+     * @param {number} microphone Microphone status
+     * @param {string} emoji Emoji
+     */
     (browser, microphone, emoji) => {
       setStatus({ browser, microphone, emoji });
       /** @type {ChatUser} */
@@ -302,6 +279,10 @@ class SocketManager {
     });
 
     socket.on('server:meeting:update',
+    /**
+     * Update meeting information
+     * @param {Meeting} meeting Meeting information
+     */
     (meeting) => {
       /** @type {ChatUser} */
       const fromUser = socket.data;
@@ -324,7 +305,7 @@ class SocketManager {
       }
     );
 
-    socket.on('leave',
+    socket.on('server:leave',
       /**
        * Leave
        * @param {{ id: string, name: string, room: string }} user User data
@@ -346,55 +327,25 @@ class SocketManager {
       }
     );
 
-    // Transfer start (1)
-    socket.on('transfer-start',
-      /**
-       * Start transfer data
-       * @param {{ from: { id: string, name: string }, to: { id: string, name: string }, is_private: boolean, file: { id: string, size: number, name: string } }} info File information
-       */
-      (info) => {
-        console.log('### START ###');
-        console.log(info);
-        socket.in(info.to.id).emit('transfer-chat', { file: info.file, from: info.from, to: info.to, is_private: info.is_private });
+    socket.on('disconnect',
+    async () => {
+      logger.warn('### SOCKET DISCONNECTED ###');
+      /** @type {ChatUser} */
+      const chatUser = socket.data;
+      if(chatUser.id === this.getScreen(chatUser.room)) {
+        logger.warn('### DISCONNECTING VIDEO/AUDIO ###');
+        this.deleteScreen(chatUser.room);
+        this.getSockets(chatUser.room).emit(EVENTS.USER_SCREEN_STOP_CALLBACK, chatUser);
       }
-    );
+      // @todo, this may crash the app
+      if(chatUser.__status && chatUser.__status.microphone === STATUS.AUDIO) {
+        // Need to know if this user is in a call
+        this.getSockets(chatUser.room).emit(EVENTS.USER_AUDIO_HANGUP_CALLBACK, chatUser);
+      }
+      // Use socket.id in case one user have multiple windows
+      this.fetchUsers(chatUser.room, [ socket.id ]);
+    });
 
-    socket.on('transfer-accept',
-      /**
-       * Accept data transfer
-       * @param {{ from: { id: string, name: string }, to: { id: string, name: string }, is_private: boolean, file: { id: string, size: number, name: string } }} info File information
-       */
-      (info) => {
-        // console.log('### ACCEPT ###');
-        // console.log(info);
-        socket.in(info.from.id).emit('transfer-start', { file: info.file, from: info.from, to: info.to, is_private: info.is_private });
-      }
-    );
-
-    socket.on('transfer-reject',
-      /**
-       * Accept data transfer
-       * @param {{ from: { id: string, name: string }, to: { id: string, name: string }, is_private: boolean, file: { id: string, size: number, name: string } }} info File information
-       */
-      (info) => {
-        console.log('### REJECT ###');
-        console.log(info);
-        socket.in(info.from.id).emit('transfer-cancel', { file: info.file, from: info.from, to: info.to, is_private: info.is_private });
-      }
-    );
-
-    socket.on('transfer-data',
-      /**
-       * Send trunk data
-       * @param {{ from: { id: string, name: string }, to: { id: string, name: string }, is_private: boolean, file: { id: string, size: number, name: string } }} info File information
-       * @param {Buffer} trunk Data trunk
-       */
-      (info, trunk) => {
-        // console.log(`### DATA: ${trunk.length} ###`);
-        // console.log(info);
-        socket.in(info.to.id).emit('transfer-data', { file: info.file, from: info.from, to: info.to, is_private: info.is_private }, trunk);
-      }
-    );
   }
 }
 

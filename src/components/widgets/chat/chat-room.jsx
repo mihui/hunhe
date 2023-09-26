@@ -56,12 +56,54 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ isLoading: boolean, setIsLoading: (isLoading: boolean) => void ]} */
   const [ isLoading, setIsLoading ] = useState(true);
 
-  /** @type {[ chatNotification: { message: string, style: string, time: Date }, setChatNotification: (chatNotification: { message: string, style: string, time: Date }) => void ]} */
-  const [ chatNotification, setChatNotification ] = useState({ message: '', style: NOTIFICATION_STYLES.INFO, time: new Date() });
+  /** @type {[ chatHeader: { message: string, style: string, time: Date }, setChatHeader: (chatHeader: { message: string, style: string, time: Date }) => void ]} */
+  const [ chatHeader, setChatHeader ] = useState({ message: '', style: NOTIFICATION_STYLES.INFO, time: new Date() });
   //
-  const notifyUser = useCallback((message, style = NOTIFICATION_STYLES.INFO, hasTranslation = false) => {
-    setChatNotification({ message: hasTranslation ? message : translate(message), style, time: new Date() })
+  const notifyHeader = useCallback((message, style = NOTIFICATION_STYLES.INFO, hasTranslation = false) => {
+    setChatHeader({ message: hasTranslation ? message : translate(message), style, time: new Date() })
   }, [translate]);
+
+  const chatNotifications = [], notifyAudio = new Audio('/audio/notify.mp3');
+  notifyAudio.autoplay = false;
+  notifyAudio.preload = 'metadata';
+  const notifyUser = (sender, message, avatar = null) => {
+    (function(callback) {
+      if (!('Notification' in window)) {
+        callback(false, '浏览器不支持通知');
+      } else if (Notification.permission === 'granted') {
+        callback(true);
+      } else if (Notification.permission !== 'denied') {
+        // We need to ask the user for permission
+        Notification.requestPermission().then((permission) => {
+          // If the user accepts, let's create a notification
+          if (permission === 'granted') {
+            callback(true);
+          }
+        }).catch(function(error) {
+          callback(false, error.message);
+        });
+      }
+      else {
+        callback(false, '浏览器不支持通知');
+      }
+    })(function(isOK, error) {
+      if(document.visibilityState === 'visible') return;
+      if(isOK) {
+        const text = `${sender}: ${message}`;
+        const notification = new Notification('Notification', { body: text, icon: avatar });
+        chatNotifications.push(notification);
+      }
+      else {
+        notifyHeader(error, NOTIFICATION_STYLES.WARNING);
+      }
+    });
+    notifyAudio.play().then(() => {
+      notifyAudio.muted = false;
+    }).catch(error => {
+      notifyHeader(error, NOTIFICATION_STYLES.WARNING);
+    });
+    return notifyAudio;
+  };
 
   /** @type {() => User} */
   const goBackHome = useCallback((isIdValid = true) => {
@@ -83,9 +125,9 @@ export default function ChatRoom({ id, translate }) {
       if(chatAudio.audio.paused) {
         console.log('### [PAUSED] ACTIVATING AUDIO ###');
         chatAudio.audio.play().then(x => {
-          console.log('    [PAUSED] PLAYED!!!');
+          console.log('    [PAUSED] AUDIO STARTED');
         }).catch(error => {
-          console.warn('    [PAUSED] SOUND PLAY ERROR!');
+          console.warn('    [PAUSED] AUDIO PLAY ERROR!');
           console.warn(error);
         });
       }
@@ -128,21 +170,21 @@ export default function ChatRoom({ id, translate }) {
     onSocketReconnectFailed: () => {
       console.warn('### CONNECTION FAILED ###');
       onSocketChanged(false);
-      notifyUser('重新连接失败，请刷新页面重试', NOTIFICATION_STYLES.ERROR);
+      notifyHeader('重新连接失败，请刷新页面重试', NOTIFICATION_STYLES.ERROR);
     },
     onSocketReconnectAttempt: () => {
-      notifyUser('正在重新连接...（第 {0} 次尝试）', NOTIFICATION_STYLES.WARNING);
+      notifyHeader('正在重新连接...（第 {0} 次尝试）', NOTIFICATION_STYLES.WARNING);
     },
     onSocketError: error => {
       console.warn('### SOCKET ERROR ###');
       onSocketChanged(false);
-      notifyUser('连接错误', NOTIFICATION_STYLES.ERROR);
+      notifyHeader('连接错误', NOTIFICATION_STYLES.ERROR);
     },
     onSocketDisconnect: reason => {
       console.warn('### DISCONNECTED ###');
       console.warn(reason);
       onSocketChanged(false);
-      notifyUser('连接已断开，请重试', NOTIFICATION_STYLES.ERROR);
+      notifyHeader('连接已断开，请重试', NOTIFICATION_STYLES.ERROR);
       setChatUsers([]);
       if(reason === 'io server disconnect' && isMeetingOK && isMeOK) {
         streamService.connectWebSocket();
@@ -150,7 +192,7 @@ export default function ChatRoom({ id, translate }) {
     },
     /** @type {(user: User) => void} */
     onClientWelcomePublic: user => {
-      notifyUser(utility.format(translate('网友【{0}】兴高采烈地来到了会议室， 大家热烈欢迎 ^_^！'), user.name), NOTIFICATION_STYLES.INFO, true);
+      notifyHeader(utility.format(translate('网友【{0}】兴高采烈地来到了会议室， 大家热烈欢迎 ^_^！'), user.name), NOTIFICATION_STYLES.INFO, true);
     },
     /** @type {(remoteScreenId: string) => void} */
     onClientWelcomePrivate: (remoteScreenId) => {
@@ -171,7 +213,7 @@ export default function ChatRoom({ id, translate }) {
     /** @type {(caller: User, users: Array<User>, remoteScreenId: string) => void} */
     onClientStartScreen: (caller, users, remoteScreenId) => {
       // For the screen share user only!
-      notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
+      notifyHeader(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
       for(const receiver of users) {
         if(receiver.id === remoteScreenId) {
           continue;
@@ -184,15 +226,17 @@ export default function ChatRoom({ id, translate }) {
     onClientStopScreen: (sharer) => {
       // beeper.publish(Events.StopScreenShareCallback, { sharer });
       setScreenId('');
-      notifyUser(utility.format(translate('【{0}】停止了屏幕共享'), sharer.name), NOTIFICATION_STYLES.INFO, true);
+      notifyHeader(utility.format(translate('【{0}】停止了屏幕共享'), sharer.name), NOTIFICATION_STYLES.INFO, true);
       if(sharer.id !== me.id) {
         // stopRemoteVideo();
         stopScreen();
       }
     },
+    /** @type {(data: { user: User }) => void} */
     onClientLeave: data => {
       console.log('### LEAVE ###');
-      // console.info(data);
+      console.info(data);
+      notifyHeader(utility.format(translate('【{0}】离开了'), data.user.name), NOTIFICATION_STYLES.INFO, true);
     },
     onClientError: code => {
       console.warn('client:error');
@@ -219,7 +263,7 @@ export default function ChatRoom({ id, translate }) {
     onDisplayingUsers: (users) => {
       const uniqueUsers = users.reduce(
       /**
-       * Reduce
+       * Callback function, will be called one time for each element in the array
        * @param {Array<User>} accumulator User accumulator
        * @param {User} calculateUser User being calculated
        * @returns {Array<User>} Returns User Array
@@ -237,6 +281,9 @@ export default function ChatRoom({ id, translate }) {
       }, []);
       //
       streamService.maintainAudios(uniqueUsers);
+      // for(let i = 0; i < 100; i++) {
+      //   uniqueUsers.push(new User(crypto.randomUUID(), 'Fake user', '/images/avatars/00.png'));
+      // }
       setChatUsers([ new All(translate) ].concat(uniqueUsers));
     },
     onUserMessage: (id, fromUser, data) => {
@@ -247,6 +294,9 @@ export default function ChatRoom({ id, translate }) {
         from: fromUser, to: data.to,
         time: new Date()
       };
+      if(chatRecord.to.id === me.id) {
+        notifyUser(chatRecord.from.name, chatRecord.message, chatRecord.from.avatar);
+      }
       setChatHistory(x => [ ...x, chatRecord ]);
     },
     onMeetingUpdated: (user, meeting) => {
@@ -265,19 +315,20 @@ export default function ChatRoom({ id, translate }) {
     console.info('### PEER DISCONNECTED ###');
     reconnectAudioPeer();
   },
-  /** @type {(call: { peer: string, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
-  onAudioPeerCall = call => {
-    console.info(`### AUDIO ON CALL: ${call.peer} ###`);
+  /** @type {(call: import('peerjs').MediaConnection) => void} call Call */
+  onAudioPeerCall = newConnection => {
+    console.info(`### AUDIO ON CALL: ${newConnection.peer} ###`);
     // Automatically join
-    call.answer(streamService.localAudioStream);
-    call.on('stream', callerStream => {
-      activateAudio(streamService.receiveAudioStream(call.peer, callerStream));
+    newConnection.answer(streamService.localAudioStream);
+    newConnection.on('stream', callerStream => {
+      activateAudio(streamService.receiveAudioStream(newConnection.peer, callerStream));
     });
+    streamService.addAudioConnection(newConnection);
   },
   /** @type {(error: { type: string }) => void} */
   onAudioPeerError = error => {
     console.warn('### AUDIO PEER ERROR ###');
-    const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : 'Audio server connection error.';
+    const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : '语音服务错误';
     console.warn(message);
     beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
   },
@@ -393,7 +444,7 @@ export default function ChatRoom({ id, translate }) {
           .on('client:screen:start:callback', socketEvents.onClientStartScreen);
 
         return () => {
-          streamService.getWebSocket().emit('leave');
+          streamService.getWebSocket().emit('server:leave');
           streamService.getWebSocket().off('connect', socketEvents.onSocketConnect)
             .off('reconnect', socketEvents.onSocketReconnect)
             .off('reconnect_failed', socketEvents.onSocketReconnectFailed)
@@ -543,7 +594,7 @@ export default function ChatRoom({ id, translate }) {
     if(chat.input.length > 0) {
       setIsLoading(true);
       if(streamService.getWebSocket().disconnected) {
-        return notifyUser('正在尝试重新连接', NOTIFICATION_STYLES.WARNING);
+        return notifyHeader('正在尝试重新连接', NOTIFICATION_STYLES.WARNING);
       }
       const payload = generateMessage();
       setChat({ ...chat, input: '' });
@@ -737,13 +788,13 @@ export default function ChatRoom({ id, translate }) {
       setUiProperty({ ...uiProperty, error });
     });
 
-    const disposeNotificationEvent = beeper.subscribe(Events.ClientNotification, ({ message, style }) => {
-      notifyUser(message, style);
+    const disposeNotificationEvent = beeper.subscribe(Events.ClientNotification, ({ message, style, hasTranslation = false }) => {
+      notifyHeader(message, style, hasTranslation);
     });
 
     const disposeUpdateMeetingEvent = beeper.subscribe(Events.UpdateMeeting, ({ user, meeting }) => {
       setMeeting(meeting);
-      notifyUser(utility.format(translate('【{0}】更新了会议信息'), user.name), NOTIFICATION_STYLES.INFO, true);
+      notifyHeader(utility.format(translate('【{0}】更新了会议信息'), user.name), NOTIFICATION_STYLES.INFO, true);
     });
 
     const disposeVideoCallEvent = beeper.subscribe(Events.PeerVideoCall, ({ call }) => {
@@ -771,11 +822,13 @@ export default function ChatRoom({ id, translate }) {
         setScreenId(peerScreenId);
       });
       if(call.metadata && call.metadata.nickname) {
-        notifyUser(utility.format(translate('【{0}】开始了屏幕共享'), call.metadata.nickname), NOTIFICATION_STYLES.INFO, true);
+        notifyHeader(utility.format(translate('【{0}】开始了屏幕共享'), call.metadata.nickname), NOTIFICATION_STYLES.INFO, true);
       }
     });
 
     refreshDevices();
+
+    streamService.initTranslation(translate);
 
     return () => {
       disposeSocketConnectedEvent();
@@ -806,8 +859,8 @@ export default function ChatRoom({ id, translate }) {
         </IconButton>
 
         {/* CHAT NOTIFICATION */}
-        <span className={styles['chat-subject']}>{ chatNotification.message ? <>
-          {chatNotification.message} <i>({getMinuteFormat(chatNotification.time)})</i>
+        <span className={styles['chat-subject']}>{ chatHeader.message ? <>
+          {chatHeader.message} <i>({getMinuteFormat(chatHeader.time)})</i>
           </> : meeting.id === ROOMS.DEFAULT.ID ? translate(ROOMS.DEFAULT.SUBJECT) : meeting.subject }
         </span>
 
@@ -893,85 +946,87 @@ export default function ChatRoom({ id, translate }) {
           justifyContent: 'flex-start',
           flexWrap: 'wrap',
         }}>
-          {/* Video/Screen sharing */}
-          <div className={`${styles['chat-media']}${uiProperty.videoStatus === MediaStatus.RECEIVING ? ` ${styles['receive']}` : ''}${uiProperty.videoStatus === MediaStatus.PUBLISHING ? ` ${styles['publish']}` : ''}`}>
-            <div className={styles['chat-screen']}>
-              <div className={styles['videos']}>
-                <div className={styles['remote']}>
-                  <video autoPlay={true} playsInline disablePictureInPicture ref={remoteVideoRef} onLoadedMetadata={evt => {
-                    playRemoteVideo();
-                  }} onClick={evt => {
-                    playRemoteVideo();
-                  }} onEnded={evt => {
-                    console.log('### ENDED ###');
-                    // stopScreen();
-                    // streamService.videoStatus = MediaStatus.IDLE;
-                    // setUiProperty({ ...uiProperty, videoStatus: streamService.videoStatus });
-                  }} onPause={evt => {
-                    console.log('### REMOTE PAUSE ###');
-                    // stopScreen();
-                    setUiProperty({ ...uiProperty, isPlayingRemoteVideo: false });
-                  }} 
-                  />
-                </div>
-                <div className={styles['local']}>
-                  <video autoPlay={false} playsInline disablePictureInPicture ref={localVideoRef} onLoadedMetadata={evt => {
-                    playLocalVideo();
-                  }}
-                  onPause={evt => {
-                    console.log('### LOCAL PAUSE ###');
-                    stopScreen();
-                  }}
-                  onSuspend={evt => {
-                    console.log('### LOCAL SUSPEND ###');
-                    if(utility.isChromium(navigator.userAgent))
+          <div className={styles['chat-main']}>
+            {/* Video/Screen sharing */}
+            <div className={`${styles['chat-media']}${uiProperty.videoStatus === MediaStatus.RECEIVING ? ` ${styles['receive']}` : ''}${uiProperty.videoStatus === MediaStatus.PUBLISHING ? ` ${styles['publish']}` : ''}`}>
+              <div className={styles['chat-screen']}>
+                <div className={styles['videos']}>
+                  <div className={styles['remote']}>
+                    <video autoPlay={true} playsInline disablePictureInPicture ref={remoteVideoRef} onLoadedMetadata={evt => {
+                      playRemoteVideo();
+                    }} onClick={evt => {
+                      playRemoteVideo();
+                    }} onEnded={evt => {
+                      console.log('### ENDED ###');
+                      // stopScreen();
+                      // streamService.videoStatus = MediaStatus.IDLE;
+                      // setUiProperty({ ...uiProperty, videoStatus: streamService.videoStatus });
+                    }} onPause={evt => {
+                      console.log('### REMOTE PAUSE ###');
+                      // stopScreen();
+                      setUiProperty({ ...uiProperty, isPlayingRemoteVideo: false });
+                    }} 
+                    />
+                  </div>
+                  <div className={styles['local']}>
+                    <video autoPlay={false} playsInline disablePictureInPicture ref={localVideoRef} onLoadedMetadata={evt => {
+                      playLocalVideo();
+                    }}
+                    onPause={evt => {
+                      console.log('### LOCAL PAUSE ###');
                       stopScreen();
-                  }}
-                  />
+                    }}
+                    onSuspend={evt => {
+                      console.log('### LOCAL SUSPEND ###');
+                      if(utility.isChromium(navigator.userAgent))
+                        stopScreen();
+                    }}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className={styles['controls']}>
-                { uiProperty.isPlayingRemoteVideo === false && uiProperty.videoStatus === MediaStatus.RECEIVING && <IconButton size='sm' onClick={evt => {
-                  // Play
-                  playRemoteVideo();
-                }}>
-                  <SlideshowIcon />
-                </IconButton> }
-                { uiProperty.videoStatus === MediaStatus.PUBLISHING && <IconButton size='sm'  color='danger' onClick={evt => {
-                  stopScreen();
-                }}>
-                  <DesktopAccessDisabledIcon />
-                </IconButton> }
-                { uiProperty.videoStatus === MediaStatus.RECEIVING && <IconButton size='sm'  onClick={evt => {
-                  try {
-                    if(document.fullscreenElement) {
-                      document.exitFullscreen();
+                <div className={styles['controls']}>
+                  { uiProperty.isPlayingRemoteVideo === false && uiProperty.videoStatus === MediaStatus.RECEIVING && <IconButton size='sm' onClick={evt => {
+                    // Play
+                    playRemoteVideo();
+                  }}>
+                    <SlideshowIcon />
+                  </IconButton> }
+                  { uiProperty.videoStatus === MediaStatus.PUBLISHING && <IconButton size='sm'  color='danger' onClick={evt => {
+                    stopScreen();
+                  }}>
+                    <DesktopAccessDisabledIcon />
+                  </IconButton> }
+                  { uiProperty.videoStatus === MediaStatus.RECEIVING && <IconButton size='sm'  onClick={evt => {
+                    try {
+                      if(document.fullscreenElement) {
+                        document.exitFullscreen();
+                      }
+                      else {
+                        remoteVideoRef.current.requestFullscreen();
+                      }
                     }
-                    else {
-                      remoteVideoRef.current.requestFullscreen();
-                    }
-                  }
-                  catch(error) {}
-                }}>
-                  <FullscreenIcon />
-                </IconButton> }
+                    catch(error) {}
+                  }}>
+                    <FullscreenIcon />
+                  </IconButton> }
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Chat content */}
-          <div className={styles['chat-content']}>
-            {/* Chat history */}
-            <div className={styles['chat-history']}>
-              { chatHistory.map(x => {
-                const hasTime = ((x.time - lastCheckTime.getTime()) > 3 * 60 * 1000);
-                const displayTime = hasTime ? getMinuteFormat(x.time) : false;
-                if(hasTime) {
-                  lastCheckTime = x.time;
-                }
-                return <ChatFormat key={x.id} payload={x} isMe={x.from.id === me.id} hasTime={hasTime} displayTime={displayTime} />;
-              } ) }
-              <div ref={chatHistoryRef}></div>
+            {/* Chat content */}
+            <div className={styles['chat-content']}>
+              {/* Chat history */}
+              <div className={styles['chat-history']}>
+                { chatHistory.map(x => {
+                  const hasTime = ((x.time - lastCheckTime.getTime()) > 3 * 60 * 1000);
+                  const displayTime = hasTime ? getMinuteFormat(x.time) : false;
+                  if(hasTime) {
+                    lastCheckTime = x.time;
+                  }
+                  return <ChatFormat key={x.id} payload={x} isMe={x.from.id === me.id} hasTime={hasTime} displayTime={displayTime} />;
+                } ) }
+                <div ref={chatHistoryRef}></div>
+              </div>
             </div>
           </div>
 
