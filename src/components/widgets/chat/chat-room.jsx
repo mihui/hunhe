@@ -149,6 +149,9 @@ export default function ChatRoom({ id, translate }) {
         streamService.audioPeer.reconnect();
         setPeerStatus(current => { return { ...current, audio: PEER_STATUS.RECONNECTING }; });
       }
+      else {
+        console.debug('streamService.audioPeer.disconnected->', streamService.audioPeer.disconnected);
+      }
     }
     catch(error) {
       console.warn(error);
@@ -159,6 +162,9 @@ export default function ChatRoom({ id, translate }) {
       if(streamService.videoPeer && streamService.videoPeer.disconnected) {
         streamService.videoPeer.reconnect();
         setPeerStatus(current => { return { ...current, video: PEER_STATUS.RECONNECTING }; });
+      }
+      else {
+        console.debug('streamService.videoPeer.disconnected->', streamService.videoPeer.disconnected);
       }
     }
     catch(error) {
@@ -994,7 +1000,7 @@ export default function ChatRoom({ id, translate }) {
                   reconnectAudioPeer();
                   reconnectVideoPeer();
                 }}>
-                  { translate('连接') }
+                  { translate('重新连接') }
                 </Button> }
                 </>
               }
@@ -1176,7 +1182,7 @@ export default function ChatRoom({ id, translate }) {
               { uiProperty.isMuted ? <MicOffIcon /> :  <MicIcon /> }
             </IconButton></Tooltip> }
 
-            { peerStatus.audio && <Tooltip title={uiProperty.audioStatus === MediaStatus.IDLE ? translate('加入音频通话') : translate('挂断')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
+            { peerStatus.audio === PEER_STATUS.READY && <Tooltip title={uiProperty.audioStatus === MediaStatus.IDLE ? translate('加入音频通话') : translate('挂断')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
               toggleAudio();
             }} color={ uiProperty.audioStatus === MediaStatus.IDLE ? 'neutral': 'danger' }>
               { uiProperty.audioStatus === MediaStatus.IDLE ?
@@ -1186,21 +1192,15 @@ export default function ChatRoom({ id, translate }) {
               }
             </IconButton></Tooltip> }
 
-            { peerStatus.video && peerStatus.audio && arePeersOK && <Tooltip title={translate('设置')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
+            { peerStatus.video === PEER_STATUS.READY && peerStatus.audio === PEER_STATUS.READY && arePeersOK && <Tooltip title={translate('设置')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               setUiProperty({ ...uiProperty, isSettingsDisplayed: !uiProperty.isSettingsDisplayed });
-              if(peerStatus.audio === false) {
-                reconnectAudioPeer();
-              }
-              if(peerStatus.video === false) {
-                reconnectVideoPeer();
-              }
             }}>
               <TuneIcon />
             </IconButton></Tooltip> }
 
-            { arePeersOK && peerStatus.video && <Tooltip title={uiProperty.videoStatus === MediaStatus.PUBLISHING ? translate('取消屏幕共享') : translate('共享屏幕')}><IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
+            { arePeersOK && peerStatus.video === PEER_STATUS.READY && <Tooltip title={uiProperty.videoStatus === MediaStatus.PUBLISHING ? translate('取消屏幕共享') : translate('共享屏幕')}><IconButton size='sm' color={uiProperty.videoStatus === MediaStatus.PUBLISHING ? 'danger' : 'neutral'} disabled={isLoading} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               if(uiProperty.videoStatus === MediaStatus.PUBLISHING) {

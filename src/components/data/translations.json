@@ -77,7 +77,9 @@
     "发送": "Send",
     "重置": "Reset",
     "羊驼": "Llama",
-    "【{0}】更新了会议信息": "[{0}] has updated the meeting information"
+    "【{0}】更新了会议信息": "[{0}] has updated the meeting information",
+    "视频语音部分服务不可用": "Audio/video connection is lost",
+    "重新连接": "Reconnect"
   },
   "zh": {
     "浑河网": "浑河网",
