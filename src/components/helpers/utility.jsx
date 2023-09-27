@@ -1,4 +1,4 @@
-import { DEVICE, Device } from "../models/meeting";
+import { DEFAULTS, Device } from "../models/meeting";
 
 class Storage {
 
@@ -108,9 +108,9 @@ class Utility {
    * Get display media
    * @returns {MediaStream} Returns media stream
    */
-  async getDisplayMedia (screenId = DEVICE.SCREEN, audioId = DEVICE.MICROPHONE, devices = []) {
+  async getDisplayMedia (screenId = DEFAULTS.SCREEN, audioId = DEFAULTS.MICROPHONE, devices = []) {
     const video = { width: { max: 3840 }, height: { max: 2160 }, deviceId: undefined };
-    const isScreenOnly = screenId === DEVICE.SCREEN || devices.findIndex(x => x.deviceId === screenId) === -1;
+    const isScreenOnly = screenId === DEFAULTS.SCREEN || devices.findIndex(x => x.deviceId === screenId) === -1;
     if(isScreenOnly) {
       delete video.deviceId;
     }
@@ -118,7 +118,7 @@ class Utility {
       video.deviceId = screenId;
     }
     // Audio
-    const audio = audioId === DEVICE.MICROPHONE ? true : { deviceId: audioId };
+    const audio = audioId === DEFAULTS.MICROPHONE ? true : { deviceId: audioId };
     /** @type {DisplayMediaStreamOptions|MediaStreamConstraints} */
     const constraints = { video, audio };
     // If the device ID equas default screen share or can not find the selected device

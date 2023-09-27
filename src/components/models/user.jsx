@@ -1,5 +1,5 @@
-import { STATUS } from "../config/vars";
-import { DEVICE } from "./meeting";
+import { STATUS } from '../config/vars';
+import { DEFAULTS } from './meeting';
 
 export const ChatModes = {
   Private: 'Private',
@@ -43,8 +43,8 @@ export class Devices {
   /** @type {Video} */
   video;
   constructor() {
-    this.audio = new Audio(DEVICE.MICROPHONE);
-    this.video = new Video(DEVICE.SCREEN);
+    this.audio = new Audio(DEFAULTS.MICROPHONE);
+    this.video = new Video(DEFAULTS.SCREEN);
   }
 
   toJSON() {

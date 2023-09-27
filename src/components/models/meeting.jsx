@@ -206,10 +206,17 @@ export const AUDIO = {
   ONGOING: 2
 };
 
-// DEVICE DEFAULTS
-export const DEVICE = {
+// DEFAULTS
+export const DEFAULTS = {
   SCREEN: 'screen',
   MICROPHONE: 'default'
+};
+
+export const PEER_STATUS = {
+  READY: 1,
+  DISCONNECTED: 2,
+  RECONNECTING: 3,
+  NONE: 6
 };
 
 // PEER CODES

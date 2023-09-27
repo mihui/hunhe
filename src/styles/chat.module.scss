@@ -23,6 +23,16 @@
     flex-flow: row;
     flex: 1;
 
+    .chat-loading {
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+    }
+
     .chat-layer {
       display: flex;
       flex-flow: column;
