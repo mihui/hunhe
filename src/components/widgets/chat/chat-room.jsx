@@ -650,6 +650,7 @@ export default function ChatRoom({ id, translate }) {
     if(streamService.emoji === '📽') {
       streamService.setEmoji('');
       setVars({ ...vars, status: { ...vars.status, emoji: streamService.emoji } });
+      changeStatus();
     }
     streamService.cleanVideoConnections();
   },
