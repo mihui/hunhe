@@ -161,34 +161,35 @@ export default function ChatRoom({ id, translate }) {
       console.warn(error);
     }
   };
-  const 
+
+  const socketEvents = {
     /** @type {() => void} */
-    onSocketConnect = () => {
+    onSocketConnect: () => {
       streamService.getWebSocket().emit('server:join', meeting.id, me);
     },
     /** @type {() => void} */
-    onSocketReconnect = () => {
+    onSocketReconnect: () => {
       console.log('### RECONNECTED ###');
       onSocketChanged(true, true);
     },
     /** @type {() => void} */
-    onSocketReconnectFailed = () => {
+    onSocketReconnectFailed: () => {
       console.warn('### CONNECTION FAILED ###');
       onSocketChanged(false);
       notifyHeader('重新连接失败，请刷新页面重试', NOTIFICATION_STYLES.ERROR);
     },
     /** @type {() => void} */
-    onSocketReconnectAttempt = () => {
+    onSocketReconnectAttempt: () => {
       notifyHeader('正在重新连接...（第 {0} 次尝试）', NOTIFICATION_STYLES.WARNING);
     },
     /** @type {(error: Error) => void} */
-    onSocketError = error => {
+    onSocketError: error => {
       console.warn('### SOCKET ERROR ###');
       onSocketChanged(false);
       notifyHeader('连接错误', NOTIFICATION_STYLES.ERROR);
     },
     /** @type {(reason: string) => void} */
-    onSocketDisconnect = reason => {
+    onSocketDisconnect: reason => {
       console.warn('### DISCONNECTED ###');
       // console.warn(`    ${reason}`);
       onSocketChanged(false);
@@ -200,18 +201,18 @@ export default function ChatRoom({ id, translate }) {
       }
     },
     /** @type {(user: User) => void} */
-    onClientWelcomePublic = user => {
+    onClientWelcomePublic: user => {
       notifyHeader(utility.format(translate('网友【{0}】兴高采烈地来到了会议室， 大家热烈欢迎 ^_^！'), user.name), NOTIFICATION_STYLES.INFO, true);
     },
     /** @type {(remoteScreenId: string) => void} */
-    onClientWelcomePrivate = (remoteScreenId) => {
+    onClientWelcomePrivate: (remoteScreenId) => {
       // joinScreenSharing(screenId);
       onSocketChanged(true);
       setIsSocketReady(true);
       setScreenId(remoteScreenId);
     },
     /** @type {(callee: User, remoteScreenId: string) => void} */
-    onClientJoinScreen = (callee, remoteScreenId) => {
+    onClientJoinScreen: (callee, remoteScreenId) => {
       if(callee && remoteScreenId) {
         if(remoteScreenId === me.id) {
           console.log('### CALLING CALLEE ###');
@@ -220,7 +221,8 @@ export default function ChatRoom({ id, translate }) {
       }
     },
     /** @type {(caller: User, users: Array<User>, remoteScreenId: string) => void} */
-    onClientStartScreen = (caller, users, remoteScreenId) => {
+    onClientStartScreen: (caller, users, remoteScreenId) => {
+      console.log('users->', users.length);
       // For the screen share user only!
       notifyHeader(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
       for(const receiver of users) {
@@ -232,7 +234,7 @@ export default function ChatRoom({ id, translate }) {
       }
     },
     /** @type {(sharer: User) => void} */
-    onClientStopScreen = (sharer) => {
+    onClientStopScreen: (sharer) => {
       // beeper.publish(Events.StopScreenShareCallback, { sharer });
       setScreenId('');
       notifyHeader(utility.format(translate('【{0}】停止了屏幕共享'), sharer.name), NOTIFICATION_STYLES.INFO, true);
@@ -242,13 +244,13 @@ export default function ChatRoom({ id, translate }) {
       }
     },
     /** @type {(data: { user: User }) => void} */
-    onClientLeave = data => {
+    onClientLeave: data => {
       console.log('### LEAVE ###');
       // console.info(data);
       notifyHeader(utility.format(translate('【{0}】离开了'), data.user.name), NOTIFICATION_STYLES.INFO, true);
     },
     /** @type {(code: number) => void} */
-    onClientError = code => {
+    onClientError: code => {
       console.warn('client:error');
       let message = '';
       if(code === 409) {
@@ -270,7 +272,7 @@ export default function ChatRoom({ id, translate }) {
       beeper.publish(Events.ClientError, { code, message });
     },
     /** @type {(users: Array<User>) => void} */
-    onDisplayingUsers = (users) => {
+    onDisplayingUsers: (users) => {
       const uniqueUsers = users.reduce(
       /**
        * Callback function, will be called one time for each element in the array
@@ -297,7 +299,7 @@ export default function ChatRoom({ id, translate }) {
       setChatUsers([ new All(translate) ].concat(uniqueUsers));
     },
     /** @type {(id: string, fromUser: User, data: { to: User, message: string }) => void} */
-    onUserMessage = (id, fromUser, data) => {
+    onUserMessage: (id, fromUser, data) => {
       /** @type {ChatRecord} */
       const chatRecord = {
         id,
@@ -311,10 +313,10 @@ export default function ChatRoom({ id, translate }) {
       setChatHistory(x => [ ...x, chatRecord ]);
     },
     /** @type {(user: User, meeting: Meeting) => void} */
-    onMeetingUpdated = (user, meeting) => {
+    onMeetingUpdated: (user, meeting) => {
       beeper.publish(Events.UpdateMeeting, { user, meeting });
-    };
-
+    }
+  };
   // Audio
   const
   /** @type {() => void} */
@@ -365,7 +367,6 @@ export default function ChatRoom({ id, translate }) {
   onVideoPeerCall = call => {
     console.log(`### VIDEO ON CALL: ${call.peer} ###`);
     beeper.publish(Events.PeerVideoCall, { call });
-    
   },
   /** @type {(error: { type: string }) => void} */
   onVideoPeerError = error => {
@@ -436,23 +437,24 @@ export default function ChatRoom({ id, translate }) {
     }, []);
 
     const unmountWebSocket = () => {
-      streamService.getWebSocket().off('connect', onSocketConnect)
-        .off('reconnect', onSocketReconnect)
-        .off('reconnect_failed', onSocketReconnectFailed)
-        .off('error', onSocketError)
-        .off('disconnect', onSocketDisconnect)
-        .off('reconnect_attempt', onSocketReconnectAttempt)
-        .off('client:welcome:public', onClientWelcomePublic)
-        .off('client:welcome:private', onClientWelcomePrivate)
-        .off('client:leave', onClientLeave)
-        .off('client:error', onClientError)
-        .off('client:users', onDisplayingUsers)
-        .off('client:user:message', onUserMessage)
-        .off('client:meeting:update:callback', onMeetingUpdated)
+      streamService.getWebSocket().off('connect', socketEvents.onSocketConnect)
+        .off('reconnect', socketEvents.onSocketReconnect)
+        .off('reconnect_failed', socketEvents.onSocketReconnectFailed)
+        .off('error', socketEvents.onSocketError)
+        .off('disconnect', socketEvents.onSocketDisconnect)
+        .off('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
+        .off('client:welcome:public', socketEvents.onClientWelcomePublic)
+        .off('client:welcome:private', socketEvents.onClientWelcomePrivate)
+        .off('client:leave', socketEvents.onClientLeave)
+        .off('client:error', socketEvents.onClientError)
+        .off('client:users', socketEvents.onDisplayingUsers)
+        .off('client:user:message', socketEvents.onUserMessage)
+        .off('client:meeting:update:callback', socketEvents.onMeetingUpdated)
         // Screen share
-        .off('client:screen:join:callback', onClientJoinScreen)
-        .off('client:screen:stop:callback', onClientStopScreen)
-        .off('client:screen:start:callback', onClientStartScreen);
+        .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
+        .off('client:screen:stop:callback', socketEvents.onClientStopScreen)
+        .off('client:screen:start:callback', socketEvents.onClientStartScreen)
+        .removeAllListeners();
     };
 
     useEffect(() => {
@@ -460,23 +462,23 @@ export default function ChatRoom({ id, translate }) {
         console.log('### CONNECTING WITH SOCKET ###');
         unmountWebSocket();
         streamService.connectWebSocket();
-        streamService.getWebSocket().on('connect', onSocketConnect)
-          .on('reconnect', onSocketReconnect)
-          .on('reconnect_failed', onSocketReconnectFailed)
-          .on('error', onSocketError)
-          .on('disconnect', onSocketDisconnect)
-          .on('reconnect_attempt', onSocketReconnectAttempt)
-          .on('client:welcome:public', onClientWelcomePublic)
-          .on('client:welcome:private', onClientWelcomePrivate)
-          .on('client:leave', onClientLeave)
-          .on('client:error', onClientError)
-          .on('client:users', onDisplayingUsers)
-          .on('client:user:message', onUserMessage)
-          .on('client:meeting:update:callback', onMeetingUpdated)
+        streamService.getWebSocket().on('connect', socketEvents.onSocketConnect)
+          .on('reconnect', socketEvents.onSocketReconnect)
+          .on('reconnect_failed', socketEvents.onSocketReconnectFailed)
+          .on('error', socketEvents.onSocketError)
+          .on('disconnect', socketEvents.onSocketDisconnect)
+          .on('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
+          .on('client:welcome:public', socketEvents.onClientWelcomePublic)
+          .on('client:welcome:private', socketEvents.onClientWelcomePrivate)
+          .on('client:leave', socketEvents.onClientLeave)
+          .on('client:error', socketEvents.onClientError)
+          .on('client:users', socketEvents.onDisplayingUsers)
+          .on('client:user:message', socketEvents.onUserMessage)
+          .on('client:meeting:update:callback', socketEvents.onMeetingUpdated)
           // Screen share
-          .on('client:screen:join:callback', onClientJoinScreen)
-          .on('client:screen:stop:callback', onClientStopScreen)
-          .on('client:screen:start:callback', onClientStartScreen);
+          .on('client:screen:join:callback', socketEvents.onClientJoinScreen)
+          .on('client:screen:stop:callback', socketEvents.onClientStopScreen)
+          .on('client:screen:start:callback', socketEvents.onClientStartScreen);
 
         return () => {
           streamService.getWebSocket().emit('server:leave');
