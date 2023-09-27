@@ -325,7 +325,7 @@ export default function ChatRoom({ id, translate }) {
   /** @type {() => void} */
   onAudioPeerDisconnected = () => {
     console.debug('### AUDIO PEER DISCONNECTED ###');
-    reconnectAudioPeer();
+    // reconnectAudioPeer();
   },
   /** @type {(call: import('peerjs').MediaConnection) => void} call Call */
   onAudioPeerCall = newConnection => {
@@ -359,7 +359,7 @@ export default function ChatRoom({ id, translate }) {
   /** @type {() => void} */
   onVideoPeerDisconnected = () => {
     console.debug('### VIDEO PEER DISCONNECTED ###');
-    reconnectVideoPeer();
+    // reconnectVideoPeer();
   },
   /** @type {(call: { peer: string, metadata: { nickname: string }, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
   onVideoPeerCall = call => {
@@ -435,9 +435,29 @@ export default function ChatRoom({ id, translate }) {
       }
     }, []);
 
+    const unmountWebSocket = () => {
+      streamService.getWebSocket().off('connect', socketEvents.onSocketConnect)
+        .off('reconnect', socketEvents.onSocketReconnect)
+        .off('reconnect_failed', socketEvents.onSocketReconnectFailed)
+        .off('error', socketEvents.onSocketError)
+        .off('disconnect', socketEvents.onSocketDisconnect)
+        .off('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
+        .off('client:welcome:public', socketEvents.onClientWelcomePublic)
+        .off('client:welcome:private', socketEvents.onClientWelcomePrivate)
+        .off('client:leave', socketEvents.onClientLeave)
+        .off('client:error', socketEvents.onClientError)
+        .off('client:users', socketEvents.onDisplayingUsers)
+        .off('client:user:message', socketEvents.onUserMessage)
+        .off('client:meeting:update:callback', socketEvents.onMeetingUpdated)
+        .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
+        .off('client:screen:stop:callback', socketEvents.onClientStopScreen)
+        .off('client:screen:start:callback', socketEvents.onClientStartScreen);
+    };
+
     useEffect(() => {
       if(meeting.id && me && me.name && me.avatar && me.id) {
         console.log('### CONNECTING WITH SOCKET ###');
+        unmountWebSocket();
         streamService.connectWebSocket();
         streamService.getWebSocket().on('connect', socketEvents.onSocketConnect)
           .on('reconnect', socketEvents.onSocketReconnect)
@@ -460,41 +480,32 @@ export default function ChatRoom({ id, translate }) {
         return () => {
           streamService.getWebSocket().emit('server:leave');
           streamService.getWebSocket().disconnect();
-          streamService.getWebSocket().off('connect', socketEvents.onSocketConnect)
-            .off('reconnect', socketEvents.onSocketReconnect)
-            .off('reconnect_failed', socketEvents.onSocketReconnectFailed)
-            .off('error', socketEvents.onSocketError)
-            .off('disconnect', socketEvents.onSocketDisconnect)
-            .off('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
-            .off('client:welcome:public', socketEvents.onClientWelcomePublic)
-            .off('client:welcome:private', socketEvents.onClientWelcomePrivate)
-            .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
-            .off('client:leave', socketEvents.onClientLeave)
-            .off('client:error', socketEvents.onClientError)
-            .off('client:users', socketEvents.onDisplayingUsers)
-            .off('client:user:message', socketEvents.onUserMessage)
-            .off('client:meeting:update:callback', socketEvents.onMeetingUpdated);
+          unmountWebSocket();
         }
       }
     }, [me]);
+
+    const unmountPeers = () => {
+      if(streamService.audioPeer) {
+        streamService.audioPeer.off('open', onAudioPeerOpen)
+        .off('disconnected', onAudioPeerDisconnected)
+        .off('call', onAudioPeerCall)
+        .off('error', onAudioPeerError);
+      }
+
+      if(streamService.videoPeer) {
+        streamService.videoPeer.off('open', onVideoPeerOpen)
+          .off('disconnected', onVideoPeerDisconnected)
+          .off('call', onVideoPeerCall)
+          .off('error', onVideoPeerError);
+      }
+    };
 
     // Setup Peers
     useEffect(() => {
       if(isMeOK && isMeetingOK && isSocketReady) {
         streamService.setupPeers(me.id, getScreenId(me.id, true)).then(code => {
-          if(streamService.audioPeer) {
-            streamService.audioPeer.off('open', onAudioPeerOpen)
-            .off('disconnected', onAudioPeerDisconnected)
-            .off('call', onAudioPeerCall)
-            .off('error', onAudioPeerError);
-          }
-
-          if(streamService.videoPeer) {
-            streamService.videoPeer.off('open', onVideoPeerOpen)
-              .off('disconnected', onVideoPeerDisconnected)
-              .off('call', onVideoPeerCall)
-              .off('error', onVideoPeerError);
-          }
+          unmountPeers();
           // Audio
           streamService.audioPeer.on('open', onAudioPeerOpen)
             .on('disconnected', onAudioPeerDisconnected)
@@ -513,13 +524,14 @@ export default function ChatRoom({ id, translate }) {
           console.log(`### EXCEPTION CODE: ${code} ###`);
           if(code === CustomCodes.PEERS_INITIALIZED) {
             const isOK = isShareSupported();
-            // reconnectAudioPeer();
-            // reconnectVideoPeer();
+            reconnectAudioPeer();
+            reconnectVideoPeer();
             setArePeersOK(isOK);
             setPeerStatus({ video: isOK, audio: isOK });
           }
         });
         return () => {
+          unmountPeers();
           streamService.reset();
         };
       }
