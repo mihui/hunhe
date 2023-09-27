@@ -222,7 +222,6 @@ export default function ChatRoom({ id, translate }) {
     },
     /** @type {(caller: User, users: Array<User>, remoteScreenId: string) => void} */
     onClientStartScreen: (caller, users, remoteScreenId) => {
-      console.log('users->', users.length);
       // For the screen share user only!
       notifyHeader(utility.format(translate('【{0}】开始了屏幕共享'), caller.name), NOTIFICATION_STYLES.INFO, true);
       for(const receiver of users) {
@@ -453,14 +452,13 @@ export default function ChatRoom({ id, translate }) {
         // Screen share
         .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
         .off('client:screen:stop:callback', socketEvents.onClientStopScreen)
-        .off('client:screen:start:callback', socketEvents.onClientStartScreen)
-        .removeAllListeners();
+        .off('client:screen:start:callback', socketEvents.onClientStartScreen);
     };
 
     useEffect(() => {
       if(meeting.id && me && me.name && me.avatar && me.id) {
         console.log('### CONNECTING WITH SOCKET ###');
-        unmountWebSocket();
+        // unmountWebSocket();
         streamService.connectWebSocket();
         streamService.getWebSocket().on('connect', socketEvents.onSocketConnect)
           .on('reconnect', socketEvents.onSocketReconnect)
