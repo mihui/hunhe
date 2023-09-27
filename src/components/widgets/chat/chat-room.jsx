@@ -784,7 +784,7 @@ export default function ChatRoom({ id, translate }) {
 
   // Handle join screen sharing
   useEffect(() => {
-    if(screenId && peerStatus.video === PEER_STATUS.READY) {
+    if(screenId && peerStatus.video === PEER_STATUS.READY && streamService.videoStatus !== MediaStatus.RECEIVING) {
       console.log('### PEER READY AND REQUEST TO JOIN ###');
       streamService.getWebSocket().emit('server:screen:join', screenId);
     }
