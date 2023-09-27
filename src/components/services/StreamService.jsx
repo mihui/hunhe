@@ -323,6 +323,7 @@ export class StreamService {
    * Reset Peer connections
    */
   reset() {
+    console.log('### RESET ###');
     if (this.videoPeer) {
       this.videoPeer.disconnect();
       // this.videoPeer.destroy();

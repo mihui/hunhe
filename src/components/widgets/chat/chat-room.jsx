@@ -140,7 +140,7 @@ export default function ChatRoom({ id, translate }) {
   },
   reconnectAudioPeer = () => {
     try {
-      if(streamService.audioPeer)
+      if(streamService.audioPeer && streamService.audioPeer.disconnected)
         streamService.audioPeer.reconnect();
       else
         console.log('streamService.audioPeer is null');
@@ -151,7 +151,7 @@ export default function ChatRoom({ id, translate }) {
   },
   reconnectVideoPeer = () => {
     try {
-      if(streamService.videoPeer)
+      if(streamService.videoPeer && streamService.videoPeer.disconnected)
         streamService.videoPeer.reconnect();
       else
         console.log('streamService.videoPeer is null');
@@ -190,10 +190,11 @@ export default function ChatRoom({ id, translate }) {
     /** @type {(reason: string) => void} */
     onSocketDisconnect: reason => {
       console.warn('### DISCONNECTED ###');
-      console.warn(reason);
+      // console.warn(`    ${reason}`);
       onSocketChanged(false);
       notifyHeader('连接已断开，请重试', NOTIFICATION_STYLES.ERROR);
       setChatUsers([]);
+      setIsSocketReady(false);
       if(reason === 'io server disconnect' && isMeetingOK && isMeOK) {
         streamService.connectWebSocket();
       }
@@ -243,7 +244,7 @@ export default function ChatRoom({ id, translate }) {
     /** @type {(data: { user: User }) => void} */
     onClientLeave: data => {
       console.log('### LEAVE ###');
-      console.info(data);
+      // console.info(data);
       notifyHeader(utility.format(translate('【{0}】离开了'), data.user.name), NOTIFICATION_STYLES.INFO, true);
     },
     /** @type {(code: number) => void} */
@@ -314,7 +315,7 @@ export default function ChatRoom({ id, translate }) {
       beeper.publish(Events.UpdateMeeting, { user, meeting });
     }
   };
-
+  // Audio
   const
   /** @type {() => void} */
   onAudioPeerOpen = () => {
@@ -323,8 +324,8 @@ export default function ChatRoom({ id, translate }) {
   },
   /** @type {() => void} */
   onAudioPeerDisconnected = () => {
-    console.info('### PEER DISCONNECTED ###');
-    reconnectAudioPeer();
+    console.debug('### AUDIO PEER DISCONNECTED ###');
+    // reconnectAudioPeer();
   },
   /** @type {(call: import('peerjs').MediaConnection) => void} call Call */
   onAudioPeerCall = newConnection => {
@@ -357,8 +358,8 @@ export default function ChatRoom({ id, translate }) {
   },
   /** @type {() => void} */
   onVideoPeerDisconnected = () => {
-    console.warn('### PEER DISCONNECTED ###');
-    reconnectVideoPeer();
+    console.debug('### VIDEO PEER DISCONNECTED ###');
+    // reconnectVideoPeer();
   },
   /** @type {(call: { peer: string, metadata: { nickname: string }, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
   onVideoPeerCall = call => {
@@ -458,6 +459,7 @@ export default function ChatRoom({ id, translate }) {
 
         return () => {
           streamService.getWebSocket().emit('server:leave');
+          streamService.getWebSocket().disconnect();
           streamService.getWebSocket().off('connect', socketEvents.onSocketConnect)
             .off('reconnect', socketEvents.onSocketReconnect)
             .off('reconnect_failed', socketEvents.onSocketReconnectFailed)
@@ -481,7 +483,6 @@ export default function ChatRoom({ id, translate }) {
       if(isMeOK && isMeetingOK && isSocketReady) {
         streamService.setupPeers(me.id, getScreenId(me.id, true)).then(code => {
           if(streamService.audioPeer) {
-
             streamService.audioPeer.off('open', onAudioPeerOpen)
             .off('disconnected', onAudioPeerDisconnected)
             .off('call', onAudioPeerCall)
@@ -489,7 +490,6 @@ export default function ChatRoom({ id, translate }) {
           }
 
           if(streamService.videoPeer) {
-
             streamService.videoPeer.off('open', onVideoPeerOpen)
               .off('disconnected', onVideoPeerDisconnected)
               .off('call', onVideoPeerCall)
@@ -513,10 +513,15 @@ export default function ChatRoom({ id, translate }) {
           console.log(`### EXCEPTION CODE: ${code} ###`);
           if(code === CustomCodes.PEERS_INITIALIZED) {
             const isOK = isShareSupported();
+            reconnectAudioPeer();
+            reconnectVideoPeer();
             setArePeersOK(isOK);
             setPeerStatus({ video: isOK, audio: isOK });
           }
         });
+        return () => {
+          streamService.reset();
+        };
       }
     }, [isMeOK, isSocketReady, me.id]);
 
@@ -553,7 +558,6 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ screenId: string, setScreenId: (screenId: string) => void ]} */
   const [ screenId, setScreenId ] = useState('');
 
-  const nonRef = useRef({ meeting: false, user: false, peer: false, load: false });
   /** @type {{ current: HTMLInputElement }} */
   const chatInputRef = useRef(null);
   /** @type {{ current: HTMLDivElement }} */
@@ -789,7 +793,7 @@ export default function ChatRoom({ id, translate }) {
     });
   };
 
-  // Handle events and setup peers
+  // Page load, Handle events and setup peers
   useEffect(() => {
     const disposeSocketConnectedEvent = beeper.subscribe(Events.SocketConnected, ({ connected, isReconnect }) => {
       console.log(`### SOCKET CONNECTED: ${connected} ###`);
@@ -800,16 +804,13 @@ export default function ChatRoom({ id, translate }) {
     const disposeClientErrorEvent = beeper.subscribe(Events.ClientError, error => {
       setUiProperty({ ...uiProperty, error });
     });
-
     const disposeNotificationEvent = beeper.subscribe(Events.ClientNotification, ({ message, style, hasTranslation = false }) => {
       notifyHeader(message, style, hasTranslation);
     });
-
     const disposeUpdateMeetingEvent = beeper.subscribe(Events.UpdateMeeting, ({ user, meeting }) => {
       setMeeting(meeting);
       notifyHeader(utility.format(translate('【{0}】更新了会议信息'), user.name), NOTIFICATION_STYLES.INFO, true);
     });
-
     const disposeVideoCallEvent = beeper.subscribe(Events.PeerVideoCall, ({ call }) => {
       if(remoteVideoRef?.current === null) {
         console.warn('    NULL VIDEO REFERENCE');
@@ -849,9 +850,7 @@ export default function ChatRoom({ id, translate }) {
       disposeNotificationEvent();
       disposeUpdateMeetingEvent();
       disposeVideoCallEvent();
-      //
-      streamService.reset();
-      //
+
       stopScreen();
       stopAudio();
     };
