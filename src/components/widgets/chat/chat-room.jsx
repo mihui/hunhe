@@ -325,7 +325,7 @@ export default function ChatRoom({ id, translate }) {
   /** @type {() => void} */
   onAudioPeerDisconnected = () => {
     console.debug('### AUDIO PEER DISCONNECTED ###');
-    // reconnectAudioPeer();
+    reconnectAudioPeer();
   },
   /** @type {(call: import('peerjs').MediaConnection) => void} call Call */
   onAudioPeerCall = newConnection => {
@@ -359,7 +359,7 @@ export default function ChatRoom({ id, translate }) {
   /** @type {() => void} */
   onVideoPeerDisconnected = () => {
     console.debug('### VIDEO PEER DISCONNECTED ###');
-    // reconnectVideoPeer();
+    reconnectVideoPeer();
   },
   /** @type {(call: { peer: string, metadata: { nickname: string }, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
   onVideoPeerCall = call => {
@@ -513,8 +513,8 @@ export default function ChatRoom({ id, translate }) {
           console.log(`### EXCEPTION CODE: ${code} ###`);
           if(code === CustomCodes.PEERS_INITIALIZED) {
             const isOK = isShareSupported();
-            reconnectAudioPeer();
-            reconnectVideoPeer();
+            // reconnectAudioPeer();
+            // reconnectVideoPeer();
             setArePeersOK(isOK);
             setPeerStatus({ video: isOK, audio: isOK });
           }
