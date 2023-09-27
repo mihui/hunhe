@@ -63,7 +63,7 @@ export default function ChatRoom({ id, translate }) {
     setChatHeader({ message: hasTranslation ? message : translate(message), style, time: new Date() })
   }, [translate]);
 
-  const chatNotifications = [], notifyAudio = new Audio('/audio/notify.mp3');
+  const chatNotifications = [], notifyAudio = new Audio();
   notifyAudio.autoplay = false;
   notifyAudio.preload = 'metadata';
   const notifyUser = (sender, message, avatar = null) => {
@@ -98,6 +98,7 @@ export default function ChatRoom({ id, translate }) {
         // notifyHeader(error.message, NOTIFICATION_STYLES.WARNING);
       }
     });
+    notifyAudio.src = '/audio/notify.mp3';
     notifyAudio.play().then(() => {
       notifyAudio.muted = false;
     }).catch(error => {
@@ -449,6 +450,7 @@ export default function ChatRoom({ id, translate }) {
         .off('client:users', socketEvents.onDisplayingUsers)
         .off('client:user:message', socketEvents.onUserMessage)
         .off('client:meeting:update:callback', socketEvents.onMeetingUpdated)
+        // Screen share
         .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
         .off('client:screen:stop:callback', socketEvents.onClientStopScreen)
         .off('client:screen:start:callback', socketEvents.onClientStartScreen);
