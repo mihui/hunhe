@@ -423,7 +423,7 @@ export default function ChatRoom({ id, translate }) {
 
   const setupPeers = () => {
     streamService.setupPeers(me.id, getScreenId(me.id, true)).then(code => {
-      unmountPeerEvents();
+      // unmountPeerEvents();
       // Audio
       streamService.audioPeer.on('open', peerEvents.onAudioPeerOpen)
         .on('disconnected', peerEvents.onAudioPeerDisconnected)
@@ -820,6 +820,10 @@ export default function ChatRoom({ id, translate }) {
       streamService.getWebSocket().emit('server:screen:join', screenId);
     }
   }, [ screenId, peerStatus.video ]);
+
+  useEffect(() => {
+    console.log('peerStatus->', peerStatus.audio, peerStatus.video);
+  }, [ peerStatus.audio, peerStatus.video ]);
 
   // Scroll chat history automatically
   useEffect(() => {
