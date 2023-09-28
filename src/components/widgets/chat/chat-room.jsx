@@ -60,6 +60,9 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ isLoading: boolean, setIsLoading: (isLoading: boolean) => void ]} */
   const [ isLoading, setIsLoading ] = useState(true);
 
+  /** @type {[ isChatting: boolean, setIsChatting: (isChatting: boolean) => void ]} */
+  const [ isChatting, setIsChatting ] = useState(false);
+
   /** @type {[ arePeersOK: boolean, setArePeersOK: (arePeersOK: boolean) => void ]} */
   const [ arePeersOK, setArePeersOK ] = useState(false);
 
@@ -658,15 +661,16 @@ export default function ChatRoom({ id, translate }) {
     }
   },
   sendChatMessage = async () => {
-    if(chat.input.length > 0) {
-      setIsLoading(true);
+    if(chat.input.length > 0 && isChatting === false && isSocketReady) {
+      setIsChatting(true);
       if(streamService.getWebSocket().disconnected) {
+        streamService.getWebSocket().connect();
         return notifyHeader('正在尝试重新连接', NOTIFICATION_STYLES.WARNING);
       }
       const payload = generateMessage();
       setChat({ ...chat, input: '' });
       streamService.getWebSocket().emit('server:user:message', payload, () => {
-        setIsLoading(false);
+        setIsChatting(false);
       });
     }
     focusInput();
@@ -804,6 +808,10 @@ export default function ChatRoom({ id, translate }) {
       connectUsers();
     }
     changeStatus();
+  },
+  selectUser = (to) => {
+    setChat({ ...chat, to });
+    focusInput();
   };
 
   // Handle join screen sharing
@@ -1114,9 +1122,9 @@ export default function ChatRoom({ id, translate }) {
                   if(hasTime) {
                     lastCheckTime = x.time;
                   }
-                  return <ChatFormat key={x.id} payload={x} isMe={x.from.id === me.id} isToMe={x.to.id === me.id} hasTime={hasTime} displayTime={displayTime} />;
+                  return <ChatFormat key={x.id} payload={x} isMe={x.from.id === me.id} isToMe={x.to.id === me.id} hasTime={hasTime} displayTime={displayTime} selectUser={selectUser} />;
                 } ) }
-                <div ref={chatHistoryRef}></div>
+                <div className={styles['chat-bottom']} ref={chatHistoryRef}></div>
               </div>
             </div>
 
@@ -1144,9 +1152,8 @@ export default function ChatRoom({ id, translate }) {
                   return <li onClick={evt => {
                     evt.preventDefault();
                     evt.stopPropagation();
-                    setUiProperty({ ...uiProperty, users: !uiProperty.isUserListDisplayed });
-                    setChat({ ...chat, from: me, to: x });
-                    focusInput();
+                    setUiProperty({ ...uiProperty, isUserListDisplayed: !uiProperty.isUserListDisplayed });
+                    selectUser(x);
                   }} className={styles[style]} key={x.id} id={x.id} data-avatar={x.avatar} data-window={x.windows && x.windows > 1 ? x.windows : ''} style={{'--background-avatar-placeholder': `url(${x.avatar})` }}>
                     <a>{x.name}{ emoji && <span className={styles['emoji']} dangerouslySetInnerHTML={{ __html: emoji }}></span> }</a>
                   </li>
@@ -1179,8 +1186,10 @@ export default function ChatRoom({ id, translate }) {
               flex: 1
             }} placeholder={translate('说点什么...')} onChange={evt => {
               setChat({ ...chat, input: evt.target.value });
-            }} value={chat.input} readOnly={isLoading} slotProps={{ input: { ref: chatInputRef } }}
-            startDecorator={`${translate('对')}${chat.to.id === All.__id ? translate(chat.to.name) : chat.to.name}`}
+            }} value={chat.input} readOnly={isSocketReady === false || isChatting} slotProps={{ input: { ref: chatInputRef } }}
+            startDecorator={<Button variant='plain' onClick={evt => {
+              focusInput();
+            }}>{translate('对')}{chat.to.id === All.__id ? translate(chat.to.name) : chat.to.name}</Button>}
             />
           </form>
 
@@ -1192,7 +1201,7 @@ export default function ChatRoom({ id, translate }) {
             gap: 0.5,
           }}
           >
-            <Tooltip title={translate('发送')}><IconButton size='sm' variant="soft" disabled={isSocketReady === false} onClick={evt => {
+            <Tooltip title={translate('发送')}><IconButton size='sm' variant="soft" disabled={isSocketReady === false || isChatting} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               sendChatMessage();

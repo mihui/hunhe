@@ -243,6 +243,7 @@
           align-self: flex-end;
         }
         .avatar {
+          cursor: pointer;
           width: 1.5rem;
           min-width: 1.5rem;
           height: 1.5rem;
@@ -277,6 +278,11 @@
             margin: 0px;
           }
         }
+      }
+      .chat-bottom {
+        height: 0.5rem;
+        display: block;
+        visibility: hidden;
       }
     }
 
