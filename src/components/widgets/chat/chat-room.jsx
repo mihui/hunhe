@@ -148,21 +148,16 @@ export default function ChatRoom({ id, translate }) {
   },
   reconnectAudioPeer = () => {
     try {
-      console.log('1.reconnectAudioPeer');
       if(streamService.audioPeer) {
-        console.log('2.streamService.audioPeer');
         if(streamService.audioPeer.disconnected) {
-          console.log('3.streamService.audioPeer.disconnected');
           setPeerStatus(current => { return { ...current, audio: PEER_STATUS.RECONNECTING }; });
           streamService.audioPeer.reconnect();
         }
         else {
-          console.log('4.streamService.audioPeer.connected');
           setPeerStatus(current => { return { ...current, audio: streamService.audioPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
         }
       }
       else {
-        console.log('5.streamService.audioPeer.disconnected');
         // @todo: Setup Peers, it is most likely we don't have this kind of situation
       }
     }
@@ -173,28 +168,22 @@ export default function ChatRoom({ id, translate }) {
   },
   reconnectVideoPeer = () => {
     try {
-      console.log('1.reconnectVideoPeer');
       if(streamService.videoPeer) {
-        console.log('2.streamService.videoPeer');
         if(streamService.videoPeer.disconnected) {
-          console.log('3.streamService.videoPeer.disconnected');
           setPeerStatus(current => { return { ...current, video: PEER_STATUS.RECONNECTING }; });
           streamService.videoPeer.reconnect();
         }
         else {
-          console.log('4.streamService.videoPeer.connected');
           setPeerStatus(current => { return { ...current, video: streamService.videoPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
         }
       }
       else {
-        console.log('5.streamService.videoPeer.disconnected');
         // @todo: Setup Peers, it is most likely we don't have this kind of situation
       }
     }
     catch(error) {
       // Peer may be destroyed, @todo: Setup Peers
       console.warn(error);
-      console.log('6.streamService.videoPeer.disconnected');
       // streamService.setupPeers
     }
   };
@@ -825,10 +814,6 @@ export default function ChatRoom({ id, translate }) {
       streamService.getWebSocket().emit('server:screen:join', screenId);
     }
   }, [ screenId, peerStatus.video ]);
-
-  useEffect(() => {
-    console.log('peerStatus->', peerStatus.audio, peerStatus.video);
-  }, [ peerStatus.audio, peerStatus.video ]);
 
   // Scroll chat history automatically
   useEffect(() => {
