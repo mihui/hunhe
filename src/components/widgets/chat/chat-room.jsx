@@ -26,7 +26,6 @@ import DesktopAccessDisabledIcon from '@mui/icons-material/DesktopAccessDisabled
 import AddIcCallIcon from '@mui/icons-material/AddIcCall';
 import CallEndIcon from '@mui/icons-material/CallEnd';
 import WarningIcon from '@mui/icons-material/Warning';
-import CloseIcon from '@mui/icons-material/Close';
 
 import Stack from '@mui/joy/Stack';
 import Box from '@mui/joy/Box';
@@ -35,6 +34,7 @@ import Divider from '@mui/joy/Divider';
 import CircularProgress from '@mui/joy/CircularProgress';
 import Alert from '@mui/joy/Alert';
 import Button from '@mui/joy/Button';
+import Typography from '@mui/joy/Typography';
 
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -59,6 +59,9 @@ export default function ChatRoom({ id, translate }) {
 
   /** @type {[ isLoading: boolean, setIsLoading: (isLoading: boolean) => void ]} */
   const [ isLoading, setIsLoading ] = useState(true);
+
+  /** @type {[ arePeersOK: boolean, setArePeersOK: (arePeersOK: boolean) => void ]} */
+  const [ arePeersOK, setArePeersOK ] = useState(false);
 
   /** @type {[ chatHeader: { message: string, style: string, time: Date }, setChatHeader: (chatHeader: { message: string, style: string, time: Date }) => void ]} */
   const [ chatHeader, setChatHeader ] = useState({ message: '', style: NOTIFICATION_STYLES.INFO, time: new Date() });
@@ -145,32 +148,43 @@ export default function ChatRoom({ id, translate }) {
   },
   reconnectAudioPeer = () => {
     try {
-      if(streamService.audioPeer && streamService.audioPeer.disconnected) {
-        streamService.audioPeer.reconnect();
-        setPeerStatus(current => { return { ...current, audio: PEER_STATUS.RECONNECTING }; });
+      if(streamService.audioPeer) {
+        if(streamService.audioPeer.disconnected) {
+          setPeerStatus(current => { return { ...current, audio: PEER_STATUS.RECONNECTING }; });
+          streamService.audioPeer.reconnect();
+        }
+        else {
+          setPeerStatus(current => { return { ...current, audio: streamService.audioPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
+        }
       }
       else {
-        console.debug('streamService.audioPeer.disconnected->', streamService.audioPeer.disconnected);
-        setPeerStatus(current => { return { ...current, audio: streamService.audioPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
+        // @todo: Setup Peers, it is most likely we don't have this kind of situation
       }
     }
     catch(error) {
+      // Peer may be destroyed, @todo: Setup Peers
       console.warn(error);
     }
   },
   reconnectVideoPeer = () => {
     try {
-      if(streamService.videoPeer && streamService.videoPeer.disconnected) {
-        streamService.videoPeer.reconnect();
-        setPeerStatus(current => { return { ...current, video: PEER_STATUS.RECONNECTING }; });
+      if(streamService.videoPeer) {
+        if(streamService.videoPeer.disconnected) {
+          streamService.videoPeer.reconnect();
+          setPeerStatus(current => { return { ...current, video: PEER_STATUS.RECONNECTING }; });
+        }
+        else {
+          setPeerStatus(current => { return { ...current, video: streamService.videoPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
+        }
       }
       else {
-        console.debug('streamService.videoPeer.disconnected->', streamService.videoPeer.disconnected);
-        setPeerStatus(current => { return { ...current, video: streamService.videoPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
+        // @todo: Setup Peers, it is most likely we don't have this kind of situation
       }
     }
     catch(error) {
+      // Peer may be destroyed, @todo: Setup Peers
       console.warn(error);
+      // streamService.setupPeers
     }
   };
 
@@ -328,72 +342,118 @@ export default function ChatRoom({ id, translate }) {
       beeper.publish(Events.UpdateMeeting, { user, meeting });
     }
   };
-  // Audio
-  const
-  /** @type {() => void} */
-  onAudioPeerOpen = () => {
-    console.log('### AUDIO READY ###');
-    setPeerStatus(current => { return { ...current, audio: PEER_STATUS.READY }; });
-  },
-  /** @type {() => void} */
-  onAudioPeerDisconnected = () => {
-    console.debug('### AUDIO PEER DISCONNECTED ###');
-    // reconnectAudioPeer();
-    setPeerStatus(current => { return { ...current, audio: PEER_STATUS.DISCONNECTED }; });
-  },
-  /** @type {(call: import('peerjs').MediaConnection) => void} call Call */
-  onAudioPeerCall = newConnection => {
-    console.info(`### AUDIO ON CALL: ${newConnection.peer} ###`);
-    // Automatically join
-    newConnection.answer(streamService.localAudioStream);
-    newConnection.on('stream', callerStream => {
-      activateAudio(streamService.receiveAudioStream(newConnection.peer, callerStream));
-    });
-    streamService.addAudioConnection(newConnection);
-  },
-  /** @type {(error: { type: string }) => void} */
-  onAudioPeerError = error => {
-    console.warn('### AUDIO PEER ERROR ###');
-    const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : '语音服务错误';
-    console.warn(message);
-    beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
-    setPeerStatus(current => { return { ...current, audio: PEER_STATUS.DISCONNECTED }; });
-  },
-  /** @type {() => void} */
-  onAudioPeerClose = () => {
-    console.warn('### AUDIO PEER CLOSED ###');
-    setPeerStatus(current => { return { ...current, audio: PEER_STATUS.DISCONNECTED }; });
+  const peerEvents = {
+    // Audio
+    /** @type {() => void} */
+    onAudioPeerOpen: () => {
+      console.log('### AUDIO READY ###');
+      setPeerStatus(current => { return { ...current, audio: PEER_STATUS.READY }; });
+    },
+    /** @type {() => void} */
+    onAudioPeerDisconnected: () => {
+      console.debug('### AUDIO PEER DISCONNECTED ###');
+      // reconnectAudioPeer();
+      setPeerStatus(current => { return { ...current, audio: PEER_STATUS.DISCONNECTED }; });
+    },
+    /** @type {(call: import('peerjs').MediaConnection) => void} call Call */
+    onAudioPeerCall: newConnection => {
+      console.info(`### AUDIO ON CALL: ${newConnection.peer} ###`);
+      // Automatically join
+      newConnection.answer(streamService.localAudioStream);
+      newConnection.on('stream', callerStream => {
+        activateAudio(streamService.receiveAudioStream(newConnection.peer, callerStream));
+      });
+      streamService.addAudioConnection(newConnection);
+    },
+    /** @type {(error: { type: string }) => void} */
+    onAudioPeerError: error => {
+      console.warn('### AUDIO PEER ERROR ###');
+      const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : '语音服务错误';
+      console.warn(message);
+      beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
+      setPeerStatus(current => { return { ...current, audio: PEER_STATUS.DISCONNECTED }; });
+    },
+    /** @type {() => void} */
+    onAudioPeerClose: () => {
+      console.warn('### AUDIO PEER CLOSED ###');
+      setPeerStatus(current => { return { ...current, audio: PEER_STATUS.DISCONNECTED }; });
+    },
+    // Screen
+    /** @type {() => void} */
+    onVideoPeerOpen: () => {
+      console.log('### VIDEO READY ###');
+      setPeerStatus(current => { return { ...current, video: PEER_STATUS.READY }; });
+    },
+    /** @type {() => void} */
+    onVideoPeerDisconnected: () => {
+      console.debug('### VIDEO PEER DISCONNECTED ###');
+      // reconnectVideoPeer();
+      setPeerStatus(current => { return { ...current, video: PEER_STATUS.DISCONNECTED }; });
+    },
+    /** @type {(call: { peer: string, metadata: { nickname: string }, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
+    onVideoPeerCall: call => {
+      console.log(`### VIDEO ON CALL: ${call.peer} ###`);
+      beeper.publish(Events.PeerVideoCall, { call });
+    },
+    /** @type {(error: { type: string }) => void} */
+    onVideoPeerError: error => {
+      console.warn('### SCREEN PEER ERROR ###');
+      const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : 'Video server connection error.';
+      console.warn(message);
+      beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
+      setPeerStatus(current => { return { ...current, video: PEER_STATUS.DISCONNECTED }; });
+    },
+    /** @type {() => void} */
+    onVideoPeerClose: () => {
+      console.warn('### SCREEN PEER CLOSED ###');
+      setPeerStatus(current => { return { ...current, video: PEER_STATUS.DISCONNECTED }; });
+    }
   };
-  // Screen
-  const
-  /** @type {() => void} */
-  onVideoPeerOpen = () => {
-    console.log('### VIDEO READY ###');
-    setPeerStatus(current => { return { ...current, video: PEER_STATUS.READY }; });
+
+  const setupPeers = () => {
+    streamService.setupPeers(me.id, getScreenId(me.id, true)).then(code => {
+      unmountPeerEvents();
+      // Audio
+      streamService.audioPeer.on('open', peerEvents.onAudioPeerOpen)
+        .on('disconnected', peerEvents.onAudioPeerDisconnected)
+        .on('call', peerEvents.onAudioPeerCall)
+        .on('error', peerEvents.onAudioPeerError)
+        .on('close', peerEvents.onAudioPeerClose);
+      // Video
+      streamService.videoPeer.on('open', peerEvents.onVideoPeerOpen)
+        .on('disconnected', peerEvents.onVideoPeerDisconnected)
+        .on('call', peerEvents.onVideoPeerCall)
+        .on('error', peerEvents.onVideoPeerError)
+        .on('close', peerEvents.onVideoPeerClose);
+      // Ready
+      setArePeersOK(isShareSupported());
+    }).catch(code => {
+      console.log(`### EXCEPTION CODE: ${code} ###`);
+      if(code === CustomCodes.PEERS_INITIALIZED) {
+        const isOK = isShareSupported();
+        reconnectAudioPeer();
+        reconnectVideoPeer();
+        setArePeersOK(isOK);
+        setPeerStatus({ video: isOK ? PEER_STATUS.READY : peerStatus.video, audio: isOK ? PEER_STATUS.READY : peerStatus.audio });
+      }
+    });
   },
-  /** @type {() => void} */
-  onVideoPeerDisconnected = () => {
-    console.debug('### VIDEO PEER DISCONNECTED ###');
-    // reconnectVideoPeer();
-    setPeerStatus(current => { return { ...current, video: PEER_STATUS.DISCONNECTED }; });
-  },
-  /** @type {(call: { peer: string, metadata: { nickname: string }, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
-  onVideoPeerCall = call => {
-    console.log(`### VIDEO ON CALL: ${call.peer} ###`);
-    beeper.publish(Events.PeerVideoCall, { call });
-  },
-  /** @type {(error: { type: string }) => void} */
-  onVideoPeerError = error => {
-    console.warn('### SCREEN PEER ERROR ###');
-    const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : 'Video server connection error.';
-    console.warn(message);
-    beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
-    setPeerStatus(current => { return { ...current, video: PEER_STATUS.DISCONNECTED }; });
-  },
-  /** @type {() => void} */
-  onVideoPeerClose = () => {
-    console.warn('### SCREEN PEER CLOSED ###');
-    setPeerStatus(current => { return { ...current, video: PEER_STATUS.DISCONNECTED }; });
+  unmountPeerEvents = () => {
+    if(streamService.audioPeer) {
+      streamService.audioPeer.off('open', peerEvents.onAudioPeerOpen)
+      .off('disconnected', peerEvents.onAudioPeerDisconnected)
+      .off('call', peerEvents.onAudioPeerCall)
+      .off('error', peerEvents.onAudioPeerError)
+      .off('close', peerEvents.onAudioPeerClose);
+    }
+
+    if(streamService.videoPeer) {
+      streamService.videoPeer.off('open', peerEvents.onVideoPeerOpen)
+        .off('disconnected', peerEvents.onVideoPeerDisconnected)
+        .off('call', peerEvents.onVideoPeerCall)
+        .off('error', peerEvents.onVideoPeerError)
+        .off('close', peerEvents.onVideoPeerClose);
+    }
   };
 
   const useMeeting = (initialId, initialData) => {
@@ -433,7 +493,6 @@ export default function ChatRoom({ id, translate }) {
     const [ isMeOK, setIsMeOK ] = useState(false);
     /** @type {[ room: string, setRoom: (room: string) => void ]} */
     const [ room, setRoom ] = useState(initialRoom);
-    const [ arePeersOK, setArePeersOK ] = useState(false);
     const [ isSocketReady, setIsSocketReady ] = useState(false);
 
     // Get user information from session storage
@@ -502,59 +561,18 @@ export default function ChatRoom({ id, translate }) {
       }
     }, [me]);
 
-    const unmountPeers = () => {
-      if(streamService.audioPeer) {
-        streamService.audioPeer.off('open', onAudioPeerOpen)
-        .off('disconnected', onAudioPeerDisconnected)
-        .off('call', onAudioPeerCall)
-        .off('error', onAudioPeerError);
-      }
-
-      if(streamService.videoPeer) {
-        streamService.videoPeer.off('open', onVideoPeerOpen)
-          .off('disconnected', onVideoPeerDisconnected)
-          .off('call', onVideoPeerCall)
-          .off('error', onVideoPeerError);
-      }
-    };
-
     // Setup Peers
     useEffect(() => {
       if(isMeOK && isMeetingOK && isSocketReady) {
-        streamService.setupPeers(me.id, getScreenId(me.id, true)).then(code => {
-          unmountPeers();
-          // Audio
-          streamService.audioPeer.on('open', onAudioPeerOpen)
-            .on('disconnected', onAudioPeerDisconnected)
-            .on('call', onAudioPeerCall)
-            .on('error', onAudioPeerError)
-            .on('close', onAudioPeerClose);
-          // Video
-          streamService.videoPeer.on('open', onVideoPeerOpen)
-            .on('disconnected', onVideoPeerDisconnected)
-            .on('call', onVideoPeerCall)
-            .on('error', onVideoPeerError)
-            .on('close', onVideoPeerClose);
-          // Ready
-          setArePeersOK(isShareSupported());
-        }).catch(code => {
-          console.log(`### EXCEPTION CODE: ${code} ###`);
-          if(code === CustomCodes.PEERS_INITIALIZED) {
-            const isOK = isShareSupported();
-            reconnectAudioPeer();
-            reconnectVideoPeer();
-            setArePeersOK(isOK);
-            setPeerStatus({ video: isOK ? PEER_STATUS.READY : peerStatus.video, audio: isOK ? PEER_STATUS.READY : peerStatus.audio });
-          }
-        });
+        setupPeers();
         return () => {
-          unmountPeers();
+          unmountPeerEvents();
           streamService.reset();
         };
       }
     }, [isMeOK, isSocketReady, me.id]);
 
-    return [ { me, isMeOK, arePeersOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ];
+    return [ { me, isMeOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ];
   };
 
   /** @type {[ { video: number, audio: number }, setPeerStatus: (peerStatus: { video: number, audio: number }) => void ]} */
@@ -565,7 +583,7 @@ export default function ChatRoom({ id, translate }) {
 
   // Leave setMe and setRoom for future changes, e.g. rename or switch rooms
   /** @type {[ { me: User, isMeOK: boolean, arePeersOK: boolean }, { setMe: (me: User) => void, setRoom: (room: string) => void } ]} */
-  const [ { me, isMeOK, arePeersOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ] = useUser(id, new User().toJSON());
+  const [ { me, isMeOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ] = useUser(id, new User().toJSON());
 
   /** @type {[ chat: ChatPayload, setChat: (chat: ChatPayload) => void ]} */
   const [ chat, setChat ] = useState(new ChatPayload().toJSON());
@@ -609,7 +627,7 @@ export default function ChatRoom({ id, translate }) {
    * Scroll to bottom
    */
   scrollToBottom = () => {
-    if(chatHistoryRef)
+    if(chatHistoryRef && chatHistoryRef.current)
       chatHistoryRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
   };
   const focusInput = () => {
@@ -1010,9 +1028,13 @@ export default function ChatRoom({ id, translate }) {
               { translate('视频语音部分服务不可用') }
             </Alert> }
 
-            { isSocketReady === false && <div className={styles['chat-loading']}>
-              <CircularProgress size='lg' />
+            {/* Chat content */}
+            { isSocketReady && <div className={styles['chat-loading']}>
+              <div className={styles['container']}><CircularProgress size='md'></CircularProgress><Typography sx={{
+                fontSize: '0.85rem'
+              }}>{ translate('正在重新连接') }</Typography></div>
             </div> }
+
             {/* Video/Screen sharing */}
             <div className={`${styles['chat-media']}${uiProperty.videoStatus === MediaStatus.RECEIVING ? ` ${styles['receive']}` : ''}${uiProperty.videoStatus === MediaStatus.PUBLISHING ? ` ${styles['publish']}` : ''}`}>
               <div className={styles['chat-screen']}>
@@ -1079,7 +1101,6 @@ export default function ChatRoom({ id, translate }) {
               </div>
             </div>
 
-            {/* Chat content */}
             <div className={styles['chat-content']}>
               {/* Chat history */}
               <div className={styles['chat-history']}>
@@ -1094,6 +1115,7 @@ export default function ChatRoom({ id, translate }) {
                 <div ref={chatHistoryRef}></div>
               </div>
             </div>
+
           </div>
 
           {/* User list */}
@@ -1166,14 +1188,13 @@ export default function ChatRoom({ id, translate }) {
             gap: 0.5,
           }}
           >
-            <Tooltip title={translate('发送')}><IconButton size='sm' variant="soft" disabled={isLoading} onClick={evt => {
+            <Tooltip title={translate('发送')}><IconButton size='sm' variant="soft" disabled={isSocketReady === false} onClick={evt => {
               evt.preventDefault();
               evt.stopPropagation();
               sendChatMessage();
             }}>
                 <SendIcon />
             </IconButton></Tooltip>
-            
 
             { (uiProperty.audioStatus !== MediaStatus.IDLE || uiProperty.videoStatus === MediaStatus.PUBLISHING) && <Tooltip title={uiProperty.isMuted ? translate('打开麦克风') : translate('关闭麦克风')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
               streamService.toggleMute();
@@ -1266,7 +1287,7 @@ export default function ChatRoom({ id, translate }) {
                 </Box>
               }
             >
-              <IconButton size='sm' disabled={isLoading} onClick={evt => {
+              <IconButton size='sm' disabled={isSocketReady === false} onClick={evt => {
                 setUiProperty({ ...uiProperty, status: { ...uiProperty.status, isEmojiDisplayed: !uiProperty.status.isEmojiDisplayed } });
               }}>
                 <SentimentSatisfiedAltIcon />

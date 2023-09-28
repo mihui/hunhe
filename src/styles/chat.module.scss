@@ -28,9 +28,25 @@
       height: 100%;
       flex: 1;
       display: flex;
+      position: absolute;
+      z-index: 30;
       justify-content: center;
       align-items: center;
-      position: absolute;
+      padding: 2rem;
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 10rem;
+        min-height: 10rem;
+        background-color: #fff;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-global);
+        opacity: 0.87;
+        flex-flow: column;
+        font-size: 0.85rem;
+        user-select: none;
+      }
     }
 
     .chat-layer {
