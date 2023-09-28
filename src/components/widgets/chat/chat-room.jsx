@@ -151,6 +151,7 @@ export default function ChatRoom({ id, translate }) {
       }
       else {
         console.debug('streamService.audioPeer.disconnected->', streamService.audioPeer.disconnected);
+        setPeerStatus(current => { return { ...current, audio: streamService.audioPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
       }
     }
     catch(error) {
@@ -165,6 +166,7 @@ export default function ChatRoom({ id, translate }) {
       }
       else {
         console.debug('streamService.videoPeer.disconnected->', streamService.videoPeer.disconnected);
+        setPeerStatus(current => { return { ...current, video: streamService.videoPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
       }
     }
     catch(error) {
