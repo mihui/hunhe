@@ -723,6 +723,7 @@ export default function ChatRoom({ id, translate }) {
     catch(error) {
       console.warn('### ERROR CAPTURING VIDEO ###');
       console.warn(error);
+      notifyHeader('媒体访问权限错误', NOTIFICATION_STYLES.ERROR);
       // What if someone is sharing, but I cam cancelling... @todo
     }
     return false;
@@ -922,7 +923,7 @@ export default function ChatRoom({ id, translate }) {
         </IconButton>
 
         {/* CHAT NOTIFICATION */}
-        <span className={styles['chat-subject']}>{ chatHeader.message ?
+        <span className={styles['chat-subject'].concat(` ${styles[chatHeader.style]}`)}>{ chatHeader.message ?
           <>{chatHeader.message} <i>({getMinuteFormat(chatHeader.time)})</i></> :
           meeting.id === ROOMS.DEFAULT.ID ? translate(ROOMS.DEFAULT.SUBJECT) : meeting.subject }
         </span>

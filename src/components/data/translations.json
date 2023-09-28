@@ -80,7 +80,8 @@
     "【{0}】更新了会议信息": "[{0}] has updated the meeting information",
     "视频语音部分服务不可用": "Audio/video connection is lost",
     "重新连接": "Reconnect",
-    "正在连接": "Loading..."
+    "正在连接": "Loading...",
+    "媒体访问权限错误": "Media permission denied"
   },
   "zh": {
     "浑河网": "浑河网",

@@ -12,6 +12,15 @@
     text-overflow: ellipsis;
     width: 100%;
     display: block;
+    &.error {
+      color: brown;
+    }
+    &.warn {
+      color: chocolate;
+    }
+    &.info {
+      color: inherit;
+    }
   }
   .chat-form {
     flex: 1;
