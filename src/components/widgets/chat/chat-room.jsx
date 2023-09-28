@@ -371,7 +371,6 @@ export default function ChatRoom({ id, translate }) {
       const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : '语音服务错误';
       console.warn(message);
       beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
-      setPeerStatus(current => { return { ...current, audio: PEER_STATUS.DISCONNECTED }; });
     },
     /** @type {() => void} */
     onAudioPeerClose: () => {
@@ -401,7 +400,6 @@ export default function ChatRoom({ id, translate }) {
       const message = Object.hasOwn(PEER.ERRORS, error.type) ? PEER.ERRORS[error.type] : 'Video server connection error.';
       console.warn(message);
       beeper.publish(Events.ClientNotification, { message, style: NOTIFICATION_STYLES.WARNING });
-      setPeerStatus(current => { return { ...current, video: PEER_STATUS.DISCONNECTED }; });
     },
     /** @type {() => void} */
     onVideoPeerClose: () => {
