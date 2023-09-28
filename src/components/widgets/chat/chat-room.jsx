@@ -1029,10 +1029,10 @@ export default function ChatRoom({ id, translate }) {
             </Alert> }
 
             {/* Chat content */}
-            { isSocketReady && <div className={styles['chat-loading']}>
+            { isSocketReady === false && <div className={styles['chat-loading']}>
               <div className={styles['container']}><CircularProgress size='md'></CircularProgress><Typography sx={{
                 fontSize: '0.85rem'
-              }}>{ translate('正在重新连接') }</Typography></div>
+              }}>{ translate('正在连接') }</Typography></div>
             </div> }
 
             {/* Video/Screen sharing */}
