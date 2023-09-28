@@ -421,21 +421,25 @@ export default function ChatRoom({ id, translate }) {
     }
   };
 
+  const mountPeerEvents = () => {
+    streamService.audioPeer.on('open', peerEvents.onAudioPeerOpen)
+      .on('disconnected', peerEvents.onAudioPeerDisconnected)
+      .on('call', peerEvents.onAudioPeerCall)
+      .on('error', peerEvents.onAudioPeerError)
+      .on('close', peerEvents.onAudioPeerClose);
+    // Video
+    streamService.videoPeer.on('open', peerEvents.onVideoPeerOpen)
+      .on('disconnected', peerEvents.onVideoPeerDisconnected)
+      .on('call', peerEvents.onVideoPeerCall)
+      .on('error', peerEvents.onVideoPeerError)
+      .on('close', peerEvents.onVideoPeerClose);
+  };
+
   const setupPeers = () => {
     streamService.setupPeers(me.id, getScreenId(me.id, true)).then(code => {
       // unmountPeerEvents();
       // Audio
-      streamService.audioPeer.on('open', peerEvents.onAudioPeerOpen)
-        .on('disconnected', peerEvents.onAudioPeerDisconnected)
-        .on('call', peerEvents.onAudioPeerCall)
-        .on('error', peerEvents.onAudioPeerError)
-        .on('close', peerEvents.onAudioPeerClose);
-      // Video
-      streamService.videoPeer.on('open', peerEvents.onVideoPeerOpen)
-        .on('disconnected', peerEvents.onVideoPeerDisconnected)
-        .on('call', peerEvents.onVideoPeerCall)
-        .on('error', peerEvents.onVideoPeerError)
-        .on('close', peerEvents.onVideoPeerClose);
+      mountPeerEvents(code);
       // Ready
       setArePeersOK(isShareSupported());
     }).catch(code => {
@@ -444,6 +448,7 @@ export default function ChatRoom({ id, translate }) {
         const isOK = isShareSupported();
         reconnectAudioPeer();
         reconnectVideoPeer();
+        mountPeerEvents(code);
         setArePeersOK(isOK);
         setPeerStatus({ video: isOK ? PEER_STATUS.READY : peerStatus.video, audio: isOK ? PEER_STATUS.READY : peerStatus.audio });
       }

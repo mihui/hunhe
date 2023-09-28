@@ -216,7 +216,7 @@ export const PEER_STATUS = {
   READY: 1,
   DISCONNECTED: 2,
   RECONNECTING: 3,
-  NONE: 6
+  NONE: 4
 };
 
 // PEER CODES
