@@ -967,13 +967,14 @@ export default function ChatRoom({ id, translate }) {
           </IconButton>
 
           {/* OPEN USER LIST */}
-          <Badge badgeContent={chatUsers.filter(x => x.kind === Kinds.PERSON).length}>
+          <Badge badgeContent={chatUsers.filter(x => x.kind === Kinds.PERSON).length} showZero={false}>
             <IconButton
               size="sm"
               variant="soft"
               sx={{ display: { sm: 'inline-flex' } }}
               onClick={evt => {
                 setUiProperty({ ...uiProperty, isUserListDisplayed: !uiProperty.isUserListDisplayed });
+                focusInput();
               }} className={styles['chat-menu']} disabled={isLoading}>
               <PeopleIcon />
             </IconButton>
@@ -1188,6 +1189,7 @@ export default function ChatRoom({ id, translate }) {
               setChat({ ...chat, input: evt.target.value });
             }} value={chat.input} readOnly={isSocketReady === false || isChatting} slotProps={{ input: { ref: chatInputRef } }}
             startDecorator={<Button variant='plain' onClick={evt => {
+              setUiProperty({ ...uiProperty, isUserListDisplayed: !uiProperty.isUserListDisplayed });
               focusInput();
             }}>{translate('对')}{chat.to.id === All.__id ? translate(chat.to.name) : chat.to.name}</Button>}
             />
