@@ -451,9 +451,9 @@ export default function ChatRoom({ id, translate }) {
       console.log(`### EXCEPTION CODE: ${code} ###`);
       if(code === CustomCodes.PEERS_INITIALIZED) {
         const isOK = isShareSupported();
+        mountPeerEvents(code);
         reconnectAudioPeer();
         reconnectVideoPeer();
-        mountPeerEvents(code);
         setArePeersOK(isOK);
         setPeerStatus({ video: isOK ? PEER_STATUS.READY : peerStatus.video, audio: isOK ? PEER_STATUS.READY : peerStatus.audio });
       }
