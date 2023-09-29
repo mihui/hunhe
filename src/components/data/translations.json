@@ -81,7 +81,10 @@
     "视频语音部分服务不可用": "Audio/video connection is lost",
     "重新连接": "Reconnect",
     "正在连接": "Loading...",
-    "媒体访问权限错误": "Media permission denied"
+    "媒体访问权限错误": "Media permission denied",
+    "正在重新连接语音服务": "Reconnecting audio service",
+    "正在重新连接视频服务": "Reconnecting video service",
+    "重新连接成功": "Reconnected with media service"
   },
   "zh": {
     "浑河网": "浑河网",

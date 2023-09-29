@@ -63,6 +63,9 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ isChatting: boolean, setIsChatting: (isChatting: boolean) => void ]} */
   const [ isChatting, setIsChatting ] = useState(false);
 
+  /** @type {[ isReconnect: boolean, setIsReconnect: (isReconnect: boolean) => void ]} */
+  const [ isReconnect, setIsReconnect ] = useState(false);
+
   /** @type {[ arePeersOK: boolean, setArePeersOK: (arePeersOK: boolean) => void ]} */
   const [ arePeersOK, setArePeersOK ] = useState(false);
 
@@ -154,6 +157,8 @@ export default function ChatRoom({ id, translate }) {
       if(streamService.audioPeer) {
         if(streamService.audioPeer.disconnected) {
           setPeerStatus(current => { return { ...current, audio: PEER_STATUS.RECONNECTING }; });
+          notifyHeader('正在重新连接语音服务');
+          setIsReconnect(true);
           streamService.audioPeer.reconnect();
         }
         else {
@@ -174,6 +179,8 @@ export default function ChatRoom({ id, translate }) {
       if(streamService.videoPeer) {
         if(streamService.videoPeer.disconnected) {
           setPeerStatus(current => { return { ...current, video: PEER_STATUS.RECONNECTING }; });
+          notifyHeader('正在重新连接视频服务');
+          setIsReconnect(true);
           streamService.videoPeer.reconnect();
         }
         else {
@@ -188,6 +195,11 @@ export default function ChatRoom({ id, translate }) {
       // Peer may be destroyed, @todo: Setup Peers
       console.warn(error);
       // streamService.setupPeers
+    }
+  }, notifyReconnection = () => {
+    if(isReconnect) {
+      setIsReconnect(false);
+      notifyHeader('重新连接成功');
     }
   };
 
@@ -345,12 +357,14 @@ export default function ChatRoom({ id, translate }) {
       beeper.publish(Events.UpdateMeeting, { user, meeting });
     }
   };
+
   const peerEvents = {
     // Audio
     /** @type {() => void} */
     onAudioPeerOpen: () => {
       console.log('### AUDIO READY ###');
       setPeerStatus(current => { return { ...current, audio: PEER_STATUS.READY }; });
+      notifyReconnection();
     },
     /** @type {() => void} */
     onAudioPeerDisconnected: () => {
@@ -385,6 +399,7 @@ export default function ChatRoom({ id, translate }) {
     onVideoPeerOpen: () => {
       console.log('### VIDEO READY ###');
       setPeerStatus(current => { return { ...current, video: PEER_STATUS.READY }; });
+      notifyReconnection();
     },
     /** @type {() => void} */
     onVideoPeerDisconnected: () => {
