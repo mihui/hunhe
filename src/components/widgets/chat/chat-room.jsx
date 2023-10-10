@@ -158,8 +158,10 @@ export default function ChatRoom({ id, translate }) {
         if(streamService.audioPeer.disconnected) {
           setPeerStatus(current => { return { ...current, audio: PEER_STATUS.RECONNECTING }; });
           notifyHeader('正在重新连接语音服务');
+          console.debug('1.正在重新连接语音服务');
           setIsReconnect(true);
           streamService.audioPeer.reconnect();
+          console.debug('2.正在重新连接语音服务');
         }
         else {
           setPeerStatus(current => { return { ...current, audio: streamService.audioPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
@@ -180,8 +182,10 @@ export default function ChatRoom({ id, translate }) {
         if(streamService.videoPeer.disconnected) {
           setPeerStatus(current => { return { ...current, video: PEER_STATUS.RECONNECTING }; });
           notifyHeader('正在重新连接视频服务');
+          console.debug('3.正在重新连接视频服务');
           setIsReconnect(true);
           streamService.videoPeer.reconnect();
+          console.debug('4.正在重新连接视频服务');
         }
         else {
           setPeerStatus(current => { return { ...current, video: streamService.videoPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
@@ -427,17 +431,21 @@ export default function ChatRoom({ id, translate }) {
   };
 
   const mountPeerEvents = () => {
-    streamService.audioPeer.on('open', peerEvents.onAudioPeerOpen)
-      .on('disconnected', peerEvents.onAudioPeerDisconnected)
-      .on('call', peerEvents.onAudioPeerCall)
-      .on('error', peerEvents.onAudioPeerError)
-      .on('close', peerEvents.onAudioPeerClose);
-    // Video
-    streamService.videoPeer.on('open', peerEvents.onVideoPeerOpen)
-      .on('disconnected', peerEvents.onVideoPeerDisconnected)
-      .on('call', peerEvents.onVideoPeerCall)
-      .on('error', peerEvents.onVideoPeerError)
-      .on('close', peerEvents.onVideoPeerClose);
+    if(streamService.audioPeer) {
+      streamService.audioPeer.on('open', peerEvents.onAudioPeerOpen)
+        .on('disconnected', peerEvents.onAudioPeerDisconnected)
+        .on('call', peerEvents.onAudioPeerCall)
+        .on('error', peerEvents.onAudioPeerError)
+        .on('close', peerEvents.onAudioPeerClose);
+    }
+
+    if(streamService.videoPeer) {
+      streamService.videoPeer.on('open', peerEvents.onVideoPeerOpen)
+        .on('disconnected', peerEvents.onVideoPeerDisconnected)
+        .on('call', peerEvents.onVideoPeerCall)
+        .on('error', peerEvents.onVideoPeerError)
+        .on('close', peerEvents.onVideoPeerClose);
+    }
   };
 
   const setupPeers = () => {
