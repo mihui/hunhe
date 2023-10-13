@@ -242,7 +242,6 @@ class SocketManager {
 
     socket.on('server:screen:stop',
     () => {
-      logger.debug('server:screen:stop');
       /** @type {ChatUser} */
       const sharer = socket.data;
       if(sharer.id === this.getScreen(sharer.room)) {

@@ -71,9 +71,13 @@ export default function ChatRoom({ id, translate }) {
 
   /** @type {[ chatHeader: { message: string, style: string, time: Date }, setChatHeader: (chatHeader: { message: string, style: string, time: Date }) => void ]} */
   const [ chatHeader, setChatHeader ] = useState({ message: '', style: NOTIFICATION_STYLES.INFO, time: new Date() });
+
+  /** @type {[ { video: number, audio: number }, setPeerStatus: (peerStatus: { video: number, audio: number }) => void ]} */
+  const [ peerStatus, setPeerStatus ] = useState({ video: PEER_STATUS.NONE, audio: PEER_STATUS.NONE });
+
   //
   const notifyHeader = useCallback((message, style = NOTIFICATION_STYLES.INFO, hasTranslation = false) => {
-    setChatHeader({ message: hasTranslation ? message : translate(message), style, time: new Date() })
+    setChatHeader({ message: message ? (hasTranslation ? message : translate(message)) : translate(meeting.subject), style, time: new Date() })
   }, [translate]);
 
   const chatNotifications = [], notifyAudio = new Audio();
@@ -130,10 +134,10 @@ export default function ChatRoom({ id, translate }) {
     router.push(route);
   }, [ id, router ]);
 
-  const onSocketChanged = (connected, isReconnect = false) => {
+  const onSocketChanged = (connected, isSocketReconnect = false) => {
     // Disable/Enable UI
     setIsLoading(connected === false);
-    beeper.publish(Events.SocketConnected, { connected, isReconnect });
+    beeper.publish(Events.SocketConnected, { connected, isReconnect: isSocketReconnect });
   },
   /** @type {(chatAudio: ChatAudio) => void} */
   activateAudio = (chatAudio) => {
@@ -158,10 +162,8 @@ export default function ChatRoom({ id, translate }) {
         if(streamService.audioPeer.disconnected) {
           setPeerStatus(current => { return { ...current, audio: PEER_STATUS.RECONNECTING }; });
           notifyHeader('正在重新连接语音服务');
-          console.debug('1.正在重新连接语音服务');
           setIsReconnect(true);
           streamService.audioPeer.reconnect();
-          console.debug('2.正在重新连接语音服务');
         }
         else {
           setPeerStatus(current => { return { ...current, audio: streamService.audioPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
@@ -182,10 +184,8 @@ export default function ChatRoom({ id, translate }) {
         if(streamService.videoPeer.disconnected) {
           setPeerStatus(current => { return { ...current, video: PEER_STATUS.RECONNECTING }; });
           notifyHeader('正在重新连接视频服务');
-          console.debug('3.正在重新连接视频服务');
           setIsReconnect(true);
           streamService.videoPeer.reconnect();
-          console.debug('4.正在重新连接视频服务');
         }
         else {
           setPeerStatus(current => { return { ...current, video: streamService.videoPeer.disconnected ? PEER_STATUS.DISCONNECTED : PEER_STATUS.READY }; });
@@ -201,10 +201,8 @@ export default function ChatRoom({ id, translate }) {
       // streamService.setupPeers
     }
   }, notifyReconnection = () => {
-    if(isReconnect) {
       setIsReconnect(false);
-      notifyHeader('重新连接成功');
-    }
+      notifyHeader(isReconnect ? '重新连接成功' : '');
   };
 
   const socketEvents = {
@@ -430,7 +428,8 @@ export default function ChatRoom({ id, translate }) {
     }
   };
 
-  const mountPeerEvents = () => {
+  /** @type {(code: number) => void} */
+  const mountPeerEvents = (code) => {
     if(streamService.audioPeer) {
       streamService.audioPeer.on('open', peerEvents.onAudioPeerOpen)
         .on('disconnected', peerEvents.onAudioPeerDisconnected)
@@ -603,9 +602,6 @@ export default function ChatRoom({ id, translate }) {
 
     return [ { me, isMeOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ];
   };
-
-  /** @type {[ { video: number, audio: number }, setPeerStatus: (peerStatus: { video: number, audio: number }) => void ]} */
-  const [ peerStatus, setPeerStatus ] = useState({ video: PEER_STATUS.NONE, audio: PEER_STATUS.NONE });
 
   /** @type {[ { meeting: Meeting, isMeetingOK: boolean }, setMeeting: (meeting: Meeting) => void ]} */
   const [ { meeting, isMeetingOK }, setMeeting ] = useMeeting(id, new Meeting().setId(id).toJSON());
@@ -878,7 +874,7 @@ export default function ChatRoom({ id, translate }) {
 
   // Page load, Handle events and setup peers
   useEffect(() => {
-    const disposeSocketConnectedEvent = beeper.subscribe(Events.SocketConnected, ({ connected, isReconnect }) => {
+    const disposeSocketConnectedEvent = beeper.subscribe(Events.SocketConnected, ({ connected, isReconnect: isSocketReconnect }) => {
       console.log(`### SOCKET CONNECTED: ${connected} ###`);
       if(connected) {
         focusInput();
@@ -936,6 +932,7 @@ export default function ChatRoom({ id, translate }) {
 
       stopScreen();
       stopAudio();
+      setIsReconnect(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

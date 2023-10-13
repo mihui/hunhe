@@ -1,7 +1,9 @@
 'use client';
 import { All, ChatRecord } from '@/components/models/user';
 import styles from '@/styles/chat.module.scss';
-import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
+import Markdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
 
 /**
  * Chat format
@@ -28,7 +30,7 @@ export const ChatFormat = ({ payload, isMe, isToMe, hasTime, displayTime, select
           selectUser(payload.to);
         }}></a>
           </>}
-        <ReactMarkdown className={styles['message']}>{payload.message}</ReactMarkdown>
+        <Markdown remarkPlugins={[ remarkGfm ]} rehypePlugins={[rehypeRaw]} className={styles['message']}>{payload.message}</Markdown>
       </div>
     </>
   );

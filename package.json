@@ -35,6 +35,8 @@
     "peerjs": "latest",
     "react": "latest",
     "react-markdown": "latest",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.0",
     "socket.io": "latest",
     "socket.io-client": "latest"
   },
