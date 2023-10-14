@@ -2,7 +2,7 @@ const VARS = {
   APP_TITLE: process.env.NEXT_PUBLIC_APP_TITLE || '',
   APP_KEYWORDS: process.env.NEXT_PUBLIC_APP_KEYWORDS || '',
   APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION || '',
-  APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://hunhe.app.com',
+  APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://transform.app.com',
   APP_HOST: '',
   IS_DEBUGGING: process.env.NEXT_PUBLIC_IS_DEBUGGING === 'true' || false,
 };
