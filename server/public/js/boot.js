@@ -13,8 +13,8 @@ if (typeof (window.__io) === 'undefined') {
 }
 ; (function ($, w) {
   var pictureList = [
-    'https://img1.imgtp.com/2023/04/09/ZMRxygwS.jpeg',
-    'https://img1.imgtp.com/2023/04/09/E0bdK0tl.jpeg'
+    'https://s2.loli.net/2023/10/14/xBCmy4JqGOPRntW.jpg',
+    'https://s2.loli.net/2023/10/14/sm42OUMwKrlvB96.jpg'
   ];
   w.__utility = {
     stopEvent: function (evt) {

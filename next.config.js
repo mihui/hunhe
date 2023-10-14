@@ -7,7 +7,13 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'img1.imgtp.com',
+        hostname: 'smms.app',
+        port: '',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 's2.loli.net',
         port: '',
         pathname: '**',
       },
