@@ -1,12 +1,10 @@
 {
-  "name": "hunhe",
-  "version": "2.0.0",
+  "name": "connect",
+  "version": "1.0.0",
   "license": "Apache-2.0",
   "type": "module",
-  "main": "app.js",
   "scripts": {
     "start": "next start -p 8081",
-    "node-dev": "APP_PORT=8082 nodemon app.js",
     "web-dev": "NODE_ENV=development next dev -p 8081",
     "build": "NODE_ENV=production next build",
     "dev": "NODE_ENV=development next dev",
@@ -23,27 +21,18 @@
     "@mui/icons-material": "latest",
     "@mui/joy": "latest",
     "@mui/material": "latest",
-    "cors": "^2.8.5",
     "dotenv": "latest",
-    "ejs": "latest",
-    "express": "latest",
-    "glob": "latest",
-    "jose": "latest",
-    "mongodb": "latest",
     "next": "latest",
-    "peer": "^1.0.1",
     "peerjs": "latest",
     "react": "latest",
     "react-markdown": "latest",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.0",
-    "socket.io": "latest",
     "socket.io-client": "latest"
   },
   "devDependencies": {
     "eslint": "latest",
     "eslint-config-next": "latest",
-    "nodemon": "latest",
     "sass": "latest"
   }
 }

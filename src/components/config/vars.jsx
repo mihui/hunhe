@@ -1,5 +1,3 @@
-const DEFAULT_HOST = '';
-
 const VARS = {
   APP_TITLE: process.env.NEXT_PUBLIC_APP_TITLE || '',
   APP_KEYWORDS: process.env.NEXT_PUBLIC_APP_KEYWORDS || '',

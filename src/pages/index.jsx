@@ -243,7 +243,7 @@ export default function Index({ translate }) {
       </Modal>
 
       <Typography color="primary" fontSize="lg" fontWeight="lg">
-        { translate('浑河网') }
+        { translate('连接') }
       </Typography>
       <Typography
         level="h1"
@@ -255,7 +255,7 @@ export default function Index({ translate }) {
       <Typography fontSize="lg" textColor="text.secondary" lineHeight="lg">
       { translate('无论你在世界的哪个角落，都能找到一位愿意倾听的朋友。') }<br />
       { translate('无论你是跨越时区的深夜微语，还是清晨的轻松问候，在这里，每一个声音都将被珍视与尊重。') }<br />
-      { translate('加入我们，倾诉你的故事，聆听他人的声音，让浑河的每一滴水波，都载满我们的交谈与分享。') }
+      { translate('加入我们，倾诉你的故事，聆听他人的声音，让海洋的每一滴水波，都载满我们的交谈与分享。') }
       </Typography>
       <Stack direction='row' spacing={2}>
         <Button size="lg" onClick={evt => {
