@@ -51,8 +51,8 @@ export default function Index({ translate }) {
     }
   };
 
-  const initMeeting = (id) => {
-    if(utility.validateUUID(id)) {
+  const initMeeting = (id, byPassValidation = false) => {
+    if(utility.validateUUID(id) || byPassValidation) {
       setMeetingId(id);
       return true;
     }
@@ -63,11 +63,14 @@ export default function Index({ translate }) {
     setIsCalling(true);
     try {
       if(meetingId && dialog.isParticipant) {
-        // Verify meeting ID
-        const verifiedMeeting = await chatService.getMeeting(meetingId);
-        if(verifiedMeeting) {
-          return navigateToChat(meetingId);
+        if(utility.validateUUID(meetingId)) {
+          // Verify meeting ID
+          const verifiedMeeting = await chatService.getMeeting(meetingId);
+          if(verifiedMeeting) {
+            return navigateToChat(meetingId);
+          }
         }
+        throw new Error(translate('找不到该房间'));
       }
       else {
         // Request meeting ID
@@ -75,10 +78,11 @@ export default function Index({ translate }) {
         if(newMeeting) {
           return navigateToChat(newMeeting.id);
         }
+        throw new Error(translate('创建房间失败'));
       }
-      throw new Error('Invalid meeting ID');
     }
     catch(error) {
+      
       // @todo: Handle error here...
       console.warn(error.message);
     }
@@ -178,7 +182,7 @@ export default function Index({ translate }) {
                 <Typography id="basic-modal-dialog-title" level="h2">{ translate('参与会议') }</Typography>
                 <Typography>{ translate('会议代码') }</Typography>
                 <Input placeholder={ translate('会议代码') } value={meetingId} autoFocus required disabled={isCalling} onChange={evt => {
-                  initMeeting(evt.target.value);
+                  initMeeting(evt.target.value, true);
                 }} />
               </FormControl> }
               <FormControl>
