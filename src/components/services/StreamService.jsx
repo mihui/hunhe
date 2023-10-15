@@ -273,6 +273,7 @@ export class StreamService {
               config: {
                 iceServers: [
                   { urls: 'stun:stun.l.google.com:19302' },
+                  { urls: 'turn:aspark.app:3478', username: 'user', credential: 'transform' }
                 ]
               },
               host: window.location.host
