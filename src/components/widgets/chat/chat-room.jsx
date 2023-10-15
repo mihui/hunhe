@@ -80,7 +80,22 @@ export default function ChatRoom({ id, translate }) {
     setChatHeader({ message: message ? (hasTranslation ? message : translate(message)) : translate(meeting.subject), style, time: new Date() })
   }, [translate]);
 
-  const chatNotifications = [], notifyAudio = new Audio();
+  const chatNotifications = [], notifyAudio = new Audio(), chatAudio = new Audio();
+  chatAudio.autoplay = true;
+  chatAudio.onloadedmetadata = evt => {
+    try {
+      evt.target.play().then(() => {
+        console.info('### [ONLOADEDMETADATA] AUDIO STARTED ###');
+      }).catch(error => {
+        console.warn('### PERMISSION DENIED ###');
+      });
+    }
+    catch(error) {
+      console.warn('### AUDIO START ERROR ###');
+      console.log(error);
+    }
+  };
+
   notifyAudio.autoplay = false;
   notifyAudio.preload = 'metadata';
   const notifyUser = (sender, message, avatar = null) => {
@@ -139,12 +154,14 @@ export default function ChatRoom({ id, translate }) {
     setIsLoading(connected === false);
     beeper.publish(Events.SocketConnected, { connected, isReconnect: isSocketReconnect });
   },
-  /** @type {(chatAudio: ChatAudio) => void} */
-  activateAudio = (chatAudio) => {
-    if(chatAudio && chatAudio.audio) {
-      if(chatAudio.audio.paused) {
-        console.log('### [PAUSED] ACTIVATING AUDIO ###');
-        chatAudio.audio.play().then(x => {
+  /** @type {(audio: ChatAudio) => void} */
+  activateAudio = (audio) => {
+    // console.log('user.tracks->', audio.tracks);
+    // console.log('remote.tracks->', streamService.remoteAudioStream.getTracks().map(x => x.id));
+    if(chatAudio && audio.tracks.length > 0) {
+      chatAudio.srcObject = streamService.remoteAudioStream;
+      if(chatAudio.paused) {
+        chatAudio.play().then(x => {
           console.log('    [PAUSED] AUDIO STARTED');
         }).catch(error => {
           console.warn('    [PAUSED] AUDIO PLAY ERROR!');
@@ -152,9 +169,20 @@ export default function ChatRoom({ id, translate }) {
         });
       }
     }
-    else {
-      console.log('### [ERROR] NO AUDIO CAN BE PLAYED ###');
-    }
+    // if(chatAudio && chatAudio.audio) {
+    //   if(chatAudio.audio.paused) {
+    //     console.log('### [PAUSED] ACTIVATING AUDIO ###');
+    //     chatAudio.audio.play().then(x => {
+    //       console.log('    [PAUSED] AUDIO STARTED');
+    //     }).catch(error => {
+    //       console.warn('    [PAUSED] AUDIO PLAY ERROR!');
+    //       console.warn(error);
+    //     });
+    //   }
+    // }
+    // else {
+    //   console.log('### [ERROR] NO AUDIO CAN BE PLAYED ###');
+    // }
   },
   reconnectAudioPeer = () => {
     try {

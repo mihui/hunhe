@@ -124,9 +124,9 @@ export class UIProperty {
 
 export class ChatAudio {
   /** @type {User} */
-  user;
-  /** @type {HTMLAudioElement} */
-  audio = null;
+  user = null;
+  /** @type {Array<string>} */
+  tracks = [];
   /**
    * ChatAudio constructor
    * @param {User} user User
@@ -136,42 +136,31 @@ export class ChatAudio {
   }
 
   /**
-   * Create stream
-   * @param {MediaStream} stream Stream
-   * @returns {ChatAudio} Returns AudioContext
+   * Init stream
+   * @param {MediaStream} stream User stream
+   * @param {(track: MediaStreamTrack) => void} removeRemoteTrack Remove stream track of remote audio
+   * @param {(track: MediaStreamTrack) => void} addRemoteTrack Remove stream track of remote audio
+   * @returns {ChatAudio} Returns ChatAudio instance
    */
-  createAudio(stream) {
-    if(this.audio === null) {
-      this.audio = new Audio();
-      this.audio.autoplay = true;
-      this.audio.onloadedmetadata = evt => {
-        try {
-          evt.target.play().then(() => {
-            console.info('### [ONLOADEDMETADATA] AUDIO STARTED ###');
-          }).catch(error => {
-            console.warn('### PERMISSION DENIED ###');
-          });
-        }
-        catch(error) {
-          console.warn('### AUDIO START ERROR ###');
-          console.log(error);
-        }
-      };
+  addAudioStream(stream, removeRemoteTrack, addRemoteTrack) {
+    // Remove exsiting tracks
+    if(this.tracks.length > 0) {
+      this.tracks.forEach(trackId => {
+        removeRemoteTrack(trackId);
+      });
+      this.removeTracks();
     }
-    this.setSrcObject(stream);
+
+    stream.getAudioTracks().forEach(track => {
+      this.tracks.push(track.id);
+      addRemoteTrack(track);
+    })
     return this;
   }
 
-  /**
-   * Get src object
-   * @param {MediaStream} stream media stream
-   */
-  setSrcObject(stream) {
-    this.audio.srcObject = stream;
-  }
-
-  stop() {
-    utility.stopStream(this.audio);
+  removeTracks() {
+    this.tracks.length = 0;
+    this.tracks = [];
   }
 
 }

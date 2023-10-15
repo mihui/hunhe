@@ -28,6 +28,8 @@ export class StreamService {
   localVideoStream = null;
   /** @type {MediaStream} */
   localAudioStream = null;
+  /** @type {MediaStream} */
+  remoteAudioStream = null;
 
   /** @type {Array<ChatAudio>} */
   audios = [];
@@ -110,7 +112,10 @@ export class StreamService {
   stopAudioStream() {
     this.audioStatus = MediaStatus.IDLE;
     this.audios.forEach(chatAudio => {
-      chatAudio.stop();
+      chatAudio.removeTracks();
+    });
+    this.remoteAudioStream?.getTracks().forEach(track => {
+      this.remoteAudioStream.removeTrack(track);
     });
     this.localAudioStream = null;
   }
@@ -154,7 +159,17 @@ export class StreamService {
    * @returns {ChatAudio} Returns ChatAudio instance
    */
   receiveAudioStream(userId, remoteStream) {
-    return this.getUserAudio(userId)?.createAudio(remoteStream);
+    if(this.remoteAudioStream === null) this.remoteAudioStream = new MediaStream();
+    return this.getUserAudio(userId)?.addAudioStream(remoteStream, existingTrackId => {
+      const existingTracks = this.remoteAudioStream.getAudioTracks().filter(track => track.id === existingTrackId);
+      if(existingTracks) {
+        existingTracks.forEach(existingTrack => {
+          this.remoteAudioStream.removeTrack(existingTrack);
+        });
+      }
+    }, newTrack => {
+      this.remoteAudioStream.addTrack(newTrack);
+    });
   }
 
   /**
