@@ -272,7 +272,7 @@ export class StreamService {
               path: PATHS.PEER,
               config: {
                 iceServers: [
-                  { urls: 'stun:stun.l.google.com:19302' },
+                  { urls: 'stun:mihui.net:3478' },
                   { urls: 'turn:mihui.net:3478', username: 'mihui', credential: 'mihui' }
                 ]
               },
