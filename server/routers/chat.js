@@ -76,5 +76,5 @@ publicRouter.get('/credentials', async (req, res, next) => {
   const timestamp = Math.floor(Date.now() / 1000) + 24 * 3600;
   const username = `${timestamp}:${id}`;
   const password = crypto.createHmac('sha1', VARS.CHAT_PEER_SECRET).update(username).digest('base64');
-  return { username, password };
+  res.send(httpNormal({ username, password }));
 });
