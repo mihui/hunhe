@@ -73,12 +73,35 @@ class ChatService {
     const storedUser = storage.get(StorageKeys.User, null, 'json');
     return storedUser;
   }
+
   /**
    * Store user information
    * @param {User} data User data
    */
   storeUser (data) {
     storage.save(StorageKeys.User, data, 'json');
+  }
+
+  /**
+   * Obtain the Peer credentials of TURN server
+   * @param {string} id Unique ID of a user
+   * @returns {Promise<{ username: string, password: string }>} Returns username and password for the TURN server
+   */
+  async obtainPeerCredentials(id) {
+    try {
+      const response = await fetch(this.getRequestPath(`/api/chat/meeting/credentials?id=${id}`), { method: 'GET', headers: {
+        'Content-Type': 'application/json'
+      } });
+      if(response.ok) {
+        /** @type {{ username: string, password: string }} */
+        const credentials = await response.json();
+        return credentials;
+      }
+    }
+    catch(error) {
+      console.warn(error.message);
+    }
+    return null;
   }
 }
 

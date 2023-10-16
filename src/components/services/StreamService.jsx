@@ -1,7 +1,7 @@
 import { Socket, io } from 'socket.io-client';
 import VARS, { CustomCodes } from '../config/vars';
 import { ChatAudio, NOTIFICATION_STYLES } from '../models/meeting';
-import { MediaStatus } from './chat';
+import { MediaStatus, chatService } from './chat';
 import { Events, beeper, utility } from '../helpers/utility';
 
 const PATHS = {
@@ -263,28 +263,34 @@ export class StreamService {
    * @returns {Promise<number>} Returns status code
    */
   setupPeers(audioPeerId, videoPeerId) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (this.audioPeer === null && this.videoPeer === null) {
         try {
-          import('peerjs').then(imported => {
-            const Peer = imported.default;
-            const peerOptions = {
-              path: PATHS.PEER,
-              config: {
-                iceServers: [
-                  { urls: 'stun:mihui.net:3478' },
-                  { urls: 'turn:mihui.net:3478', username: 'mihui', credential: 'mihui' }
-                ]
-              },
-              host: window.location.host
-            };
-            if(VARS.IS_DEBUGGING) {
-              peerOptions.host = VARS.APP_HOST;
-            }
-            this.audioPeer = new Peer(audioPeerId, peerOptions);
-            this.videoPeer = new Peer(videoPeerId, peerOptions);
-            resolve(CustomCodes.PEERS_READY);
-          });
+          const credentials = await chatService.obtainPeerCredentials(audioPeerId);
+          if(credentials) {
+            import('peerjs').then(imported => {
+              const Peer = imported.default;
+              const peerOptions = {
+                path: PATHS.PEER,
+                config: {
+                  iceServers: [
+                    { urls: 'stun:mihui.net:3478' },
+                    { urls: 'turn:mihui.net:3478', username: credentials.username, credential: credentials.password }
+                  ]
+                },
+                host: window.location.host
+              };
+              if(VARS.IS_DEBUGGING) {
+                peerOptions.host = VARS.APP_HOST;
+              }
+              this.audioPeer = new Peer(audioPeerId, peerOptions);
+              this.videoPeer = new Peer(videoPeerId, peerOptions);
+              resolve(CustomCodes.PEERS_READY);
+            });
+          }
+          else {
+            reject(CustomCodes.PEERS_ERROR);
+          }
         }
         catch (error) {
           reject(CustomCodes.PEERS_ERROR);

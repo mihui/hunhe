@@ -5,6 +5,8 @@ import { Logger } from '../modules/logger.js';
 import { meetingService } from '../modules/services/data.js';
 import { utility } from '../modules/utility.js';
 import { MAX_USERS } from '../modules/models/chat.js';
+import crypto from 'crypto';
+
 const { logger } = Logger('chat');
 
 export const publicRouter = Router();
@@ -66,4 +68,13 @@ publicRouter.put('/meeting/:id', async (req, res, next) => {
   catch(error) {
     return next(httpError(httpCodes.NOT_FOUND, httpMessages.NOT_FOUND, error));
   }
+});
+
+publicRouter.get('/meeting/credentials', async (req, res, next) => {
+  const { id } = req.query;
+  // A day
+  const timestamp = Math.floor(Date.now() / 1000) + 24 * 3600;
+  const username = `${timestamp}:${id}`;
+  const password = crypto.createHmac('sha1', VARS.CHAT_PEER_SECRET).update(username).digest('base64');
+  return { username, password };
 });

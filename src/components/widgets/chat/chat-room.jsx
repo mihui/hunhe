@@ -156,8 +156,6 @@ export default function ChatRoom({ id, translate }) {
   },
   /** @type {(audio: ChatAudio) => void} */
   activateAudio = (audio) => {
-    // console.log('user.tracks->', audio.tracks);
-    // console.log('remote.tracks->', streamService.remoteAudioStream.getTracks().map(x => x.id));
     if(chatAudio && audio.tracks.length > 0) {
       chatAudio.srcObject = streamService.remoteAudioStream;
       if(chatAudio.paused) {
@@ -169,20 +167,6 @@ export default function ChatRoom({ id, translate }) {
         });
       }
     }
-    // if(chatAudio && chatAudio.audio) {
-    //   if(chatAudio.audio.paused) {
-    //     console.log('### [PAUSED] ACTIVATING AUDIO ###');
-    //     chatAudio.audio.play().then(x => {
-    //       console.log('    [PAUSED] AUDIO STARTED');
-    //     }).catch(error => {
-    //       console.warn('    [PAUSED] AUDIO PLAY ERROR!');
-    //       console.warn(error);
-    //     });
-    //   }
-    // }
-    // else {
-    //   console.log('### [ERROR] NO AUDIO CAN BE PLAYED ###');
-    // }
   },
   reconnectAudioPeer = () => {
     try {

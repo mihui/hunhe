@@ -94,7 +94,8 @@ const VARS = {
   MONGO_DB_DATABASE_NAME: process.env.MONGO_DB_DATABASE_NAME ?? 'hunhe',
   //
   CHAT_LOBBY_ID: '00000000-0000-0000-0000-000000000000',
-  PEER_PORT: processor.getPeerPort(),
+  CHAT_PEER_SECRET: process.env.CHAT_PEER_SECRET ?? 'hunhe',
+  PEER_PORT: processor.getPeerPort()
 };
 
 BigInt.prototype.toJSON = function() {
