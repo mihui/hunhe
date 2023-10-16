@@ -89,7 +89,7 @@ class ChatService {
    */
   async obtainPeerCredentials(id) {
     try {
-      const response = await fetch(this.getRequestPath(`/api/chat/meeting/credentials?id=${id}`), { method: 'GET', headers: {
+      const response = await fetch(this.getRequestPath(`/api/chat/credentials?id=${id}`), { method: 'GET', headers: {
         'Content-Type': 'application/json'
       } });
       if(response.ok) {

@@ -70,7 +70,7 @@ publicRouter.put('/meeting/:id', async (req, res, next) => {
   }
 });
 
-publicRouter.get('/meeting/credentials', async (req, res, next) => {
+publicRouter.get('/credentials', async (req, res, next) => {
   const { id } = req.query;
   // A day
   const timestamp = Math.floor(Date.now() / 1000) + 24 * 3600;
