@@ -88,6 +88,17 @@ export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, han
               </Select>
             </FormControl> }
 
+            { vars.devices.filter(x => x.kind === 'audiooutput' && x.deviceId !== '').length > 0 && <FormControl>
+              <FormLabel>{ translate('音频输出') }</FormLabel>
+              <Select defaultValue={vars.output.id} onChange={(evt, audioDeviceId) => {
+                handleSpeakerChange(audioDeviceId);
+              }}>
+                { vars.devices.filter(x => x.kind === 'audiooutput').map((x, index) => {
+                  return <Option key={index} value={x.deviceId}>{x.label || utility.format(translate('音频输出 - {0}'), index)}</Option>;
+                }) }
+              </Select>
+            </FormControl> }
+
             <FormControl>
               <FormLabel>{ translate('视频输入') }</FormLabel>
               <Select defaultValue={vars.video.id} onChange={(evt, screenDeviceId) => {
@@ -117,17 +128,6 @@ export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, han
                 }}
               />
             </FormControl>
-
-            { vars.devices.filter(x => x.kind === 'audiooutput' && x.deviceId !== '').length > 0 && <FormControl>
-              <FormLabel>{ translate('音频输出') }</FormLabel>
-              <Select defaultValue={vars.output.id} onChange={(evt, audioDeviceId) => {
-                handleSpeakerChange(audioDeviceId);
-              }}>
-                { vars.devices.filter(x => x.kind === 'audiooutput').map((x, index) => {
-                  return <Option key={index} value={x.deviceId}>{x.label || utility.format(translate('音频输出 - {0}'), index)}</Option>;
-                }) }
-              </Select>
-            </FormControl> }
 
             <DialogActions>
               <Button type="submit">{ translate('关闭') }</Button>
