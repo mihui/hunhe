@@ -1027,7 +1027,6 @@ export default function ChatRoom({ id, translate }) {
               sx={{ display: { sm: 'inline-flex' } }}
               onClick={evt => {
                 setUiProperty({ ...uiProperty, isUserListDisplayed: !uiProperty.isUserListDisplayed });
-                focusInput();
               }} className={styles['chat-menu']} disabled={isLoading}>
               <PeopleIcon />
             </IconButton>
