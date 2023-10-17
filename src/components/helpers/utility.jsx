@@ -101,7 +101,12 @@ class Utility {
       systemDevices = await navigator.mediaDevices.enumerateDevices();
     }
     catch(error) { /* empty */ }
-    return systemDevices.filter(x => x.kind ==='audioinput' || x.kind === 'videoinput');
+    try {
+      systemDevices = systemDevices.concat(await navigator.mediaDevices.selectAudioOutput());
+    }
+    catch(error) { /* empty */ }
+    console.debug('systemDevices->', systemDevices);
+    return systemDevices;
   }
 
   /**

@@ -632,9 +632,10 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
   const [ chatUsers, setChatUsers ] = useState([]);
 
-  /** @type {[ vars: { audio: Media, video: Media, status: { emoji: string }, devices: Array<Device> }, setVars: (vars: { audio: Media, video: Media, status: { emoji: string }, devices: Array<Device> }) => void ]} */
+  /** @type {[ vars: { audio: Media, video: Media, output: Media, status: { emoji: string }, devices: Array<Device> }, setVars: (vars: { audio: Media, video: Media, output: Media, status: { emoji: string }, devices: Array<Device> }) => void ]} */
   const [ vars, setVars ] = useState({
     audio: { id: DEFAULTS.MICROPHONE }, video: { id: DEFAULTS.SCREEN },
+    output: { id: DEFAULTS.SPEAKER },
     status: { emoji: '' },
     devices: []
   });
@@ -843,6 +844,23 @@ export default function ChatRoom({ id, translate }) {
   selectUser = (to) => {
     setChat({ ...chat, to });
     focusInput();
+  },
+  setAudioOutput = (audioDeviceId, saveStorage = true) => {
+    if(typeof (chatAudio.setSinkId) === 'function') {
+      Promise.all([ chatAudio.setSinkId(audioDeviceId), notifyAudio.setSinkId(audioDeviceId) ]).catch(error => {
+        console.warn('### SET DEVICE ERROR ###');
+        console.warn(error);
+        console.warn(audioDeviceId);
+      }).then(() => {
+        if(saveStorage) {
+          setVars({ ...vars, output: { ...vars.output, id: audioDeviceId } });
+          storage.save(StorageKeys.AudioOutputDeviceId, audioDeviceId);
+        }
+      });
+    }
+    else {
+      console.warn('### SET DEVICE ERROR ###');
+    }
   };
 
   // Handle join screen sharing
@@ -876,11 +894,14 @@ export default function ChatRoom({ id, translate }) {
     // Find browser supported devices
     utility.getDevices().then(systemDevices => {
       const devices = [{ kind: 'videoinput', label: translate('仅屏幕'), deviceId: DEFAULTS.SCREEN }].concat(systemDevices);
+      const audioOutputDeviceId = storage.get(StorageKeys.AudioOutputDeviceId, DEFAULTS.SPEAKER);
       setVars({
         ...vars, devices,
-        audio: { ...vars.audio, id: storage.get(StorageKeys.AudioDeviceId, DEFAULTS.MICROPHONE) },
-        video: { ...vars.video, id: storage.get(StorageKeys.VideoDeviceId, DEFAULTS.SCREEN) }
+        audio: { ...vars.audio, id: storage.get(StorageKeys.AudioInputDeviceId, DEFAULTS.MICROPHONE) },
+        video: { ...vars.video, id: storage.get(StorageKeys.VideoInputDeviceId, DEFAULTS.SCREEN) },
+        output: { ...vars.output, id: audioOutputDeviceId },
       });
+      setAudioOutput(audioOutputDeviceId, false);
     });
   };
 
@@ -1021,7 +1042,9 @@ export default function ChatRoom({ id, translate }) {
       {/* CHAT SETTINGS */}
       <ChatSettingsModal user={me} open={uiProperty.isSettingsDisplayed} translate={translate} handleClose={() => {
         setUiProperty({ ...uiProperty, isSettingsDisplayed: false });
-      }} vars={vars} setVars={setVars} refreshDevices={refreshDevices} />
+      }} vars={vars} setVars={setVars} refreshDevices={refreshDevices} handleSpeakerChange={deviceId => {
+        setAudioOutput(deviceId);
+      }} />
       {/* CHAT LINK */}
       <ChatLinkModal user={me} open={uiProperty.isLinkDisplayed} translate={translate} handleClose={() => {
         setUiProperty({ ...uiProperty, isLinkDisplayed: false });
@@ -1266,6 +1289,10 @@ export default function ChatRoom({ id, translate }) {
               evt.preventDefault();
               evt.stopPropagation();
               setUiProperty({ ...uiProperty, isSettingsDisplayed: !uiProperty.isSettingsDisplayed });
+              utility.captureUserAudio().then(stream => {
+                utility.stopTracks(stream);
+                refreshDevices();
+              });
             }}>
               <TuneIcon />
             </IconButton></Tooltip> }

@@ -25,14 +25,14 @@ import { User } from '@/components/models/user';
  * Chat settings
  * @param {{
  *  open: boolean, me: User,
- *  vars: { audio: Media, video: Media, status: { emoji: string }, devices: Array<Device> },
- *  setVars: (vars: { audio: Media, screen: Media, status: { emoji: string }, devices: Array<Device> }) => void,
- *  handleClose: () => void, translate: (str: string) => string,
+ *  vars: { audio: Media, video: Media, output: Media, status: { emoji: string }, devices: Array<Device> },
+ *  setVars: (vars: { audio: Media, screen: Media, output: Media, status: { emoji: string }, devices: Array<Device> }) => void,
+ *  handleClose: () => void, handleSpeakerChange: (deviceId: string) => void, translate: (str: string) => string,
  *  refreshDevices: () => void
  * }} param0 Props
  * @returns {HTMLDivElement} Returns HTML
  */
-export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, handleClose, translate }) => {
+export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, handleSpeakerChange, handleClose, translate }) => {
   /** @type {{ current: HTMLVideoElement }} */
   const previewVideoRef = useRef(null);
 
@@ -75,23 +75,24 @@ export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, han
           className={styles['chat-settings']}
         >
           <Stack spacing={2}>
-            <FormControl>
-              <FormLabel>{ translate('音频源') }</FormLabel>
+
+            { vars.devices.filter(x => x.kind === 'audioinput' && x.deviceId !== '').length > 0 && <FormControl>
+              <FormLabel>{ translate('音频输入') }</FormLabel>
               <Select defaultValue={vars.audio.id} onChange={(evt, audioDeviceId) => {
                 setVars({ ...vars, audio: { ...vars.audio, id: audioDeviceId } });
-                storage.save(StorageKeys.AudioDeviceId, audioDeviceId);
+                storage.save(StorageKeys.AudioInputDeviceId, audioDeviceId);
               }}>
                 { vars.devices.filter(x => x.kind === 'audioinput').map((x, index) => {
                   return <Option key={index} value={x.deviceId}>{x.label || utility.format(translate('音频输入 - {0}'), index)}</Option>;
                 }) }
               </Select>
-            </FormControl>
+            </FormControl> }
 
             <FormControl>
-              <FormLabel>{ translate('视频源') }</FormLabel>
+              <FormLabel>{ translate('视频输入') }</FormLabel>
               <Select defaultValue={vars.video.id} onChange={(evt, screenDeviceId) => {
                 setVars({ ...vars, video: { ...vars.video, id: screenDeviceId } });
-                storage.save(StorageKeys.VideoDeviceId, screenDeviceId);
+                storage.save(StorageKeys.VideoInputDeviceId, screenDeviceId);
               }}>
                 { vars.devices.filter(x => x.kind === 'videoinput').map((x, index) => {
                   return <Option key={index} value={x.deviceId}>{x.label || utility.format(translate('视频输入 - {0}'), index)}</Option>;
@@ -116,6 +117,18 @@ export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, han
                 }}
               />
             </FormControl>
+
+            { vars.devices.filter(x => x.kind === 'audiooutput' && x.deviceId !== '').length > 0 && <FormControl>
+              <FormLabel>{ translate('音频输出') }</FormLabel>
+              <Select defaultValue={vars.output.id} onChange={(evt, audioDeviceId) => {
+                handleSpeakerChange(audioDeviceId);
+              }}>
+                { vars.devices.filter(x => x.kind === 'audiooutput').map((x, index) => {
+                  return <Option key={index} value={x.deviceId}>{x.label || utility.format(translate('音频输出 - {0}'), index)}</Option>;
+                }) }
+              </Select>
+            </FormControl> }
+
             <DialogActions>
               <Button type="submit">{ translate('关闭') }</Button>
               <Button type="button" variant='soft' onClick={evt => {

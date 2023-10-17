@@ -15,8 +15,9 @@ export default VARS;
 
 export const StorageKeys = {
   User: 'User',
-  AudioDeviceId: 'AudioDeviceId',
-  VideoDeviceId: 'VideoDeviceId',
+  AudioInputDeviceId: 'AudioInputDeviceId',
+  VideoInputDeviceId: 'VideoInputDeviceId',
+  AudioOutputDeviceId: 'AudioOutputDeviceId',
 };
 
 /** @type {Array<{ key: string, url: string }>} */

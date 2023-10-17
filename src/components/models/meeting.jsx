@@ -198,7 +198,8 @@ export const AUDIO = {
 // DEFAULTS
 export const DEFAULTS = {
   SCREEN: 'screen',
-  MICROPHONE: 'default'
+  MICROPHONE: 'default',
+  SPEAKER: 'default'
 };
 
 export const PEER_STATUS = {
