@@ -162,8 +162,7 @@ export default function Index({ translate }) {
 
       <Modal open={dialog.isOpen} onClose={() => setDialog({ ...dialog, isOpen: false })}>
         <ModalDialog
-          aria-labelledby="basic-modal-dialog-title"
-          aria-describedby="basic-modal-dialog-description"
+          aria-labelledby="chat-dialog-title"
           sx={{ minWidth: 300, maxWidth: 450 }}
         >
           <form
@@ -173,18 +172,22 @@ export default function Index({ translate }) {
             }}
           >
             <Stack spacing={2}>
-              { meetingId === ROOMS.DEFAULT.ID && dialog.isEnteringCode === false && dialog.isParticipant && <FormControl>
-                <Typography id="basic-modal-dialog-title" level="h2">{ translate('主题') }</Typography>
-                <Typography>{ translate(ROOMS.DEFAULT.SUBJECT) }</Typography>
-              </FormControl> }
+              { meetingId === ROOMS.DEFAULT.ID && dialog.isEnteringCode === false && dialog.isParticipant && <>
+                <Typography id="chat-dialog-title" level="h2">{ translate('主题') }</Typography>
+                <FormControl>
+                  <Typography>{ translate(ROOMS.DEFAULT.SUBJECT) }</Typography>
+                </FormControl>
+              </> }
 
-              { dialog.isEnteringCode && <FormControl>
-                <Typography id="basic-modal-dialog-title" level="h2">{ translate('参与会议') }</Typography>
-                <Typography>{ translate('会议代码') }</Typography>
-                <Input placeholder={ translate('会议代码') } value={meetingId} autoFocus required disabled={isCalling} onChange={evt => {
-                  initMeeting(evt.target.value, true);
-                }} />
-              </FormControl> }
+              { dialog.isEnteringCode && <>
+                <Typography id="chat-dialog-title" level="h2">{ translate('参与会议') }</Typography>
+                <FormControl>
+                  <FormLabel>{ translate('会议代码') }</FormLabel>
+                  <Input placeholder={ translate('会议代码') } value={meetingId} autoFocus required disabled={isCalling} onChange={evt => {
+                    initMeeting(evt.target.value, true);
+                  }} />
+                </FormControl>
+              </> }
               <FormControl>
                 <FormLabel>{ translate('昵称') }</FormLabel>
                 <Input placeholder={ translate('昵称') } value={user.name} autoFocus required onChange={evt => {

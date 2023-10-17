@@ -57,7 +57,6 @@ export const ChatLinkModal = ({ open, user, handleClose, meeting, setMeeting, ha
     <Modal open={open} onClose={() => handleClose()}>
       <ModalDialog
         aria-labelledby="basic-modal-dialog-title"
-        aria-describedby="basic-modal-dialog-description"
         sx={{ minWidth: 300 }}
       >
         <ModalClose />

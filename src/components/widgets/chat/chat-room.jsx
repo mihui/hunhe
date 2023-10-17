@@ -75,10 +75,131 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ { video: number, audio: number }, setPeerStatus: (peerStatus: { video: number, audio: number }) => void ]} */
   const [ peerStatus, setPeerStatus ] = useState({ video: PEER_STATUS.NONE, audio: PEER_STATUS.NONE });
 
-  //
+  const useMeeting = (initialId, initialData) => {
+    /** @type {[ meeting: Meeting, setMeeting: (meeting: Meeting) => void ]} */
+    const [ meeting, setMeeting ] = useState(initialData);
+    /** @type {[ meetingId: string, setMeetingId: (meetingId: string) => void ]} */
+    const [ meetingId ] = useState(initialId);
+    const [ isMeetingOK, setIsMeetingOK ] = useState(false);
+
+    // Fetch and verify meeting information
+    useEffect(() => {
+      if(meetingId && utility.validateUUID(meetingId)) {
+        chatService.getMeeting(meetingId).then(m => {
+          if(m) {
+            console.debug('  MEETING.OK->', m.subject);
+            setIsMeetingOK(true);
+            setMeeting({ id: m.id, subject: m.subject, locked: m.locked, limitation: m.limitation, updated_time: m.updated_time });
+          }
+        }).catch(error => {
+          console.debug('  MEETING.ERROR->', error);
+          goBackHome();
+        }).finally(() => {
+        });
+      }
+      else {
+        setIsMeetingOK(true);
+        setMeeting({ id: ROOMS.DEFAULT.ID, subject: translate(ROOMS.DEFAULT.SUBJECT), locked: ROOMS.DEFAULT.LOCKED, limitation: ROOMS.DEFAULT.LIMITATION, updated_time: ROOMS.DEFAULT.TIME });
+      }
+    }, [ meetingId ]);
+
+    return [ { meeting, isMeetingOK }, setMeeting ];
+  }, useUser = (initialRoom, initialData) => {
+    /** @type {[ me: User, setMe: (me: User) => void ]} */
+    const [ me, setMe ] = useState(initialData);
+    /** @type {[ isMeOK: boolean, setIsMeOK: (isMeOK: boolean) => void ]} */
+    const [ isMeOK, setIsMeOK ] = useState(false);
+    /** @type {[ room: string, setRoom: (room: string) => void ]} */
+    const [ room, setRoom ] = useState(initialRoom);
+    const [ isSocketReady, setIsSocketReady ] = useState(false);
+
+    // Get user information from session storage
+    useEffect(() => {
+      // 1. Initialize user
+      // 2. Try cache
+      const storedUser = chatService.getUser();
+      // 2.1 Initialize user from cache
+      if(storedUser && utility.validateUUID(storedUser.id) && storedUser.name && storedUser.avatar) {
+        setMe(storedUser);
+        setIsMeOK(true);
+      }
+      else {
+        goBackHome();
+      }
+    }, []);
+
+    const unmountWebSocket = () => {
+      streamService.getWebSocket().off('connect', socketEvents.onSocketConnect)
+        .off('reconnect', socketEvents.onSocketReconnect)
+        .off('reconnect_failed', socketEvents.onSocketReconnectFailed)
+        .off('error', socketEvents.onSocketError)
+        .off('disconnect', socketEvents.onSocketDisconnect)
+        .off('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
+        .off('client:welcome:public', socketEvents.onClientWelcomePublic)
+        .off('client:welcome:private', socketEvents.onClientWelcomePrivate)
+        .off('client:leave', socketEvents.onClientLeave)
+        .off('client:error', socketEvents.onClientError)
+        .off('client:users', socketEvents.onDisplayingUsers)
+        .off('client:user:message', socketEvents.onUserMessage)
+        .off('client:meeting:update:callback', socketEvents.onMeetingUpdated)
+        // Screen share
+        .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
+        .off('client:screen:stop:callback', socketEvents.onClientStopScreen)
+        .off('client:screen:start:callback', socketEvents.onClientStartScreen);
+    };
+
+    useEffect(() => {
+      if(meeting.id && me && me.name && me.avatar && me.id) {
+        console.debug('### CONNECTING WITH SOCKET ###');
+        // unmountWebSocket();
+        streamService.connectWebSocket();
+        streamService.getWebSocket().on('connect', socketEvents.onSocketConnect)
+          .on('reconnect', socketEvents.onSocketReconnect)
+          .on('reconnect_failed', socketEvents.onSocketReconnectFailed)
+          .on('error', socketEvents.onSocketError)
+          .on('disconnect', socketEvents.onSocketDisconnect)
+          .on('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
+          .on('client:welcome:public', socketEvents.onClientWelcomePublic)
+          .on('client:welcome:private', socketEvents.onClientWelcomePrivate)
+          .on('client:leave', socketEvents.onClientLeave)
+          .on('client:error', socketEvents.onClientError)
+          .on('client:users', socketEvents.onDisplayingUsers)
+          .on('client:user:message', socketEvents.onUserMessage)
+          .on('client:meeting:update:callback', socketEvents.onMeetingUpdated)
+          // Screen share
+          .on('client:screen:join:callback', socketEvents.onClientJoinScreen)
+          .on('client:screen:stop:callback', socketEvents.onClientStopScreen)
+          .on('client:screen:start:callback', socketEvents.onClientStartScreen);
+
+        return () => {
+          streamService.getWebSocket().emit('server:leave');
+          streamService.getWebSocket().disconnect();
+          unmountWebSocket();
+        }
+      }
+    }, [me]);
+
+    // Setup Peers
+    useEffect(() => {
+      if(isMeOK && isMeetingOK && isSocketReady) {
+        setupPeers();
+        return () => {
+          unmountPeerEvents();
+          streamService.reset();
+        };
+      }
+    }, [isMeOK, isSocketReady, me.id]);
+
+    return [ { me, isMeOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ];
+  };
+
+  /** @type {[ { meeting: Meeting, isMeetingOK: boolean }, setMeeting: (meeting: Meeting) => void ]} */
+  const [ { meeting, isMeetingOK }, setMeeting ] = useMeeting(id, new Meeting().setId(id).toJSON());
+
+  // Notify in the header
   const notifyHeader = useCallback((message, style = NOTIFICATION_STYLES.INFO, hasTranslation = false) => {
     setChatHeader({ message: message ? (hasTranslation ? message : translate(message)) : translate(meeting.subject), style, time: new Date() })
-  }, [translate]);
+  }, [translate, meeting.subject]);
 
   const chatNotifications = [], notifyAudio = new Audio(), chatAudio = new Audio();
   chatAudio.autoplay = true;
@@ -92,12 +213,13 @@ export default function ChatRoom({ id, translate }) {
     }
     catch(error) {
       console.warn('### AUDIO START ERROR ###');
-      console.log(error);
+      console.debug(error);
     }
   };
 
   notifyAudio.autoplay = false;
   notifyAudio.preload = 'metadata';
+
   const notifyUser = (sender, message, avatar = null) => {
     (function(callback) {
       if (!('Notification' in window)) {
@@ -366,9 +488,9 @@ export default function ChatRoom({ id, translate }) {
       }
       setChatHistory(x => [ ...x, chatRecord ]);
     },
-    /** @type {(user: User, meeting: Meeting) => void} */
-    onMeetingUpdated: (user, meeting) => {
-      beeper.publish(Events.UpdateMeeting, { user, meeting });
+    /** @type {(user: User, newMeeting: Meeting) => void} */
+    onMeetingUpdated: (user, newMeeting) => {
+      beeper.publish(Events.UpdateMeeting, { user, meeting: newMeeting });
     }
   };
 
@@ -495,128 +617,6 @@ export default function ChatRoom({ id, translate }) {
         .off('close', peerEvents.onVideoPeerClose);
     }
   };
-
-  const useMeeting = (initialId, initialData) => {
-    /** @type {[ meeting: Meeting, setMeeting: (meeting: Meeting) => void ]} */
-    const [ meeting, setMeeting ] = useState(initialData);
-    /** @type {[ meetingId: string, setMeetingId: (meetingId: string) => void ]} */
-    const [ meetingId ] = useState(initialId);
-    const [ isMeetingOK, setIsMeetingOK ] = useState(false);
-
-    // Fetch and verify meeting information
-    useEffect(() => {
-      if(meetingId && utility.validateUUID(meetingId)) {
-        chatService.getMeeting(meetingId).then(m => {
-          if(m) {
-            console.log('  MEETING.OK->', m.subject);
-            setIsMeetingOK(true);
-            setMeeting({ id: m.id, subject: m.subject, locked: m.locked, limitation: m.limitation, updated_time: m.updated_time });
-          }
-        }).catch(error => {
-          console.log('  MEETING.ERROR->', error);
-          goBackHome();
-        }).finally(() => {
-          
-        });
-      }
-      else {
-        setIsMeetingOK(true);
-        setMeeting({ id: ROOMS.DEFAULT.ID, subject: translate(ROOMS.DEFAULT.SUBJECT), locked: ROOMS.DEFAULT.LOCKED, limitation: ROOMS.DEFAULT.LIMITATION, updated_time: ROOMS.DEFAULT.TIME });
-      }
-    }, [ meetingId ]);
-
-    return [ { meeting, isMeetingOK }, setMeeting ];
-  }, useUser = (initialRoom, initialData) => {
-    /** @type {[ me: User, setMe: (me: User) => void ]} */
-    const [ me, setMe ] = useState(initialData);
-    /** @type {[ isMeOK: boolean, setIsMeOK: (isMeOK: boolean) => void ]} */
-    const [ isMeOK, setIsMeOK ] = useState(false);
-    /** @type {[ room: string, setRoom: (room: string) => void ]} */
-    const [ room, setRoom ] = useState(initialRoom);
-    const [ isSocketReady, setIsSocketReady ] = useState(false);
-
-    // Get user information from session storage
-    useEffect(() => {
-      // 1. Initialize user
-      // 2. Try cache
-      const storedUser = chatService.getUser();
-      // 2.1 Initialize user from cache
-      if(storedUser && utility.validateUUID(storedUser.id) && storedUser.name && storedUser.avatar) {
-        setMe(storedUser);
-        setIsMeOK(true);
-      }
-      else {
-        goBackHome();
-      }
-    }, []);
-
-    const unmountWebSocket = () => {
-      streamService.getWebSocket().off('connect', socketEvents.onSocketConnect)
-        .off('reconnect', socketEvents.onSocketReconnect)
-        .off('reconnect_failed', socketEvents.onSocketReconnectFailed)
-        .off('error', socketEvents.onSocketError)
-        .off('disconnect', socketEvents.onSocketDisconnect)
-        .off('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
-        .off('client:welcome:public', socketEvents.onClientWelcomePublic)
-        .off('client:welcome:private', socketEvents.onClientWelcomePrivate)
-        .off('client:leave', socketEvents.onClientLeave)
-        .off('client:error', socketEvents.onClientError)
-        .off('client:users', socketEvents.onDisplayingUsers)
-        .off('client:user:message', socketEvents.onUserMessage)
-        .off('client:meeting:update:callback', socketEvents.onMeetingUpdated)
-        // Screen share
-        .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
-        .off('client:screen:stop:callback', socketEvents.onClientStopScreen)
-        .off('client:screen:start:callback', socketEvents.onClientStartScreen);
-    };
-
-    useEffect(() => {
-      if(meeting.id && me && me.name && me.avatar && me.id) {
-        console.log('### CONNECTING WITH SOCKET ###');
-        // unmountWebSocket();
-        streamService.connectWebSocket();
-        streamService.getWebSocket().on('connect', socketEvents.onSocketConnect)
-          .on('reconnect', socketEvents.onSocketReconnect)
-          .on('reconnect_failed', socketEvents.onSocketReconnectFailed)
-          .on('error', socketEvents.onSocketError)
-          .on('disconnect', socketEvents.onSocketDisconnect)
-          .on('reconnect_attempt', socketEvents.onSocketReconnectAttempt)
-          .on('client:welcome:public', socketEvents.onClientWelcomePublic)
-          .on('client:welcome:private', socketEvents.onClientWelcomePrivate)
-          .on('client:leave', socketEvents.onClientLeave)
-          .on('client:error', socketEvents.onClientError)
-          .on('client:users', socketEvents.onDisplayingUsers)
-          .on('client:user:message', socketEvents.onUserMessage)
-          .on('client:meeting:update:callback', socketEvents.onMeetingUpdated)
-          // Screen share
-          .on('client:screen:join:callback', socketEvents.onClientJoinScreen)
-          .on('client:screen:stop:callback', socketEvents.onClientStopScreen)
-          .on('client:screen:start:callback', socketEvents.onClientStartScreen);
-
-        return () => {
-          streamService.getWebSocket().emit('server:leave');
-          streamService.getWebSocket().disconnect();
-          unmountWebSocket();
-        }
-      }
-    }, [me]);
-
-    // Setup Peers
-    useEffect(() => {
-      if(isMeOK && isMeetingOK && isSocketReady) {
-        setupPeers();
-        return () => {
-          unmountPeerEvents();
-          streamService.reset();
-        };
-      }
-    }, [isMeOK, isSocketReady, me.id]);
-
-    return [ { me, isMeOK, isSocketReady }, { setMe, setRoom, setIsSocketReady } ];
-  };
-
-  /** @type {[ { meeting: Meeting, isMeetingOK: boolean }, setMeeting: (meeting: Meeting) => void ]} */
-  const [ { meeting, isMeetingOK }, setMeeting ] = useMeeting(id, new Meeting().setId(id).toJSON());
 
   // Leave setMe and setRoom for future changes, e.g. rename or switch rooms
   /** @type {[ { me: User, isMeOK: boolean, arePeersOK: boolean }, { setMe: (me: User) => void, setRoom: (room: string) => void } ]} */

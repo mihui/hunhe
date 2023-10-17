@@ -24,7 +24,6 @@ export const ChatUserModal = ({ open, user, handleClose, translate }) => {
     <Modal open={open} onClose={handleClose}>
       <ModalDialog
         aria-labelledby="basic-modal-dialog-title"
-        aria-describedby="basic-modal-dialog-description"
         sx={{ minWidth: 300 }}
       >
         <ModalClose />

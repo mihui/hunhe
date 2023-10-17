@@ -61,7 +61,6 @@ export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, han
     <Modal open={open} onClose={onClose}>
       <ModalDialog
         aria-labelledby="basic-modal-dialog-title"
-        aria-describedby="basic-modal-dialog-description"
         size='md'
         sx={{ minWidth: 300 }}
       >

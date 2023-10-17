@@ -8,7 +8,7 @@ import Button from '@mui/joy/Button';
 
 /**
  * Chat error
- * @param {{ open: boolean, handleClose: (evt) => void }} param0 Props
+ * @param {{ open: boolean, handleClose: (evt) => void, translate: (str: string) => string, handleBack: () => void }} param0 Props
  * @returns {() => Modal} Returns Modal
  */
 export const ChatErrorModal = ({ open, message, translate, handleBack }) => {
