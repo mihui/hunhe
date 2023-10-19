@@ -21,7 +21,6 @@ publicRouter.get('/', async (req, res, next) => {
 
 publicRouter.get('/meeting/:id', async (req, res, next) => {
   const { id } = req.params;
-  /** @type {{ token: string }} */
   try {
     const meeting = await meetingService.queryMeetingById(id);
     if(meeting) {

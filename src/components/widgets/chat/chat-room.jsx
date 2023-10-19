@@ -66,6 +66,9 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ isReconnect: boolean, setIsReconnect: (isReconnect: boolean) => void ]} */
   const [ isReconnect, setIsReconnect ] = useState(false);
 
+  /** @type {[ isActive: boolean, setIsActive: (isActive: boolean) => void ]} */
+  const [ isActive, setIsActive ] = useState(true);
+
   /** @type {[ arePeersOK: boolean, setArePeersOK: (arePeersOK: boolean) => void ]} */
   const [ arePeersOK, setArePeersOK ] = useState(false);
 
@@ -201,7 +204,7 @@ export default function ChatRoom({ id, translate }) {
     setChatHeader({ message: message ? (hasTranslation ? message : translate(message)) : translate(meeting.subject), style, time: new Date() })
   }, [translate, meeting.subject]);
 
-  const chatNotifications = [], notifyAudio = new Audio(), chatAudio = new Audio();
+  const notifyAudio = new Audio(), chatAudio = new Audio();
   chatAudio.autoplay = true;
   chatAudio.onloadedmetadata = evt => {
     try {
@@ -220,6 +223,7 @@ export default function ChatRoom({ id, translate }) {
   notifyAudio.autoplay = false;
   notifyAudio.preload = 'metadata';
 
+  let chatNotifications = [];
   const notifyUser = (sender, message, avatar = null) => {
     (function(callback) {
       if (!('Notification' in window)) {
@@ -505,7 +509,9 @@ export default function ChatRoom({ id, translate }) {
     /** @type {() => void} */
     onAudioPeerDisconnected: () => {
       console.debug('### AUDIO PEER DISCONNECTED ###');
-      // reconnectAudioPeer();
+      if(isActive) {
+        reconnectAudioPeer();
+      }
       setPeerStatus(current => { return { ...current, audio: PEER_STATUS.DISCONNECTED }; });
     },
     /** @type {(call: import('peerjs').MediaConnection) => void} call Call */
@@ -540,7 +546,9 @@ export default function ChatRoom({ id, translate }) {
     /** @type {() => void} */
     onVideoPeerDisconnected: () => {
       console.debug('### VIDEO PEER DISCONNECTED ###');
-      // reconnectVideoPeer();
+      if(isActive) {
+        reconnectVideoPeer();
+      }
       setPeerStatus(current => { return { ...current, video: PEER_STATUS.DISCONNECTED }; });
     },
     /** @type {(call: { peer: string, metadata: { nickname: string }, answer: (stream: ReadableStream?), on: (eventName: string, callback: (stream: ReadableStream) => void) => void }) => void} call Call */
@@ -903,6 +911,24 @@ export default function ChatRoom({ id, translate }) {
       });
       setAudioOutput(audioOutputDeviceId, false);
     });
+  },
+  onVisibilityChanged = evt => {
+    if (document.visibilityState === 'visible') {
+      for(const notification of chatNotifications) {
+        notification.close();
+      }
+      chatNotifications.length = 0;
+      chatNotifications = [];
+    }
+    changeStatus();
+  },
+  handleVisibility = (listen = true) => {
+    if(listen) {
+      document.addEventListener('visibilitychange', onVisibilityChanged);
+    }
+    else {
+      document.removeEventListener('visibilitychange', onVisibilityChanged);
+    }
   };
 
   // Page load, Handle events and setup peers
@@ -954,6 +980,10 @@ export default function ChatRoom({ id, translate }) {
 
     refreshDevices();
 
+    handleVisibility();
+
+    setIsActive(true);
+
     streamService.initTranslation(translate);
 
     return () => {
@@ -966,6 +996,9 @@ export default function ChatRoom({ id, translate }) {
       stopScreen();
       stopAudio();
       setIsReconnect(false);
+
+      handleVisibility(false);
+      setIsActive(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
