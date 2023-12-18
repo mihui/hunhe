@@ -202,7 +202,8 @@ class Utility {
       for (let i = 0; i < bufferLength; i++) {
         sum += dataArray[i];
       }
-      return sum / bufferLength;
+      const averageVolume = sum / bufferLength;
+      return Math.round((averageVolume / 150) * 100);
     }
     return 0;
   }
