@@ -42,13 +42,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { User, ChatPayload, ChatRecord, All, Kinds } from '@/components/models/user';
 import { ChatUserModal } from '@/components/widgets/modals/chat-user';
 import { Events, beeper, storage, utility } from '@/components/helpers/utility';
-import { CustomCodes, ROOMS, STATUS, StorageKeys } from '@/components/config/vars';
+import { CustomCodes, ROOMS, StorageKeys } from '@/components/config/vars';
 import { ChatLinkModal } from '@/components/widgets/modals/chat-link';
 import { ChatFormat } from '@/components/widgets/chat/chat-format';
-import { ChatAudio, DEFAULTS, Device, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER, PEER_STATUS, UIProperty } from '@/components/models/meeting';
+import { UserStream, DEFAULTS, Device, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER, PEER_STATUS, STATUS, UIProperty } from '@/components/models/meeting';
 import { MediaStatus, chatService, streamService } from '@/components/services/chat';
 import { ChatErrorModal } from '../modals/chat-error';
 import { ChatSettingsModal } from '../modals/chat-settings';
+import { ChatTarget } from './chat-target';
 
 /**
  * Chatroom
@@ -280,9 +281,9 @@ export default function ChatRoom({ id, translate }) {
     setIsLoading(connected === false);
     beeper.publish(Events.SocketConnected, { connected, isReconnect: isSocketReconnect });
   },
-  /** @type {(audio: ChatAudio) => void} */
+  /** @type {(audio: UserStream) => void} */
   activateAudio = (audio) => {
-    if(chatAudio && audio.tracks.length > 0) {
+    if(chatAudio && audio.hasAudioTracks()) {
       chatAudio.srcObject = streamService.remoteAudioStream;
       if(chatAudio.paused) {
         chatAudio.play().then(x => {
@@ -472,7 +473,7 @@ export default function ChatRoom({ id, translate }) {
         return [ ...accumulator ];
       }, []);
       //
-      streamService.maintainAudios(uniqueUsers);
+      streamService.maintainUserStreams(uniqueUsers);
       // for(let i = 0; i < 100; i++) {
       //   uniqueUsers.push(new User(crypto.randomUUID(), 'Fake user', '/images/avatars/00.png'));
       // }
@@ -518,7 +519,7 @@ export default function ChatRoom({ id, translate }) {
     onAudioPeerCall: newConnection => {
       console.info(`### AUDIO ON CALL: ${newConnection.peer} ###`);
       // Automatically join
-      newConnection.answer(streamService.localAudioStream);
+      newConnection.answer(streamService.localMediaStream);
       newConnection.on('stream', callerStream => {
         activateAudio(streamService.receiveAudioStream(newConnection.peer, callerStream));
       });
@@ -723,7 +724,7 @@ export default function ChatRoom({ id, translate }) {
     utility.stopStream(remoteVideoRef.current);
   },
   stopLocalVideo = () => {
-    utility.stopTracks(streamService.localVideoStream);
+    utility.stopTracks(streamService.localScreenStream);
     utility.stopStream(localVideoRef.current);
   },
   stopScreen = () => {
@@ -808,8 +809,8 @@ export default function ChatRoom({ id, translate }) {
   enableTracks = () => {
     streamService.enableTracks((uiProperty.videoStatus === MediaStatus.IDLE || vars.video.id === DEFAULTS.SCREEN));
   },
-  /** @type {(options: { isCaller: Boolean, call: { peer: string, answer: (stream: ReadableStream) => void, on: (eventName: string, callback: (stream: ReadableStream) => void) => void }? }) => Promise} */
-  startLocalAudio = async (options) => {
+  /** @type {() => Promise<void>} */
+  startLocalAudio = async () => {
     try {
       const stream = await utility.captureUserAudio();
       streamService.publishAudioStream(me.id, stream);
@@ -832,7 +833,7 @@ export default function ChatRoom({ id, translate }) {
     });
   },
   stopAudio = () => {
-    utility.stopTracks(streamService.localAudioStream);
+    utility.stopTracks(streamService.localMediaStream);
     streamService.stopAudioStream();
     streamService.isMuted = true;
     setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus, isMuted: streamService.isMuted });
@@ -843,7 +844,7 @@ export default function ChatRoom({ id, translate }) {
       stopAudio();
     }
     else {
-      await startLocalAudio({ isCaller: true });
+      await startLocalAudio();
       setUiProperty({ ...uiProperty, audioStatus: streamService.audioStatus });
       connectUsers();
     }
@@ -1222,29 +1223,8 @@ export default function ChatRoom({ id, translate }) {
           { uiProperty.isUserListDisplayed && <div className={styles['chat-users']}>
             <div className={styles['chat-layer']}>
               <ul>
-              { chatUsers.map(x => {
-                  const emoji = x.__status.emoji ? ` ${x.__status.emoji}` : '';
-                  const style =
-                    x.__status.browser === STATUS.AUDIO && x.__status.microphone === STATUS.SPEAKING ?
-                    'speaking' :
-                    x.__status.browser === STATUS.AUDIO && x.__status.microphone === STATUS.MUTED ?
-                    'muted' :
-                    x.__status.browser === STATUS.AUDIO ?
-                    'audio' :
-                    x.__status.browser === STATUS.AWAY ?
-                    'away' :
-                    x.__status.browser === STATUS.OFFLINE ?
-                    'offline' :
-                    'online';
-
-                  return <li onClick={evt => {
-                    evt.preventDefault();
-                    evt.stopPropagation();
-                    setUiProperty({ ...uiProperty, isUserListDisplayed: !uiProperty.isUserListDisplayed });
-                    selectUser(x);
-                  }} className={styles[style]} key={x.id} id={x.id} data-avatar={x.avatar} data-window={x.windows && x.windows > 1 ? x.windows : ''} style={{'--background-avatar-placeholder': `url(${x.avatar})` }}>
-                    <a>{x.name}{ emoji && <span className={styles['emoji']} dangerouslySetInnerHTML={{ __html: emoji }}></span> }</a>
-                  </li>
+                { chatUsers.map((user, index) => {
+                  return <ChatTarget key={index} user={user} selectUser={selectUser} />
                 }) }
               </ul>
             </div>

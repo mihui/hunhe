@@ -1,5 +1,4 @@
-import { STATUS } from '../config/vars';
-import { DEFAULTS } from './meeting';
+import { DEFAULTS, STATUS } from './meeting';
 
 export const ChatModes = {
   Private: 'Private',
@@ -19,11 +18,17 @@ export class Device {
   muted;
   /** @type {string} */
   deviceId;
+
+  /**
+   * Construtor
+   * @param {string} deviceId Device ID
+   */
   constructor(deviceId = '') {
     this.enabled = false;
     this.muted = true;
     this.deviceId = deviceId;
   }
+
   toJSON() {
     return {
       enabled: this.enabled,

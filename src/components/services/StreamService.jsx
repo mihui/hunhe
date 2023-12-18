@@ -1,8 +1,9 @@
 import { Socket, io } from 'socket.io-client';
 import VARS, { CustomCodes } from '../config/vars';
-import { ChatAudio, NOTIFICATION_STYLES } from '../models/meeting';
+import { UserStream, NOTIFICATION_STYLES } from '../models/meeting';
 import { MediaStatus, chatService } from './chat';
 import { Events, beeper, utility } from '../helpers/utility';
+import { All, User } from '../models/user';
 
 const PATHS = {
   WEBSOCKET: `/api/messaging`,
@@ -10,6 +11,8 @@ const PATHS = {
 };
 
 export class StreamService {
+  /** @type {string} */
+  userId = '';
   /** @type {import('socket.io-client').Socket} */
   socket;
 
@@ -25,14 +28,17 @@ export class StreamService {
   /** @type {MediaStream} */
   remoteVideoStream = null;
   /** @type {MediaStream} */
-  localVideoStream = null;
+  localScreenStream = null;
   /** @type {MediaStream} */
-  localAudioStream = null;
+  localMediaStream = null;
+  /** @type {AnalyserNode} */
+  localAudioAnalyser = null;
+
   /** @type {MediaStream} */
   remoteAudioStream = null;
 
-  /** @type {Array<ChatAudio>} */
-  audios = [];
+  /** @type {Array<UserStream>} */
+  userStreams = [];
 
   /** @type {number} */
   videoStatus = MediaStatus.IDLE;
@@ -83,27 +89,49 @@ export class StreamService {
    */
   publishVideoStream(stream) {
     this.videoStatus = MediaStatus.PUBLISHING;
-    this.localVideoStream = stream;
+    this.localScreenStream = stream;
   }
 
   /**
    * Get local audio
    * @param {string} userId User ID
-   * @returns {ChatAudio} Returns audio element
+   * @returns {UserStream} Returns audio element
    */
   getUserAudio(userId) {
-    const instance = this.audios.find(x => x.user.id === userId);
-    return instance;
+    const userStream = this.userStreams.find(x => x.user.id === userId);
+    return userStream;
+  }
+
+  /**
+   * Get audio stream
+   * @param {string} userId User ID
+   * @returns {AnalyserNode} Returns AnalyserNode instance
+   */
+  getAudioAnalyser(userId) {
+    if(userId === this.userId) {
+      if(this.localMediaStream) {
+        this.localAudioAnalyser = utility.createAnalyser(new MediaStream(this.localMediaStream.getAudioTracks()));
+        return this.localAudioAnalyser;
+      }
+    }
+    else if(All.__id !== userId) {
+      const userAudio = this.getUserAudio(userId);
+      if(userAudio) {
+        return userAudio.getAnalyser();
+      }
+    }
+    return null;
   }
 
   /**
    * Publish audio stream
    * @param {string} userId User ID
-   * @param {ChatAudio} stream Stream
+   * @param {UserStream} stream Stream
    */
   publishAudioStream(userId, stream) {
+    this.userId = userId;
     this.audioStatus = MediaStatus.PUBLISHING;
-    this.localAudioStream = stream;
+    this.localMediaStream = stream;
   }
 
   /**
@@ -111,13 +139,13 @@ export class StreamService {
    */
   stopAudioStream() {
     this.audioStatus = MediaStatus.IDLE;
-    this.audios.forEach(chatAudio => {
-      chatAudio.removeTracks();
+    this.userStreams.forEach(userStream => {
+      userStream.removeTracks();
     });
     this.remoteAudioStream?.getTracks().forEach(track => {
       this.remoteAudioStream.removeTrack(track);
     });
-    this.localAudioStream = null;
+    this.localMediaStream = null;
   }
 
   /**
@@ -127,14 +155,14 @@ export class StreamService {
   enableTracks(isScreenOnly) {
     if (this.audioStatus === MediaStatus.PUBLISHING) {
       const enabled = (this.isMuted === false && isScreenOnly);
-      const tracks = this.localAudioStream.getTracks();
+      const tracks = this.localMediaStream.getTracks();
       tracks.forEach(track => {
         track.enabled = enabled;
       });
     }
     if (this.videoStatus === MediaStatus.PUBLISHING) {
       const enabled = this.isMuted === false;
-      const tracks = this.localVideoStream.getTracks();
+      const tracks = this.localScreenStream.getTracks();
       tracks.forEach(track => {
         if(track.kind === 'audio') {
           track.enabled = enabled;
@@ -156,11 +184,11 @@ export class StreamService {
    * Receive audio stream
    * @param {string} userId User ID
    * @param {MediaStream} remoteStream Remote stream
-   * @returns {ChatAudio} Returns ChatAudio instance
+   * @returns {UserStream} Returns UserStream instance
    */
   receiveAudioStream(userId, remoteStream) {
     if(this.remoteAudioStream === null) this.remoteAudioStream = new MediaStream();
-    return this.getUserAudio(userId)?.addAudioStream(remoteStream, existingTrackId => {
+    return this.getUserAudio(userId)?.addMediaStream(remoteStream, existingTrackId => {
       const existingTracks = this.remoteAudioStream.getAudioTracks().filter(track => track.id === existingTrackId);
       if(existingTracks) {
         existingTracks.forEach(existingTrack => {
@@ -194,7 +222,7 @@ export class StreamService {
    */
   videoCall(peerId, data = {}) {
     if (this.videoPeer) {
-      const newConnection = this.videoPeer.call(peerId, this.localVideoStream, { metadata: data });
+      const newConnection = this.videoPeer.call(peerId, this.localScreenStream, { metadata: data });
       this.videoConnections.push(newConnection);
     }
   }
@@ -246,7 +274,7 @@ export class StreamService {
    */
   audioCall(peerId, data = {}) {
     if (this.audioPeer) {
-      const newConnection = this.audioPeer.call(peerId, this.localAudioStream, { metadata: data });
+      const newConnection = this.audioPeer.call(peerId, this.localMediaStream, { metadata: data });
       newConnection.on('close', this.onAudioClosed(newConnection));
       newConnection.on('open', this.onAudioOpen(newConnection));
       newConnection.on('error', this.onAudioError(newConnection));
@@ -365,11 +393,11 @@ export class StreamService {
    * Maintain audio HTML elements
    * @param {Array<User>} users Users
    */
-  maintainAudios(users) {
+  maintainUserStreams(users) {
     users.forEach(user => {
-      if (this.audios.findIndex(audio => audio.user.id === user.id) === -1) {
-        const audio = new ChatAudio(user);
-        this.audios.push(audio);
+      if (this.userStreams.findIndex(us => us.user.id === user.id) === -1) {
+        const userStream = new UserStream(user);
+        this.userStreams.push(userStream);
       }
     });
   }

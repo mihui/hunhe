@@ -122,13 +122,16 @@ export class UIProperty {
   }
 }
 
-export class ChatAudio {
+export class UserStream {
   /** @type {User} */
   user = null;
   /** @type {Array<string>} */
-  tracks = [];
+  audioTracks = [];
+  /** @type {AnalyserNode} */
+  analyser = null;
+
   /**
-   * ChatAudio constructor
+   * UserStream constructor
    * @param {User} user User
    */
   constructor(user) {
@@ -140,29 +143,58 @@ export class ChatAudio {
    * @param {MediaStream} stream User stream
    * @param {(track: MediaStreamTrack) => void} removeRemoteTrack Remove stream track of remote audio
    * @param {(track: MediaStreamTrack) => void} addRemoteTrack Remove stream track of remote audio
-   * @returns {ChatAudio} Returns ChatAudio instance
+   * @returns {UserStream} Returns UserStream instance
    */
-  addAudioStream(stream, removeRemoteTrack, addRemoteTrack) {
+  addMediaStream(stream, removeRemoteTrack, addRemoteTrack) {
     // Remove exsiting tracks
-    if(this.tracks.length > 0) {
-      this.tracks.forEach(trackId => {
+    if(this.hasAudioTracks()) {
+      this.audioTracks.forEach(trackId => {
         removeRemoteTrack(trackId);
       });
       this.removeTracks();
     }
 
     stream.getAudioTracks().forEach(track => {
-      this.tracks.push(track.id);
+      this.audioTracks.push(track.id);
       addRemoteTrack(track);
-    })
+    });
+
+    this.analyser = utility.createAnalyser(new MediaStream(stream.getAudioTracks()));
+
     return this;
   }
 
+  /**
+   * Remove audio tracks
+   */
   removeTracks() {
-    this.tracks.length = 0;
-    this.tracks = [];
+    this.audioTracks.length = 0;
+    this.audioTracks = [];
   }
 
+  /**
+   * Get analyser
+   * @returns {AnalyserNode} Returns AnalyserNode instance
+   */
+  getAnalyser() {
+    return this.analyser;
+  }
+
+  /**
+   * Get audio track size
+   * @returns {number} Returns audio track size
+   */
+  getAudioTrackSize() {
+    return this.audioTracks.length;
+  }
+
+  /**
+   * Determine if there is any audio tracks
+   * @returns {boolean} Has audio tracks
+   */
+  hasAudioTracks() {
+    return this.getAudioTrackSize() > 0;
+  }
 }
 
 export const NOTIFICATION_STYLES = {
@@ -172,14 +204,20 @@ export const NOTIFICATION_STYLES = {
 };
 
 export const EMOJIS = ['1f601', '1f602', '1f603', '1f604', '1f605', '1f607', '1f609', '1f60a', '1f60b', '1f60c', '1f612', '1f613', '1f61c', '1f61d', '1f620', '1f621', '1f622', '1f623', '1f624', '1f626', '1f628', '1f629', '1f62a', '1f62e', '1f630', '1f631', '1f632', '1f637', '1f641', '1f642', '1f643', '1f920', '1f923', '1f924', '1f925', '1f928', '1f929', '1f92a', '1f92b', '1f92d', '1f910', '1f911', '1f912', '1f913', '1f914', '1f915', '1f917', '1f973', '1f974'];
+
 // USER STATUS
 export const STATUS = {
+  // Browser
   ONLINE: 1,
   AWAY: 2,
   OFFLINE: 3,
   AUDIO: 4,
+  // Microphone
   SPEAKING: 5,
   MUTED: 6,
+  // Camera
+  HIDING: 7,
+  OPENING: 8
 };
 
 // CONNECTION STATUS
