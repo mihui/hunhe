@@ -169,6 +169,43 @@ class Utility {
     const ua = userAgent.toLowerCase();
     return ua.includes('chrome') || ua.includes('chromium');
   }
+
+  /**
+   * Create analyser
+   * @param {MediaStream} stream Stream
+   * @returns {AnalyserNode} Returns AnalyserNode instance
+   */
+  createAnalyser(stream, fftSize = 2048) {
+    try {
+      const audioContext = new AudioContext();
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = fftSize;
+      source.connect(analyser);
+      return analyser;
+    }
+    catch(error) {}
+    return null;
+  }
+
+  /**
+   * Get average volume of AnalyserNode instance
+   * @param {AnalyserNode} analyser AnalyserNode instance
+   * @returns {number} Volume
+   */
+  getAverageVolume(analyser) {
+    if(analyser) {
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        sum += dataArray[i];
+      }
+      return sum / bufferLength;
+    }
+    return 0;
+  }
 }
 
 export const Events = {
