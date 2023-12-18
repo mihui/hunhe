@@ -366,9 +366,9 @@ export class StreamService {
    * @param {Array<User>} users Users
    */
   maintainAudios(users) {
-    users.forEach(x => {
-      if (this.audios.findIndex(audio => audio.id === x.id) === -1) {
-        const audio = new ChatAudio(x);
+    users.forEach(user => {
+      if (this.audios.findIndex(audio => audio.user.id === user.id) === -1) {
+        const audio = new ChatAudio(user);
         this.audios.push(audio);
       }
     });
