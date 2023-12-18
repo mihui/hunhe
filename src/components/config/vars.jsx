@@ -50,12 +50,3 @@ export const ROOMS = {
     TIME: new Date()
   }
 };
-
-export const STATUS = {
-  ONLINE: 1,
-  AWAY: 2,
-  OFFLINE: 3,
-  AUDIO: 4,
-  SPEAKING: 5,
-  MUTED: 6,
-};

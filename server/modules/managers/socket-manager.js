@@ -12,12 +12,17 @@ const ROOM = {
 };
 
 const STATUS = {
+  // Browser
   ONLINE: 1,
   AWAY: 2,
   OFFLINE: 3,
   AUDIO: 4,
+  // Microphone
   SPEAKING: 5,
   MUTED: 6,
+  // Camera
+  HIDING: 7,
+  OPENING: 8
 };
 
 const EVENTS = {
