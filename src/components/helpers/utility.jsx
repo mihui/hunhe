@@ -207,6 +207,24 @@ class Utility {
     }
     return 0;
   }
+  /**
+   * Request fullscreen
+   * @param {HTMLElement} dom Element to request fullscreen
+   * @returns {boolean} If it is OK to request fullscreen
+   */
+  requestFullScreen(dom) {
+    const methods = ['requestFullscreen', 'mozRequestFullScreen', 'webkitRequestFullscreen', 'msRequestFullscreen', 'webkitEnterFullscreen'];
+    try {
+      for(const method of methods) {
+        if(typeof dom[method] === 'function') {
+          dom[method]();
+          return true;
+        }
+      }
+    }
+    catch(error) {}
+    return false;
+  }
 }
 
 export const Events = {

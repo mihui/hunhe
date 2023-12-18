@@ -19,6 +19,8 @@ import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt
 import SendIcon from '@mui/icons-material/Send';
 import SlideshowIcon from '@mui/icons-material/Slideshow';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
+
 import InfoIcon from '@mui/icons-material/Info';
 import PresentToAllIcon from '@mui/icons-material/PresentToAll';
 import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
@@ -659,6 +661,8 @@ export default function ChatRoom({ id, translate }) {
   /** @type {{ current: HTMLVideoElement }} */
   const remoteVideoRef = useRef(null);
   /** @type {{ current: HTMLVideoElement }} */
+  const remoteScreenRef = useRef(null);
+  /** @type {{ current: HTMLVideoElement }} */
   const localVideoRef = useRef(null);
 
   /** @type {(num: number) => string} */
@@ -1138,10 +1142,10 @@ export default function ChatRoom({ id, translate }) {
 
             {/* Video/Screen sharing */}
             <div className={`${styles['chat-media']}${uiProperty.videoStatus === MediaStatus.RECEIVING ? ` ${styles['receive']}` : ''}${uiProperty.videoStatus === MediaStatus.PUBLISHING ? ` ${styles['publish']}` : ''}`}>
-              <div className={styles['chat-screen']}>
+              <div className={styles['chat-screen']} ref={remoteScreenRef}>
                 <div className={styles['videos']}>
                   <div className={styles['remote']}>
-                    <video autoPlay={true} playsInline disablePictureInPicture ref={remoteVideoRef} onLoadedMetadata={evt => {
+                    <video autoPlay={true} playsInline disablePictureInPicture={true} ref={remoteVideoRef} onLoadedMetadata={evt => {
                       playRemoteVideo();
                     }} onClick={evt => {
                       playRemoteVideo();
@@ -1158,7 +1162,7 @@ export default function ChatRoom({ id, translate }) {
                     />
                   </div>
                   <div className={styles['local']}>
-                    <video autoPlay={false} playsInline disablePictureInPicture ref={localVideoRef} onLoadedMetadata={evt => {
+                    <video autoPlay={false} playsInline disablePictureInPicture={true} ref={localVideoRef} onLoadedMetadata={evt => {
                       playLocalVideo();
                     }}
                     onPause={evt => {
@@ -1180,24 +1184,35 @@ export default function ChatRoom({ id, translate }) {
                   }}>
                     <SlideshowIcon />
                   </IconButton> }
-                  { uiProperty.videoStatus === MediaStatus.PUBLISHING && <IconButton size='sm'  color='danger' onClick={evt => {
+                  { uiProperty.videoStatus === MediaStatus.PUBLISHING && <IconButton size='sm' color='danger' onClick={evt => {
                     stopScreen();
                   }}>
                     <DesktopAccessDisabledIcon />
                   </IconButton> }
-                  { uiProperty.videoStatus === MediaStatus.RECEIVING && <IconButton size='sm'  onClick={evt => {
+                  { uiProperty.videoStatus === MediaStatus.RECEIVING && <Tooltip title={document.fullscreenElement ? translate('退出全屏') : translate('全屏')}><IconButton size='sm'  color={document.fullscreenElement ? 'danger':'neutral'} onClick={evt => {
                     try {
                       if(document.fullscreenElement) {
                         document.exitFullscreen();
                       }
                       else {
-                        remoteVideoRef.current.requestFullscreen();
+                        if(utility.requestFullScreen(remoteScreenRef.current) === false) {
+                          utility.requestFullScreen(remoteVideoRef.current);
+                        }
                       }
                     }
                     catch(error) {}
                   }}>
-                    <FullscreenIcon />
-                  </IconButton> }
+                    { document.fullscreenElement ? <CloseFullscreenIcon /> : <FullscreenIcon /> }
+                  </IconButton></Tooltip> }
+
+                  { (uiProperty.audioStatus !== MediaStatus.IDLE || uiProperty.videoStatus === MediaStatus.PUBLISHING) && <Tooltip title={uiProperty.isMuted ? translate('打开麦克风') : translate('关闭麦克风')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
+                    streamService.toggleMute();
+                    setUiProperty({ ...uiProperty, isMuted: streamService.isMuted });
+                    enableTracks();
+                    changeStatus();
+                  }} color={ uiProperty.isMuted ? 'neutral': 'primary' }>
+                    { uiProperty.isMuted ? <MicOffIcon /> :  <MicIcon /> }
+                  </IconButton></Tooltip> }
                 </div>
               </div>
             </div>
