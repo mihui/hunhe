@@ -19,7 +19,6 @@ import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt
 import SendIcon from '@mui/icons-material/Send';
 import SlideshowIcon from '@mui/icons-material/Slideshow';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 
 import InfoIcon from '@mui/icons-material/Info';
 import PresentToAllIcon from '@mui/icons-material/PresentToAll';
@@ -1189,7 +1188,7 @@ export default function ChatRoom({ id, translate }) {
                   }}>
                     <DesktopAccessDisabledIcon />
                   </IconButton> }
-                  { uiProperty.videoStatus === MediaStatus.RECEIVING && <Tooltip title={document.fullscreenElement ? translate('退出全屏') : translate('全屏')}><IconButton size='sm'  color={document.fullscreenElement ? 'danger':'neutral'} onClick={evt => {
+                  { uiProperty.videoStatus === MediaStatus.RECEIVING && <Tooltip title={document.fullscreenElement ? translate('退出全屏') : translate('全屏')}><IconButton size='sm' onClick={evt => {
                     try {
                       if(document.fullscreenElement) {
                         document.exitFullscreen();
@@ -1202,7 +1201,7 @@ export default function ChatRoom({ id, translate }) {
                     }
                     catch(error) {}
                   }}>
-                    { document.fullscreenElement ? <CloseFullscreenIcon /> : <FullscreenIcon /> }
+                    <FullscreenIcon />
                   </IconButton></Tooltip> }
 
                   { (uiProperty.audioStatus !== MediaStatus.IDLE || uiProperty.videoStatus === MediaStatus.PUBLISHING) && <Tooltip title={uiProperty.isMuted ? translate('打开麦克风') : translate('关闭麦克风')}><IconButton size='sm' disabled={isLoading} onClick={evt => {
