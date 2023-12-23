@@ -105,7 +105,6 @@ class Utility {
       systemDevices = systemDevices.concat(await navigator.mediaDevices.selectAudioOutput());
     }
     catch(error) { /* empty */ }
-    console.debug('systemDevices->', systemDevices);
     return systemDevices;
   }
 
