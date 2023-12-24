@@ -23,7 +23,7 @@ export const ChatPreviewImageModal = ({ open, data, handleClose, translate }) =>
       handleClose();
     }}>
       <ModalDialog
-        aria-labelledby="modal-dialog-overflow"
+        aria-labelledby="basic-modal-dialog-title"
         sx={{ minWidth: 300 }}
         layout='fullscreen'
       >
