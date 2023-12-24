@@ -277,9 +277,7 @@
         .screenshot {
           cursor: pointer;
           box-shadow: var(--box-shadow-message);
-          &.maximized {
-            width: 100%;
-          }
+          user-select: none;
         }
         &.target {
           .message, .screenshot {
@@ -487,6 +485,15 @@
       width: 100%;
       border-radius: var(--border-radius);
     }
+  }
+}
+
+.chat-preview {
+  height: 100%;
+  overflow: auto;
+  .image {
+    width: 100%;
+    height: auto;
   }
 }
 

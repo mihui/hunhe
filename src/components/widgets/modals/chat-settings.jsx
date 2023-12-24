@@ -4,8 +4,6 @@ import styles from '@/styles/chat.module.scss';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Typography from '@mui/joy/Typography';
-import ModalClose from '@mui/joy/ModalClose';
-import Box from '@mui/joy/Box';
 import Button from '@mui/joy/Button';
 import Stack from '@mui/joy/Stack';
 import Switch from '@mui/joy/Switch';

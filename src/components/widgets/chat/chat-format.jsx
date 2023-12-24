@@ -1,19 +1,21 @@
 'use client';
 import { utility } from '@/components/helpers/utility';
-import { All, ChatRecord } from '@/components/models/user';
+import { ClipboardData } from '@/components/models/meeting';
+import { All, ChatRecord, User } from '@/components/models/user';
 import styles from '@/styles/chat.module.scss';
-import { AspectRatio } from '@mui/joy';
-import { Card } from '@mui/joy';
+import { AspectRatio, CardContent, Typography, Card } from '@mui/joy';
+
+import Image from 'next/image';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 
 /**
  * Chat format
- * @param {{ payload: ChatRecord }} props Props
+ * @param {{ payload: ChatRecord, isMe: boolean, isToMe: boolean, hasTime: boolean, displayTime: number, selectUser: (user: User) => void, openPreview: (data: ClipboardData) => void }} props Props
  * @returns {HTMLDivElement} Returns HTML
  */
-export const ChatFormat = ({ payload, isMe, isToMe, hasTime, displayTime, selectUser }) => {
+export const ChatFormat = ({ payload, isMe, isToMe, hasTime, displayTime, selectUser, openPreview }) => {
   let classes = styles['chat-item'];
   if(isMe) {
     classes = classes.concat(' ').concat(styles['me']);
@@ -33,7 +35,21 @@ export const ChatFormat = ({ payload, isMe, isToMe, hasTime, displayTime, select
           selectUser(payload.to);
         }}></a>
           </>}
-        { utility.isBase64StringValid(payload.screenshot.base64) ? <Card className={styles['screenshot']} sx={{ width: 320 }}><AspectRatio minHeight="120px" maxHeight="200px"><img src={payload.screenshot.base64} /></AspectRatio></Card> : <Markdown remarkPlugins={[ remarkGfm ]} rehypePlugins={[rehypeRaw]} className={styles['message']}>{payload.message}</Markdown> }
+        { utility.isBase64StringValid(payload.screenshot.base64) ? <Card className={styles['screenshot']} sx={{ width: 320 }} onClick={evt => {
+          evt.preventDefault();
+          evt.stopPropagation();
+          openPreview(payload.screenshot);
+        }}><AspectRatio className={styles['ratio']} minHeight="120px" maxHeight="200px" objectFit='contain'>
+            <Image src={payload.screenshot.base64} alt={payload.screenshot.type} width={320} height={120} />
+          </AspectRatio>
+          { payload.screenshot.note && <CardContent>
+            <div className={styles['note']}>
+              <Typography level="body-xs">{payload.screenshot.note}</Typography>
+            </div>
+          </CardContent> }
+        </Card>
+        :
+        <Markdown remarkPlugins={[ remarkGfm ]} rehypePlugins={[rehypeRaw]} className={styles['message']}>{payload.message}</Markdown> }
       </div>
     </>
   );

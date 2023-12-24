@@ -26,6 +26,6 @@ export const ChatVolume = ({ analyser, user }) => {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [ user.__status.microphone ]);
+  }, [ user.__status.microphone, analyser ]);
   return <div style={{ width: `${volume}%`}} className={styles['volume']}></div>;
 };

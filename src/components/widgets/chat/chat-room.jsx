@@ -52,6 +52,7 @@ import { ChatErrorModal } from '../modals/chat-error';
 import { ChatSettingsModal } from '../modals/chat-settings';
 import { ChatTarget } from './chat-target';
 import { ChatCopyPasteModal } from '../modals/chat-copy-paste';
+import { ChatPreviewImageModal } from '../modals/chat-preview-image';
 
 /**
  * Chatroom
@@ -715,7 +716,7 @@ export default function ChatRoom({ id, translate }) {
         return notifyHeader('正在尝试重新连接', NOTIFICATION_STYLES.WARNING);
       }
       const payload = generateMessage();
-      setChat({ ...chat, input: '', screenshot: '' });
+      setChat({ ...chat, input: '', screenshot: { base64: '', note: '' } });
       streamService.getWebSocket().emit('server:user:message', payload, () => {
         setIsChatting(false);
       });
@@ -930,6 +931,26 @@ export default function ChatRoom({ id, translate }) {
     }
     changeStatus();
   },
+  /** @type {(items: Array<{ kind: string, type: string, getAsFile: () => Blob }>) => Promise<{ ok: boolean, message: string, data: ClipboardData }>} */
+  readItems = (items) => {
+    return new Promise((resolve, reject) => {
+      try {
+        for (const item of items) {
+          const blob = item.getAsFile();
+          const reader = new FileReader();
+          reader.readAsDataURL(blob);
+          reader.onloadend = () => {
+            const base64 = reader.result;
+            return resolve({ ok: true, message: translate('粘贴成功'), data: { url: URL.createObjectURL(blob), type: item.type, base64 } });
+          };
+        }
+      }
+      catch(error) {
+        console.log(error);
+        return reject({ ok: false, message: translate('不支持粘贴') });
+      }
+    });
+  },
   /**
    * Read image
    * @type {() => Promise<{ ok: boolean, message: string, data: ClipboardData }>} Returns pasted image data
@@ -961,7 +982,11 @@ export default function ChatRoom({ id, translate }) {
    * Paste image
    * @type {() => Promise<{ ok: boolean, message: string, data: ClipboardData }>} Returns pasted image data
    */
-  pasteImage = async () => {
+  pasteImage = async (items) => {
+    try {
+      return readItems(items);
+    }
+    catch(error) {}
     try {
       const permission = await window.navigator.permissions.query({ name: 'clipboard-read' });
       if(permission.state === 'denied') {
@@ -985,7 +1010,9 @@ export default function ChatRoom({ id, translate }) {
   onPasted = async evt => {
     if(new Date().getTime() - keyboardTimeout > 2000) {
       keyboardTimeout = new Date().getTime();
-      pasteImage().then(({ ok, message, data }) => {
+      /** @type {{ kind: string, type: string, getAsFile: () => Blob }} */
+      const items = (evt.clipboardData || evt.originalEvent.clipboardData).items;
+      pasteImage(items).then(({ ok, message, data }) => {
         if(ok && utility.isBase64StringValid(data.base64)) {
           setChat(chat => {
             return { ...chat, screenshot: data, input: '' };
@@ -994,8 +1021,6 @@ export default function ChatRoom({ id, translate }) {
             return { ...current, isCopyPasteDisplayed: true };
           });
         }
-      }).catch(error => {
-        console.error(error);
       });
     }
   },
@@ -1164,11 +1189,15 @@ export default function ChatRoom({ id, translate }) {
       {/* CHAT CLIPBOARD */}
       <ChatCopyPasteModal open={uiProperty.isCopyPasteDisplayed} translate={translate} handleClose={() => {
         setUiProperty({ ...uiProperty, isCopyPasteDisplayed: false });
-      } } clipboard={chat.screenshot} handleSubmit={sendChatMessage} />
+      } } clipboard={chat.screenshot} handleSubmit={sendChatMessage} changeNote={note => {
+        setChat({ ...chat, screenshot: { ...chat.screenshot, note } });
+      }} />
+      {/* CHAT PREVIEW */}
+      <ChatPreviewImageModal open={uiProperty.isPreviewDisplayed} translate={translate} handleClose={() => {
+        setUiProperty({ ...uiProperty, isPreviewDisplayed: false });
+      } } data={uiProperty.previewUrl} />
       {/* CHAT ERROR */}
-      <ChatErrorModal open={uiProperty.error.code > 0} translate={translate} handleClose={() => {
-        setUiProperty({ ...uiProperty, error: { code: 0, message: '' } });
-      }} message={uiProperty.error.message} handleBack={goBackHome} />
+      <ChatErrorModal open={uiProperty.error.code > 0} translate={translate} message={uiProperty.error.message} handleBack={goBackHome} />
 
       {/* CHAT HISTORY + SCREEN SHARE */}
       <Box
@@ -1305,7 +1334,9 @@ export default function ChatRoom({ id, translate }) {
                   if(hasTime) {
                     lastCheckTime = x.time;
                   }
-                  return <ChatFormat key={x.id} payload={x} isMe={x.from.id === me.id} isToMe={x.to.id === me.id} hasTime={hasTime} displayTime={displayTime} selectUser={selectUser} />;
+                  return <ChatFormat key={x.id} payload={x} isMe={x.from.id === me.id} isToMe={x.to.id === me.id} hasTime={hasTime} displayTime={displayTime} selectUser={selectUser} openPreview={data => {
+                    setUiProperty({ ...uiProperty, previewUrl: data.base64, isPreviewDisplayed: true });
+                  }} />;
                 } ) }
                 <div className={styles['chat-bottom']} ref={chatHistoryRef}></div>
               </div>

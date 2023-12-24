@@ -60,12 +60,15 @@ export class ClipboardData {
   type = '';
   /** @type {string} */
   base64 = '';
+  /** @type {string} */
+  note = '';
 
   toJSON() {
     return {
       url: this.url,
       type: this.type,
-      base64: this.base64
+      base64: this.base64,
+      note: this.note
     }
   }
 }
@@ -105,6 +108,8 @@ export class UIProperty {
   /** @type {boolean} */
   isCopyPasteDisplayed = false;
   /** @type {boolean} */
+  isPreviewDisplayed = false;
+  /** @type {boolean} */
   isScrolling = true;
   /** @type {boolean} */
   isPlayingLocalVideo = false;
@@ -121,6 +126,9 @@ export class UIProperty {
   /** @type {{ isEmojiDisplayed: boolean }} */
   status = new UIStatus();
 
+  /** @type {string} */
+  previewUrl = '';
+
   toJSON() {
     return {
       isProfileDisplayed: this.isProfileDisplayed,
@@ -128,6 +136,7 @@ export class UIProperty {
       isUserListDisplayed: this.isUserListDisplayed,
       isSettingsDisplayed: this.isSettingsDisplayed,
       isCopyPasteDisplayed: this.isCopyPasteDisplayed,
+      isPreviewDisplayed: this.isPreviewDisplayed,
       //
       isScrolling: this.isScrolling,
       isPlayingLocalVideo: this.isPlayingLocalVideo,
@@ -136,6 +145,8 @@ export class UIProperty {
       //
       videoStatus: this.videoStatus,
       audioStatus: this.audioStatus,
+      //
+      previewUrl: this.previewUrl,
       //
       error: this.error.toJSON(),
       status: this.status.toJSON(),

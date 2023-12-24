@@ -1,4 +1,5 @@
 'use client';
+
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Typography from '@mui/joy/Typography';
@@ -8,7 +9,7 @@ import Button from '@mui/joy/Button';
 
 /**
  * Chat error
- * @param {{ open: boolean, handleClose: (evt) => void, translate: (str: string) => string, handleBack: () => void }} param0 Props
+ * @param {{ open: boolean, translate: (str: string) => string, handleBack: () => void }} param0 Props
  * @returns {() => Modal} Returns Modal
  */
 export const ChatErrorModal = ({ open, message, translate, handleBack }) => {

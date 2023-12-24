@@ -206,6 +206,7 @@ class Utility {
     }
     return 0;
   }
+
   /**
    * Request fullscreen
    * @param {HTMLElement} dom Element to request fullscreen
