@@ -28,7 +28,7 @@ export const ChatPreviewImageModal = ({ open, data, handleClose, translate }) =>
         layout='fullscreen'
       >
         <ModalClose />
-        <Typography id="modal-dialog-overflow-title" level="h2">
+        <Typography id="basic-modal-dialog-title" level="h2">
           { translate('预览') }
         </Typography>
 
