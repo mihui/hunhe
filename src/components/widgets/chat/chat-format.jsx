@@ -1,6 +1,9 @@
 'use client';
+import { utility } from '@/components/helpers/utility';
 import { All, ChatRecord } from '@/components/models/user';
 import styles from '@/styles/chat.module.scss';
+import { AspectRatio } from '@mui/joy';
+import { Card } from '@mui/joy';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
@@ -30,7 +33,7 @@ export const ChatFormat = ({ payload, isMe, isToMe, hasTime, displayTime, select
           selectUser(payload.to);
         }}></a>
           </>}
-        <Markdown remarkPlugins={[ remarkGfm ]} rehypePlugins={[rehypeRaw]} className={styles['message']}>{payload.message}</Markdown>
+        { utility.isBase64StringValid(payload.screenshot.base64) ? <Card className={styles['screenshot']} sx={{ width: 320 }}><AspectRatio minHeight="120px" maxHeight="200px"><img src={payload.screenshot.base64} /></AspectRatio></Card> : <Markdown remarkPlugins={[ remarkGfm ]} rehypePlugins={[rehypeRaw]} className={styles['message']}>{payload.message}</Markdown> }
       </div>
     </>
   );

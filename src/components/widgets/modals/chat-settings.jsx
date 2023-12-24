@@ -18,7 +18,6 @@ import { Device, Media } from '@/components/models/meeting';
 import { useEffect, useRef, useState } from 'react';
 import { storage, utility } from '@/components/helpers/utility';
 import { StorageKeys } from '@/components/config/vars';
-import { chatService } from '@/components/services/chat';
 import { User } from '@/components/models/user';
 
 /**
@@ -29,7 +28,7 @@ import { User } from '@/components/models/user';
  *  setVars: (vars: { audio: Media, screen: Media, output: Media, status: { emoji: string }, devices: Array<Device> }) => void,
  *  handleClose: () => void, handleSpeakerChange: (deviceId: string) => void, translate: (str: string) => string,
  *  refreshDevices: () => void
- * }} param0 Props
+ * }} props Props
  * @returns {HTMLDivElement} Returns HTML
  */
 export const ChatSettingsModal = ({ open, vars, setVars, me, refreshDevices, handleSpeakerChange, handleClose, translate }) => {

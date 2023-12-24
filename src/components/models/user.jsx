@@ -1,4 +1,4 @@
-import { DEFAULTS, STATUS } from './meeting';
+import { ClipboardData, DEFAULTS, STATUS } from './meeting';
 
 export const ChatModes = {
   Private: 'Private',
@@ -109,6 +109,8 @@ export class All extends User {
 export class ChatPayload {
   /** @type {string} */
   input = '';
+  /** @type {ClipboardData} */
+  screenshot = new ClipboardData().toJSON();
   /** @type {User} */
   to = new All();
   /** @type {string} */
@@ -116,7 +118,8 @@ export class ChatPayload {
 
   toJSON() {
     return {
-      input: '',
+      input: this.input,
+      screenshot: this.screenshot,
       mode: this.mode,
       to: {
         id: this.to.id,
@@ -134,6 +137,8 @@ export class ChatRecord {
   id;
   /** @type {string} */
   message;
+  /** @type {ClipboardData} */
+  screenshot;
   /** @type {User} */
   from;
   /** @type {User} */

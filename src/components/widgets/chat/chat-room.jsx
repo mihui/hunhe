@@ -46,15 +46,16 @@ import { Events, beeper, storage, utility } from '@/components/helpers/utility';
 import { CustomCodes, ROOMS, StorageKeys } from '@/components/config/vars';
 import { ChatLinkModal } from '@/components/widgets/modals/chat-link';
 import { ChatFormat } from '@/components/widgets/chat/chat-format';
-import { UserStream, DEFAULTS, Device, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER, PEER_STATUS, STATUS, UIProperty } from '@/components/models/meeting';
+import { UserStream, DEFAULTS, Device, EMOJIS, Media, Meeting, NOTIFICATION_STYLES, PEER, PEER_STATUS, STATUS, UIProperty, ClipboardData } from '@/components/models/meeting';
 import { MediaStatus, chatService, streamService } from '@/components/services/chat';
 import { ChatErrorModal } from '../modals/chat-error';
 import { ChatSettingsModal } from '../modals/chat-settings';
 import { ChatTarget } from './chat-target';
+import { ChatCopyPasteModal } from '../modals/chat-copy-paste';
 
 /**
  * Chatroom
- * @param {{ id: string, translate: (string) => string }} param0 Props
+ * @param {{ id: string, translate: (str: string) => string }} param0 Props
  */
 export default function ChatRoom({ id, translate }) {
   const router = useRouter();
@@ -480,12 +481,13 @@ export default function ChatRoom({ id, translate }) {
       // }
       setChatUsers([ new All(translate) ].concat(uniqueUsers));
     },
-    /** @type {(id: string, fromUser: User, data: { to: User, message: string }) => void} */
+    /** @type {(id: string, fromUser: User, data: { to: User, message: string, screenshot: ClipboardData }) => void} */
     onUserMessage: (id, fromUser, data) => {
       /** @type {ChatRecord} */
       const chatRecord = {
         id,
         message: data.message,
+        screenshot: data.screenshot,
         from: fromUser, to: data.to,
         time: new Date()
       };
@@ -700,19 +702,20 @@ export default function ChatRoom({ id, translate }) {
     return {
       id: crypto.randomUUID(),
       message: chat.input.trim(),
+      screenshot: chat.screenshot,
       mode: chat.mode,
       to: chat.to
     }
   },
-  sendChatMessage = async () => {
-    if(chat.input.length > 0 && isChatting === false && isSocketReady) {
+  sendChatMessage = () => {
+    if((chat.input.length > 0 || utility.isBase64StringValid(chat.screenshot.base64)) && isChatting === false && isSocketReady) {
       setIsChatting(true);
       if(streamService.getWebSocket().disconnected) {
         streamService.getWebSocket().connect();
         return notifyHeader('正在尝试重新连接', NOTIFICATION_STYLES.WARNING);
       }
       const payload = generateMessage();
-      setChat({ ...chat, input: '' });
+      setChat({ ...chat, input: '', screenshot: '' });
       streamService.getWebSocket().emit('server:user:message', payload, () => {
         setIsChatting(false);
       });
@@ -853,7 +856,7 @@ export default function ChatRoom({ id, translate }) {
     }
     changeStatus();
   },
-  selectUser = (to) => {
+  selectUser = to => {
     setChat({ ...chat, to });
     focusInput();
   },
@@ -902,6 +905,7 @@ export default function ChatRoom({ id, translate }) {
     }
   }, [me.id, uiProperty.videoStatus]);
 
+  let keyboardTimeout = 0;
   const refreshDevices = () => {
     // Find browser supported devices
     utility.getDevices().then(systemDevices => {
@@ -926,12 +930,84 @@ export default function ChatRoom({ id, translate }) {
     }
     changeStatus();
   },
-  handleVisibility = (listen = true) => {
+  /**
+   * Read image
+   * @type {() => Promise<{ ok: boolean, message: string, data: ClipboardData }>} Returns pasted image data
+   */
+  readImage = async () => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const clipboardContents = await navigator.clipboard.read();
+        for (const item of clipboardContents) {
+          for(const type of [ 'image/png', 'image/jpg', 'image/jepg' ]) {
+            if (item.types.includes(type)) {
+              const blob = await item.getType(type);
+              const reader = new FileReader();
+              reader.readAsDataURL(blob);
+              reader.onloadend = () => {
+                const base64 = reader.result;
+                return resolve({ ok: true, message: translate('粘贴成功'), data: { url: URL.createObjectURL(blob), type, base64 } });
+              };
+            } // end of supported clipboard item types
+          } // end loop of types
+        } // end loop of clipboard contents
+      }
+      catch(error) {
+        return reject({ ok: false, message: translate(error.message) });
+      }
+    });
+  },
+  /**
+   * Paste image
+   * @type {() => Promise<{ ok: boolean, message: string, data: ClipboardData }>} Returns pasted image data
+   */
+  pasteImage = async () => {
+    try {
+      const permission = await window.navigator.permissions.query({ name: 'clipboard-read' });
+      if(permission.state === 'denied') {
+        return { ok: false, message: translate('剪贴板权限错误') };
+      }
+    }
+    catch(error) {
+      return { ok: false, message: translate('不允许粘贴') };
+    }
+    //
+    finally {
+      try {
+        return await readImage();
+      }
+      catch(error) {
+        return { ok: false, message: translate('剪贴板错误') };
+      }
+    }
+  },
+  /** @type {(evt: Event) => void} */
+  onPasted = async evt => {
+    if(new Date().getTime() - keyboardTimeout > 2000) {
+      keyboardTimeout = new Date().getTime();
+      pasteImage().then(({ ok, message, data }) => {
+        if(ok && utility.isBase64StringValid(data.base64)) {
+          setChat(chat => {
+            return { ...chat, screenshot: data, input: '' };
+          });
+          setUiProperty(current => {
+            return { ...current, isCopyPasteDisplayed: true };
+          });
+        }
+      }).catch(error => {
+        console.error(error);
+      });
+    }
+  },
+  /** @type {(listen: boolean) => void} */
+  bindWindowEvents = (listen = true) => {
     if(listen) {
       document.addEventListener('visibilitychange', onVisibilityChanged);
+      window.addEventListener('paste', onPasted);
     }
     else {
       document.removeEventListener('visibilitychange', onVisibilityChanged);
+      window.removeEventListener('paste', onPasted);
     }
   };
 
@@ -984,7 +1060,7 @@ export default function ChatRoom({ id, translate }) {
 
     refreshDevices();
 
-    handleVisibility();
+    bindWindowEvents();
 
     setIsActive(true);
 
@@ -1001,7 +1077,7 @@ export default function ChatRoom({ id, translate }) {
       stopAudio();
       setIsReconnect(false);
 
-      handleVisibility(false);
+      bindWindowEvents(false);
       setIsActive(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1085,6 +1161,10 @@ export default function ChatRoom({ id, translate }) {
       <ChatLinkModal user={me} open={uiProperty.isLinkDisplayed} translate={translate} handleClose={() => {
         setUiProperty({ ...uiProperty, isLinkDisplayed: false });
       } } meeting={meeting} setMeeting={setMeeting} handleMeeting={onMeetingUpdate} />
+      {/* CHAT CLIPBOARD */}
+      <ChatCopyPasteModal open={uiProperty.isCopyPasteDisplayed} translate={translate} handleClose={() => {
+        setUiProperty({ ...uiProperty, isCopyPasteDisplayed: false });
+      } } clipboard={chat.screenshot} handleSubmit={sendChatMessage} />
       {/* CHAT ERROR */}
       <ChatErrorModal open={uiProperty.error.code > 0} translate={translate} handleClose={() => {
         setUiProperty({ ...uiProperty, error: { code: 0, message: '' } });

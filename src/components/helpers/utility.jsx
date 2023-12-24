@@ -224,6 +224,16 @@ class Utility {
     catch(error) {}
     return false;
   }
+
+  /**
+   * Determine if the Clipboard data is good
+   * @param {string} base64 Base64 string
+   * @returns {boolean} Returns value to indicate if the base64 string is valid
+   */
+  isBase64StringValid(base64) {
+    return /^data:image\/\w+;base64,.+/i.test(base64);
+  }
+
 }
 
 export const Events = {

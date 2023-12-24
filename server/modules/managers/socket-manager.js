@@ -295,12 +295,12 @@ class SocketManager {
 
     socket.on('server:user:message',
       /**
-       * @param {{ id: string, to: ChatUser, mode: string, message: string }} data Chat data
+       * @param {{ id: string, to: ChatUser, mode: string, message: string, screenshot: string }} data Chat data
        * @param {(error: boolean) => void} ack Ack
        */
       async (data, ack) => {
         // Request send
-        const { id, to, message, mode } = data;
+        const { id, to, message, screenshot, mode } = data;
         /** @type {ChatUser} */
         const fromUser = socket.data;
         const rooms = this.getRooms(mode, to.id, fromUser.id, fromUser.room);

@@ -82,7 +82,7 @@
       opacity: 0.9;
       z-index: 20;
       height: 100%;
-      
+
       ul {
         overflow: auto;
         list-style: none;
@@ -227,7 +227,7 @@
       position: relative;
       -ms-overflow-style: none;
       scrollbar-width: none;
-      &::-webkit-scrollbar{
+      &::-webkit-scrollbar {
         display: none;
       }
       .chat-time {
@@ -272,12 +272,19 @@
           max-width: 80%;
           border-radius: var(--border-radius);
           border: 1px solid #ddd;
-          box-shadow: 1px 1px 1px #bfbfbf;
+          box-shadow: var(--box-shadow-message);
+        }
+        .screenshot {
+          cursor: pointer;
+          box-shadow: var(--box-shadow-message);
+          &.maximized {
+            width: 100%;
+          }
         }
         &.target {
-          .message {
+          .message, .screenshot {
             border-color: cornflowerblue;
-            box-shadow: 1px 1px 2px cornflowerblue;
+            box-shadow: var(--box-shadow-target);
           }
         }
         p {

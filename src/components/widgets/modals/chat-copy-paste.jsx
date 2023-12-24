@@ -9,16 +9,18 @@ import ModalClose from '@mui/joy/ModalClose';
 import Typography from '@mui/joy/Typography';
 import Stack from '@mui/joy/Stack';
 import Input from '@mui/joy/Input';
+import AspectRatio from '@mui/joy/AspectRatio';
+import Card from '@mui/joy/Card';
+
+import { ClipboardData } from '@/components/models/meeting';
 import { useState } from 'react';
-import { User } from '../../models/user';
-import Avatar from '@mui/joy/Avatar';
 
 /**
- * Chat user information
- * @param {{ open: boolean, user: User, handleClose: () => void }} props Props
+ * Chat clipboard
+ * @param {{ open: boolean, clipboard: ClipboardData, handleClose: () => void, handleSubmit: () => void, translate: (str: string) => string }} props Props 
  * @returns {() => Modal} Returns modal instance
  */
-export const ChatUserModal = ({ open, user, handleClose, translate }) => {
+export const ChatCopyPasteModal = ({ open, clipboard, isChatting, handleClose, handleSubmit, translate }) => {
 
   return (
     <Modal open={open} onClose={handleClose}>
@@ -28,28 +30,24 @@ export const ChatUserModal = ({ open, user, handleClose, translate }) => {
       >
         <ModalClose />
         <Typography id="basic-modal-dialog-title" level="h2">
-          { translate('简介') }
+          { translate('预览') }
         </Typography>
         <form
           onSubmit={(event) => {
             event.preventDefault();
+            if(isChatting) return;
+            handleSubmit();
             handleClose();
           }}
         >
           <Stack spacing={2}>
-            <FormControl>
-              <FormLabel>{ translate('昵称') }</FormLabel>
-              <Input autoFocus readOnly value={user.name} />
-            </FormControl>
-            <FormControl>
-              <FormLabel>{ translate('形象') }</FormLabel>
-              <Avatar src={user.avatar} />
-            </FormControl>
-            <FormControl>
-              <FormLabel>{ translate('编号') }</FormLabel>
-              <Input autoFocus readOnly value={user.id} />
-            </FormControl>
-            <Button type="submit">{ translate('关闭') }</Button>
+            <Card sx={{ width: 320 }}>
+              <AspectRatio minHeight="120px" maxHeight="200px">
+                <img src={clipboard.url} loading="lazy" alt={clipboard.type} />
+              </AspectRatio>
+            </Card>
+
+            <Button type="submit" disabled={isChatting}>{ translate('发送') }</Button>
           </Stack>
         </form>
       </ModalDialog>

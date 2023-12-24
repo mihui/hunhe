@@ -53,6 +53,23 @@ export class Media {
   stream;
 }
 
+export class ClipboardData {
+  /** @type {string} */
+  url = '';
+  /** @type {string} */
+  type = '';
+  /** @type {string} */
+  base64 = '';
+
+  toJSON() {
+    return {
+      url: this.url,
+      type: this.type,
+      base64: this.base64
+    }
+  }
+}
+
 export class UIError {
   /** @type {number} */
   code = 0;
@@ -86,6 +103,8 @@ export class UIProperty {
   /** @type {boolean} */
   isSettingsDisplayed = false;
   /** @type {boolean} */
+  isCopyPasteDisplayed = false;
+  /** @type {boolean} */
   isScrolling = true;
   /** @type {boolean} */
   isPlayingLocalVideo = false;
@@ -108,6 +127,8 @@ export class UIProperty {
       isLinkDisplayed: this.isLinkDisplayed,
       isUserListDisplayed: this.isUserListDisplayed,
       isSettingsDisplayed: this.isSettingsDisplayed,
+      isCopyPasteDisplayed: this.isCopyPasteDisplayed,
+      //
       isScrolling: this.isScrolling,
       isPlayingLocalVideo: this.isPlayingLocalVideo,
       isPlayingRemoteVideo: this.isPlayingRemoteVideo,
