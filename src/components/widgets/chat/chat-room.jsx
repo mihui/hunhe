@@ -936,13 +936,17 @@ export default function ChatRoom({ id, translate }) {
     return new Promise((resolve, reject) => {
       try {
         for (const item of items) {
-          const blob = item.getAsFile();
-          const reader = new FileReader();
-          reader.readAsDataURL(blob);
-          reader.onloadend = () => {
-            const base64 = reader.result;
-            return resolve({ ok: true, message: translate('粘贴成功'), data: { url: URL.createObjectURL(blob), type: item.type, base64 } });
-          };
+          if(item.type.startsWith('image')) {
+            const blob = item.getAsFile();
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => {
+              return resolve({ ok: true, message: translate('粘贴成功'), data: { url: URL.createObjectURL(blob), type: item.type, base64: reader.result } });
+            };
+          }
+          else {
+            return reject({ ok: false, message: translate('不支持的剪贴板类型') });
+          }
         }
       }
       catch(error) {
@@ -960,21 +964,25 @@ export default function ChatRoom({ id, translate }) {
       try {
         const clipboardContents = await navigator.clipboard.read();
         for (const item of clipboardContents) {
-          for(const type of [ 'image/png', 'image/jpg', 'image/jepg' ]) {
-            if (item.types.includes(type)) {
-              const blob = await item.getType(type);
+          const imageTypes = item.types.filter(x => x.startsWith('image'));
+          if (imageTypes.length > 0) {
+            for(const imageType of imageTypes) {
+              const blob = await item.getType(imageType);
               const reader = new FileReader();
               reader.readAsDataURL(blob);
               reader.onloadend = () => {
                 const base64 = reader.result;
                 return resolve({ ok: true, message: translate('粘贴成功'), data: { url: URL.createObjectURL(blob), type, base64 } });
               };
-            } // end of supported clipboard item types
-          } // end loop of types
+            }
+          } // end of supported clipboard item types
+          else {
+            return reject({ ok: false, message: translate('不支持的剪贴板类型') });
+          }
         } // end loop of clipboard contents
       }
       catch(error) {
-        return reject({ ok: false, message: translate(error.message) });
+        return reject({ ok: false, message: translate('不支持粘贴') });
       }
     });
   },
@@ -984,7 +992,7 @@ export default function ChatRoom({ id, translate }) {
    */
   pasteImage = async (items) => {
     try {
-      return readItems(items);
+      return await readItems(items);
     }
     catch(error) {}
     try {
