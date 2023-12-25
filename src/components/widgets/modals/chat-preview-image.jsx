@@ -19,7 +19,7 @@ import Image from 'next/image';
 export const ChatPreviewImageModal = ({ open, data, handleClose, translate }) => {
 
   return (
-    <Modal open={open} onClose={handleClose} sx={{ opacity: 0.87 }} onClick={evt => {
+    <Modal open={open} onClose={handleClose} onClick={evt => {
       handleClose();
     }}>
       <ModalDialog
