@@ -864,9 +864,9 @@ export default function ChatRoom({ id, translate }) {
   setAudioOutput = (audioDeviceId, saveStorage = true) => {
     if(typeof (chatAudio.setSinkId) === 'function') {
       Promise.all([ chatAudio.setSinkId(audioDeviceId), notifyAudio.setSinkId(audioDeviceId) ]).catch(error => {
-        console.warn('### SET DEVICE ERROR ###');
-        console.warn(error);
-        console.warn(audioDeviceId);
+        // console.warn('### SET DEVICE ERROR ###');
+        // console.warn(error);
+        // console.warn(audioDeviceId);
       }).then(() => {
         if(saveStorage) {
           setVars({ ...vars, output: { ...vars.output, id: audioDeviceId } });
@@ -874,9 +874,9 @@ export default function ChatRoom({ id, translate }) {
         }
       });
     }
-    else {
-      console.warn('### SET DEVICE ERROR ###');
-    }
+    // else {
+    //   console.warn('### SET DEVICE ERROR ###');
+    // }
   };
 
   // Handle join screen sharing
