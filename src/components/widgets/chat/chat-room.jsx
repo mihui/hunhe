@@ -40,7 +40,7 @@ import Typography from '@mui/joy/Typography';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { User, ChatPayload, ChatRecord, All, Kinds } from '@/components/models/user';
+import { User, ChatPayload, ChatRecord, All, Kinds, ChatAttachment, MessageTypes, MessageStatus } from '@/components/models/user';
 import { ChatUserModal } from '@/components/widgets/modals/chat-user';
 import { Events, beeper, storage, utility } from '@/components/helpers/utility';
 import { CustomCodes, ROOMS, StorageKeys } from '@/components/config/vars';
@@ -345,6 +345,41 @@ export default function ChatRoom({ id, translate }) {
   }, notifyReconnection = () => {
       setIsReconnect(false);
       notifyHeader(isReconnect ? '重新连接成功' : '');
+  },
+  /** @type {(id: string, fromUser: User, data: { to: User, type: number, message: string, attachment: ChatAttachment }, status: number) => void} */
+  constructMessage = (id, fromUser, data, status) => {
+    /** @type {ChatRecord} */
+    const chatRecord = {
+      id, type: data.type,
+      message: data.message,
+      attachment: data.attachment,
+      from: fromUser, to: data.to,
+      time: new Date(),
+      status
+    };
+    if(chatRecord.to.id === me.id && chatRecord.from.id !== me.id) {
+      notifyUser(chatRecord.from.name, chatRecord.message, chatRecord.from.avatar);
+    }
+    if(utility.isBinary(chatRecord.type)) {
+      const blob = new Blob([ chatRecord.attachment.binary ]);
+      chatRecord.attachment.url = URL.createObjectURL(blob);
+    }
+
+    const isNewMessage = document.getElementById(id) === null;
+    if(isNewMessage) {
+      setChatHistory(x => [ ...x, chatRecord ]);
+    }
+    else {
+      setChatHistory(prevChatHistory => {
+        const newHistory = prevChatHistory.map(x => {
+          if(x.id === id) {
+            return { ...x, status: MessageStatus.Sent, time: new Date() };
+          }
+          return x;
+        });
+        return newHistory;
+      });
+    }
   };
 
   const socketEvents = {
@@ -482,20 +517,9 @@ export default function ChatRoom({ id, translate }) {
       // }
       setChatUsers([ new All(translate) ].concat(uniqueUsers));
     },
-    /** @type {(id: string, fromUser: User, data: { to: User, message: string, screenshot: ClipboardData }) => void} */
+    /** @type {(id: string, fromUser: User, data: { to: User, type: number, message: string, attachment: ChatAttachment }) => void} */
     onUserMessage: (id, fromUser, data) => {
-      /** @type {ChatRecord} */
-      const chatRecord = {
-        id,
-        message: data.message,
-        screenshot: data.screenshot,
-        from: fromUser, to: data.to,
-        time: new Date()
-      };
-      if(chatRecord.to.id === me.id && chatRecord.from.id !== me.id) {
-        notifyUser(chatRecord.from.name, chatRecord.message, chatRecord.from.avatar);
-      }
-      setChatHistory(x => [ ...x, chatRecord ]);
+      constructMessage(id, fromUser, data, MessageStatus.Sent);
     },
     /** @type {(user: User, newMeeting: Meeting) => void} */
     onMeetingUpdated: (user, newMeeting) => {
@@ -699,26 +723,37 @@ export default function ChatRoom({ id, translate }) {
       return `${prefix}${id}`;
     return id.replace(prefix, '');
   },
-  generateMessage = () => {
-    return {
+  generateMessage = async () => {
+    /** @type {{ id: string, type: number, message: string, mode: string, to: User, attachment: { note: string, binary: ArrayBuffer } }} */
+    const payload = {
       id: crypto.randomUUID(),
+      type: chat.type,
       message: chat.input.trim(),
-      screenshot: chat.screenshot,
       mode: chat.mode,
       to: chat.to
+    };
+
+    if(utility.isBinary(chat.type)) {
+      const response = await fetch(chat.attachment.base64);
+      payload.attachment = {
+        binary: await response.arrayBuffer(),
+        note: chat.attachment.note
+      };
     }
+    return payload;
   },
-  sendChatMessage = () => {
-    if((chat.input.length > 0 || utility.isBase64StringValid(chat.screenshot.base64)) && isChatting === false && isSocketReady) {
+  sendChatMessage = async () => {
+    if((chat.input.length > 0 || utility.isBase64StringValid(chat.attachment.base64)) && isChatting === false && isSocketReady) {
       setIsChatting(true);
       if(streamService.getWebSocket().disconnected) {
         streamService.getWebSocket().connect();
         return notifyHeader('正在尝试重新连接', NOTIFICATION_STYLES.WARNING);
       }
-      const payload = generateMessage();
-      setChat({ ...chat, input: '', screenshot: { base64: '', note: '' } });
+      const payload = await generateMessage();
+      constructMessage(payload.id, me, { to: payload.to, type: payload.type, message: payload.message, attachment: payload.attachment }, MessageStatus.Sending);
+      setChat({ ...chat, input: '', attachment: { base64: '', note: '' }, type: MessageTypes.Text });
       streamService.getWebSocket().emit('server:user:message', payload, () => {
-        setIsChatting(false);
+        setIsChatting(false); // Ack
       });
     }
     focusInput();
@@ -941,7 +976,7 @@ export default function ChatRoom({ id, translate }) {
             const reader = new FileReader();
             reader.readAsDataURL(blob);
             reader.onloadend = () => {
-              return resolve({ ok: true, message: translate('粘贴成功'), data: { url: URL.createObjectURL(blob), type: item.type, base64: reader.result } });
+              return resolve({ ok: true, message: translate('粘贴成功'), data: { url: URL.createObjectURL(blob), base64: reader.result, note: '' } });
             };
           }
           else {
@@ -971,8 +1006,7 @@ export default function ChatRoom({ id, translate }) {
               const reader = new FileReader();
               reader.readAsDataURL(blob);
               reader.onloadend = () => {
-                const base64 = reader.result;
-                return resolve({ ok: true, message: translate('粘贴成功'), data: { url: URL.createObjectURL(blob), type, base64 } });
+                return resolve({ ok: true, message: translate('粘贴成功'), data: { url: URL.createObjectURL(blob), base64: reader.result, note: '' } });
               };
             }
           } // end of supported clipboard item types
@@ -1022,9 +1056,15 @@ export default function ChatRoom({ id, translate }) {
       const items = (evt.clipboardData || evt.originalEvent.clipboardData).items;
       pasteImage(items).then(({ ok, message, data }) => {
         if(ok && utility.isBase64StringValid(data.base64)) {
-          setChat(chat => {
-            return { ...chat, screenshot: data, input: '' };
-          });
+          setChat(
+            /**
+             * @param {ChatPayload} chat Chat
+             * @returns {void}
+             */
+            chat => {
+              return { ...chat, type: MessageTypes.Binary, attachment: data, input: '' };
+            }
+          );
           setUiProperty(current => {
             return { ...current, isCopyPasteDisplayed: true };
           });
@@ -1197,9 +1237,9 @@ export default function ChatRoom({ id, translate }) {
       {/* CHAT CLIPBOARD */}
       <ChatCopyPasteModal open={uiProperty.isCopyPasteDisplayed} translate={translate} handleClose={() => {
         setUiProperty({ ...uiProperty, isCopyPasteDisplayed: false });
-      } } clipboard={chat.screenshot} handleSubmit={sendChatMessage} changeNote={note => {
-        setChat({ ...chat, screenshot: { ...chat.screenshot, note } });
-      }} />
+      } } clipboard={chat.attachment} handleSubmit={sendChatMessage} changeNote={note => {
+        setChat({ ...chat, attachment: { ...chat.attachment, note } });
+      }} isChatting={isLoading} />
       {/* CHAT PREVIEW */}
       <ChatPreviewImageModal open={uiProperty.isPreviewDisplayed} translate={translate} handleClose={() => {
         setUiProperty({ ...uiProperty, isPreviewDisplayed: false });
@@ -1343,7 +1383,7 @@ export default function ChatRoom({ id, translate }) {
                     lastCheckTime = x.time;
                   }
                   return <ChatFormat key={x.id} payload={x} isMe={x.from.id === me.id} isToMe={x.to.id === me.id} hasTime={hasTime} displayTime={displayTime} selectUser={selectUser} openPreview={data => {
-                    setUiProperty({ ...uiProperty, previewUrl: data.base64, isPreviewDisplayed: true });
+                    setUiProperty({ ...uiProperty, previewUrl: data.url, isPreviewDisplayed: true });
                   }} />;
                 } ) }
                 <div className={styles['chat-bottom']} ref={chatHistoryRef}></div>

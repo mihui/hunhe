@@ -11,6 +11,16 @@ export const Kinds = {
   ALL: 3,
 };
 
+export const MessageTypes = {
+  Text: 0,
+  Binary: 1
+};
+
+export const MessageStatus = {
+  Sending: 0,
+  Sent: 1
+};
+
 export class Device {
   /** @type {boolean} */
   enabled;
@@ -106,11 +116,30 @@ export class All extends User {
   }
 }
 
+export class ChatAttachment {
+  /** @type {string} */
+  url = '';
+  /** @type {Buffer} */
+  binary = null;
+  /** @type {string} */
+  note = '';
+
+  toJSON() {
+    return {
+      url: this.url,
+      binary: this.binary,
+      note: this.note
+    }
+  }
+}
+
 export class ChatPayload {
   /** @type {string} */
   input = '';
+  /** @type {number} */
+  type = MessageTypes.Text;
   /** @type {ClipboardData} */
-  screenshot = new ClipboardData().toJSON();
+  attachment = new ClipboardData().toJSON();
   /** @type {User} */
   to = new All();
   /** @type {string} */
@@ -119,7 +148,8 @@ export class ChatPayload {
   toJSON() {
     return {
       input: this.input,
-      screenshot: this.screenshot,
+      type: this.type,
+      attachment: this.attachment,
       mode: this.mode,
       to: {
         id: this.to.id,
@@ -135,16 +165,20 @@ export class ChatPayload {
 export class ChatRecord {
   /** @type {string} Client Chat ID */
   id;
+  /** @type {number} */
+  type;
   /** @type {string} */
   message;
-  /** @type {ClipboardData} */
-  screenshot;
+  /** @type {ChatAttachment} */
+  attachment;
   /** @type {User} */
   from;
   /** @type {User} */
   to;
   /** @type {number} */
   time;
+  /** @type {number} */
+  status;
 }
 
 export class ChatMessage {

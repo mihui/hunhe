@@ -1,7 +1,7 @@
 'use client';
 import { utility } from '@/components/helpers/utility';
 import { ClipboardData } from '@/components/models/meeting';
-import { All, ChatRecord, User } from '@/components/models/user';
+import { All, ChatRecord, MessageStatus, User } from '@/components/models/user';
 import styles from '@/styles/chat.module.scss';
 import { AspectRatio, CardContent, Typography, Card } from '@mui/joy';
 
@@ -23,6 +23,10 @@ export const ChatFormat = ({ payload, isMe, isToMe, hasTime, displayTime, select
   if(isToMe) {
     classes = classes.concat(' ').concat(styles['target']);
   }
+  if(payload.status === MessageStatus.Sending) {
+    classes = classes.concat(' ').concat(styles['sending']);
+  }
+
   return (
     <>
       { hasTime && <div className={styles['chat-time']}>{displayTime}</div> }
@@ -35,16 +39,16 @@ export const ChatFormat = ({ payload, isMe, isToMe, hasTime, displayTime, select
           selectUser(payload.to);
         }}></a>
           </>}
-        { utility.isBase64StringValid(payload.screenshot.base64) ? <Card className={styles['screenshot']} sx={{ width: 320 }} onClick={evt => {
+        { utility.isBinary(payload.type) ? <Card className={styles['screenshot']} sx={{ width: 320 }} onClick={evt => {
           evt.preventDefault();
           evt.stopPropagation();
-          openPreview(payload.screenshot);
+          openPreview(payload.attachment);
         }}><AspectRatio className={styles['ratio']} minHeight="120px" maxHeight="200px" objectFit='contain'>
-            <Image src={payload.screenshot.base64} alt={payload.screenshot.type} width={320} height={120} />
+            <Image src={payload.attachment.url} alt={payload.attachment.note} width={320} height={120} />
           </AspectRatio>
-          { payload.screenshot.note && <CardContent>
+          { payload.attachment.note && <CardContent>
             <div className={styles['note']}>
-              <Typography level="body-xs">{payload.screenshot.note}</Typography>
+              <Typography level="body-xs">{payload.attachment.note}</Typography>
             </div>
           </CardContent> }
         </Card>

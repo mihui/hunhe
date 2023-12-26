@@ -279,6 +279,9 @@
           box-shadow: var(--box-shadow-message);
           user-select: none;
         }
+        &.sending {
+          opacity: 0.8;
+        }
         &.target {
           .message, .screenshot {
             border-color: cornflowerblue;

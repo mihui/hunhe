@@ -295,17 +295,19 @@ class SocketManager {
 
     socket.on('server:user:message',
       /**
-       * @param {{ id: string, to: ChatUser, mode: string, message: string, screenshot: string }} data Chat data
+       * @param {{ id: string, to: ChatUser, mode: string }} data Chat data
        * @param {(error: boolean) => void} ack Ack
        */
       async (data, ack) => {
         // Request send
-        const { id, to, message, screenshot, mode } = data;
-        /** @type {ChatUser} */
-        const fromUser = socket.data;
-        const rooms = this.getRooms(mode, to.id, fromUser.id, fromUser.room);
-        this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, fromUser, data);
-        if(typeof ack === 'function') ack();
+        const { id, to, mode } = data;
+        if(to) {
+          /** @type {ChatUser} */
+          const fromUser = socket.data;
+          const rooms = this.getRooms(mode, to.id, fromUser.id, fromUser.room);
+          this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, fromUser, data);
+          if(typeof ack === 'function') ack();
+        }
       }
     );
 

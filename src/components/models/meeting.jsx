@@ -57,8 +57,6 @@ export class ClipboardData {
   /** @type {string} */
   url = '';
   /** @type {string} */
-  type = '';
-  /** @type {string} */
   base64 = '';
   /** @type {string} */
   note = '';
@@ -66,7 +64,6 @@ export class ClipboardData {
   toJSON() {
     return {
       url: this.url,
-      type: this.type,
       base64: this.base64,
       note: this.note
     }

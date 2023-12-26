@@ -1,4 +1,5 @@
 import { DEFAULTS, Device } from "../models/meeting";
+import { MessageTypes } from "../models/user";
 
 class Storage {
 
@@ -235,6 +236,14 @@ class Utility {
     return /^data:image\/\w+;base64,.+/i.test(base64);
   }
 
+  /**
+   * Is chat content with binary
+   * @param {number} type Type of chat content
+   * @returns {boolean} Returns true if it is for attachments, false otherwise
+   */
+  isBinary(type) {
+    return type === MessageTypes.Binary;
+  }
 }
 
 export const Events = {
