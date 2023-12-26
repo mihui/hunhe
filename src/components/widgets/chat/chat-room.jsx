@@ -365,9 +365,14 @@ export default function ChatRoom({ id, translate }) {
       chatRecord.attachment.url = URL.createObjectURL(blob);
     }
 
-    const isNewMessage = document.getElementById(id) === null;
+    // const isNewMessage = document.getElementById(id) === null;
+    const isNewMessage = !chatHistoryRef.current.some(message => message.id === id); // Use ref here
     if(isNewMessage) {
-      setChatHistory(x => [ ...x, chatRecord ]);
+      setChatHistory(x => {
+        const updatedChatHistory = [...x, chatRecord];
+        chatHistoryRef.current = updatedChatHistory; // Update ref
+        return updatedChatHistory;
+    });
     }
     else {
       setChatHistory(prevChatHistory => {
@@ -377,6 +382,7 @@ export default function ChatRoom({ id, translate }) {
           }
           return x;
         });
+        chatHistoryRef.current = newHistory; // Update ref
         return newHistory;
       });
     }
@@ -665,6 +671,7 @@ export default function ChatRoom({ id, translate }) {
   const [ uiProperty, setUiProperty ] = useState(new UIProperty().toJSON());
   /** @type {[ chatHistory: Array<ChatRecord>, setChatHistory: (chatHistory: Array<ChatRecord>) => void ]} */
   const [ chatHistory, setChatHistory ] = useState([]);
+  const chatHistoryRef = useRef(chatHistory);
 
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
   const [ chatUsers, setChatUsers ] = useState([]);
@@ -683,7 +690,7 @@ export default function ChatRoom({ id, translate }) {
   /** @type {{ current: HTMLInputElement }} */
   const chatInputRef = useRef(null);
   /** @type {{ current: HTMLDivElement }} */
-  const chatHistoryRef = useRef(null);
+  const chatScrollerRef = useRef(null);
   /** @type {{ current: HTMLVideoElement }} */
   const remoteVideoRef = useRef(null);
   /** @type {{ current: HTMLVideoElement }} */
@@ -704,8 +711,8 @@ export default function ChatRoom({ id, translate }) {
    * Scroll to bottom
    */
   scrollToBottom = () => {
-    if(chatHistoryRef && chatHistoryRef.current)
-      chatHistoryRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    if(chatScrollerRef && chatScrollerRef.current)
+      chatScrollerRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
   };
   const focusInput = () => {
     if(chatInputRef.current) {
@@ -1386,10 +1393,9 @@ export default function ChatRoom({ id, translate }) {
                     setUiProperty({ ...uiProperty, previewUrl: data.url, isPreviewDisplayed: true });
                   }} />;
                 } ) }
-                <div className={styles['chat-bottom']} ref={chatHistoryRef}></div>
+                <div className={styles['chat-bottom']} ref={chatScrollerRef}></div>
               </div>
             </div>
-
           </div>
 
           {/* User list */}
