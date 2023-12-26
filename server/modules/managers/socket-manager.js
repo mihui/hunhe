@@ -95,7 +95,7 @@ class SocketManager {
 
   async boot(server) {
     if(server) {
-      this.#io = new Server(server, { path: `${VARS.APP_CONTEXT}/api/messaging`, cors: { origin: '*' }, maxHttpBufferSize: 3e7 });
+      this.#io = new Server(server, { path: `${VARS.APP_CONTEXT}/api/messaging`, cors: { origin: '*' }, maxHttpBufferSize: 3e7, pingTimeout: 60000 });
       this.#io.on('connection', (socket) => {
         this.#onConnected(socket);
       });

@@ -365,12 +365,11 @@ export default function ChatRoom({ id, translate }) {
       chatRecord.attachment.url = URL.createObjectURL(blob);
     }
 
-    // const isNewMessage = document.getElementById(id) === null;
-    const isNewMessage = !chatHistoryRef.current.some(message => message.id === id); // Use ref here
+    const isNewMessage = !chatHistoryRef.current.some(message => message.id === id);
     if(isNewMessage) {
       setChatHistory(x => {
         const updatedChatHistory = [...x, chatRecord];
-        chatHistoryRef.current = updatedChatHistory; // Update ref
+        chatHistoryRef.current = updatedChatHistory;
         return updatedChatHistory;
     });
     }
@@ -382,7 +381,7 @@ export default function ChatRoom({ id, translate }) {
           }
           return x;
         });
-        chatHistoryRef.current = newHistory; // Update ref
+        chatHistoryRef.current = newHistory;
         return newHistory;
       });
     }
@@ -671,6 +670,7 @@ export default function ChatRoom({ id, translate }) {
   const [ uiProperty, setUiProperty ] = useState(new UIProperty().toJSON());
   /** @type {[ chatHistory: Array<ChatRecord>, setChatHistory: (chatHistory: Array<ChatRecord>) => void ]} */
   const [ chatHistory, setChatHistory ] = useState([]);
+  /** @type {{ current: Array<ChatRecord> }} */
   const chatHistoryRef = useRef(chatHistory);
 
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
