@@ -1096,6 +1096,7 @@ export default function ChatRoom({ id, translate }) {
     const disposeSocketConnectedEvent = beeper.subscribe(Events.SocketConnected, ({ connected, isReconnect: isSocketReconnect }) => {
       console.log(`### SOCKET CONNECTED: ${connected} ###`);
       if(connected) {
+        setIsChatting(false);
         focusInput();
       }
     });
@@ -1398,8 +1399,8 @@ export default function ChatRoom({ id, translate }) {
             </div>
           </div>
 
-          {/* User list */}
-          { uiProperty.isUserListDisplayed && <div className={styles['chat-users']}>
+          {/* USER LIST */}
+          { isSocketReady && uiProperty.isUserListDisplayed && <div className={styles['chat-users']}>
             <div className={styles['chat-layer']}>
               <ul>
                 { chatUsers.map((user, index) => {
