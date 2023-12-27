@@ -26,6 +26,7 @@ export const ChatCopyPasteModal = ({ open, clipboard, changeNote, isChatting, ha
   const [ note, setNote ] = useState('');
   useEffect(() => {
     changeNote(note);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ note ]);
 
   return (
