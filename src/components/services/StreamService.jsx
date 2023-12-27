@@ -155,14 +155,14 @@ export class StreamService {
   enableTracks(isScreenOnly) {
     if (this.audioStatus === MediaStatus.PUBLISHING) {
       const enabled = (this.isMuted === false && isScreenOnly);
-      const tracks = this.localMediaStream.getTracks();
+      const tracks = this.localMediaStream ? this.localMediaStream.getTracks() : [];
       tracks.forEach(track => {
         track.enabled = enabled;
       });
     }
     if (this.videoStatus === MediaStatus.PUBLISHING) {
       const enabled = this.isMuted === false;
-      const tracks = this.localScreenStream.getTracks();
+      const tracks = this.localScreenStream ? this.localScreenStream.getTracks() : [];
       tracks.forEach(track => {
         if(track.kind === 'audio') {
           track.enabled = enabled;
