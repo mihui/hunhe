@@ -38,7 +38,7 @@ import Button from '@mui/joy/Button';
 import Typography from '@mui/joy/Typography';
 
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { User, ChatPayload, ChatRecord, All, Kinds, ChatAttachment, MessageTypes, MessageStatus } from '@/components/models/user';
 import { ChatUserModal } from '@/components/widgets/modals/chat-user';
@@ -675,6 +675,7 @@ export default function ChatRoom({ id, translate }) {
 
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
   const [ chatUsers, setChatUsers ] = useState([]);
+  const chatUserAmount = useMemo(() => chatUsers.filter(x => x.kind === Kinds.PERSON).length, [ chatUsers ]);
 
   /** @type {[ vars: { audio: Media, video: Media, output: Media, status: { emoji: string }, devices: Array<Device> }, setVars: (vars: { audio: Media, video: Media, output: Media, status: { emoji: string }, devices: Array<Device> }) => void ]} */
   const [ vars, setVars ] = useState({
@@ -899,10 +900,13 @@ export default function ChatRoom({ id, translate }) {
     }
     changeStatus();
   },
-  selectUser = to => {
-    setChat({ ...chat, to });
+  selectUser = useCallback(to => {
+    // setChat({ ...chat, to });
+    setChat(prevChat => {
+      return { ...prevChat, to };
+    });
     focusInput();
-  },
+  }, []),
   setAudioOutput = (audioDeviceId, saveStorage = true) => {
     if(typeof (chatAudio.setSinkId) === 'function') {
       Promise.all([ chatAudio.setSinkId(audioDeviceId), notifyAudio.setSinkId(audioDeviceId) ]).catch(error => {
@@ -1164,6 +1168,10 @@ export default function ChatRoom({ id, translate }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const UserList = useMemo(() => chatUsers.map((user, index) => {
+    return <ChatTarget key={index} user={user} selectUser={selectUser} />
+  }), [chatUsers, selectUser]);
+
   let lastCheckTime = new Date();
 
   return (
@@ -1214,7 +1222,7 @@ export default function ChatRoom({ id, translate }) {
           </IconButton>
 
           {/* OPEN USER LIST */}
-          <Badge badgeContent={chatUsers.filter(x => x.kind === Kinds.PERSON).length} showZero={false}>
+          <Badge badgeContent={chatUserAmount} showZero={false}>
             <IconButton
               size="sm"
               variant="soft"
@@ -1403,9 +1411,7 @@ export default function ChatRoom({ id, translate }) {
           { isSocketReady && uiProperty.isUserListDisplayed && <div className={styles['chat-users']}>
             <div className={styles['chat-layer']}>
               <ul>
-                { chatUsers.map((user, index) => {
-                  return <ChatTarget key={index} user={user} selectUser={selectUser} />
-                }) }
+                { UserList }
               </ul>
             </div>
           </div> }
