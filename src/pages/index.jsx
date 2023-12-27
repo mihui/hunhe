@@ -82,12 +82,9 @@ export default function Index({ translate }) {
       }
     }
     catch(error) {
-      
+      setIsCalling(false);
       // @todo: Handle error here...
       console.warn(error.message);
-    }
-    finally {
-      setIsCalling(false);
     }
   }, doCancelRequest = () => {
     setIsCalling(false);
