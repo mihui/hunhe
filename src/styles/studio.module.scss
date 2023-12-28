@@ -17,6 +17,11 @@
       display: flex;
       row-gap: 0.5rem;
       flex-flow: column;
+      width: 12rem;
+      height: 12rem;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
 
     textarea {
