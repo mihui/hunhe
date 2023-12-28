@@ -1,5 +1,6 @@
 .studio {
   height: 100%;
+  width: 100%;
   display: flex;
   flex-flow: column;
   justify-content: center;
@@ -8,8 +9,8 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 50%;
-    width: 50%;
+    height: 100%;
+    width: 100%;
     padding: 1rem;
     justify-content: center;
     align-items: center;
@@ -17,11 +18,12 @@
       display: flex;
       row-gap: 0.5rem;
       flex-flow: column;
-      width: 12rem;
-      height: 12rem;
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      height: 100%;
+      width: 100%;
+      padding: 1rem;
     }
 
     textarea {
