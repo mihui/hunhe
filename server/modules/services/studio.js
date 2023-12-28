@@ -78,6 +78,7 @@ class StudioService {
     if(data.success) {
       return data.result;
     }
+    logger.error(data);
     throw new Error('Failed to execute the command');
   }
 
@@ -90,10 +91,10 @@ class StudioService {
     const headers = this.#sign(method, API_TOKEN_URL);
     /** @type {{ data: { code: number, msg: string, success: boolean, t: number, tid: string, result: DeviceTokenPayload } }} */
     const { data } = await this.#request({ url: API_TOKEN_URL, method, headers, data: {} });
-    logger.debug('data->', data);
     if(data.success) {
       return data;
     }
+    logger.error(data);
     throw new Error('Failed to get the Access Token');
   }
 
