@@ -3,6 +3,7 @@ import { VARS } from '../modules/vars.js';
 import { httpError, httpCodes, httpMessages } from '../modules/http-manager.js';
 import jwt from '../modules/jwt.js';
 import { Logger } from '../modules/logger.js';
+import mongo from '../modules/managers/mongo-manager.js';
 const { logger } = Logger('token');
 const publicRouter = Router();
 const publicPath = '/api';
@@ -14,6 +15,15 @@ const reports = [];
  */
 publicRouter.get('/', async (req, res, next) => {
   return res.send({ status: httpCodes.OK, message: 'API endpoint' });
+});
+
+/**
+ * Health API
+ */
+publicRouter.get('/health', async (req, res, next) => {
+  if(await mongo.isConnected())
+    return res.send({ status: httpCodes.OK, message: 'OK' });
+  return next(httpError(httpCodes.BAD_REQUEST, httpMessages.BAD_REQUEST));
 });
 
 /**

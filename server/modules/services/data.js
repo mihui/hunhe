@@ -2,6 +2,7 @@
 import { Collection } from "mongodb";
 import mongoManager from '../managers/mongo-manager.js';
 import { Meeting } from '../models/chat.js';
+import { APP_ID_STUDIO } from "../models/studio.js";
 
 class BaseDataService {
   name = '';
@@ -114,4 +115,26 @@ class MeetingService extends BaseDataService {
   }
 }
 
+class DeviceService extends BaseDataService {
+  constructor() {
+    super('api');
+  }
+
+  /**
+   * Store app token
+   * @param {string} appId Application ID
+   * @param {{ access_token: string, refresh_token: string, expire_time: number }} data Meeting data to be updated
+   */
+  async storeToken(appId = APP_ID_STUDIO, { access_token, refresh_token, expire_time }) {
+    const result = await this.update({ app_id: appId }, { access_token, refresh_token, expire_time });
+
+    if(result) {
+      return result;
+    }
+    return null;
+  }
+}
+
 export const meetingService = new MeetingService();
+
+export const deviceService = new DeviceService();

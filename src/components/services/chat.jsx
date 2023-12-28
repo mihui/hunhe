@@ -3,15 +3,9 @@ import { Meeting } from '../models/meeting';
 import { storage } from '../helpers/utility';
 import { User } from '../models/user';
 import { StreamService } from './StreamService';
+import { BaseService } from './base';
 
-class ChatService {
-  /**
-   * 
-   * @returns {string} Returns HTTP request URL
-   */
-  getRequestPath(path) {
-    return `${VARS.IS_DEBUGGING ? VARS.APP_URL : ''}${path}`;
-  }
+class ChatService extends BaseService {
 
   /**
    * Get meeting information

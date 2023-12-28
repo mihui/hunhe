@@ -95,7 +95,11 @@ const VARS = {
   //
   CHAT_LOBBY_ID: '00000000-0000-0000-0000-000000000000',
   CHAT_PEER_SECRET: process.env.CHAT_PEER_SECRET ?? 'hunhe',
-  PEER_PORT: processor.getPeerPort()
+  PEER_PORT: processor.getPeerPort(),
+  // IoT
+  IOT_API_ENDPOINT: process.env.IOT_API_ENDPOINT ?? 'https://openapi.tuyacn.com',
+  IOT_CLIENT_ID: process.env.IOT_CLIENT_ID ?? '',
+  IOT_CLIENT_SECRET: process.env.IOT_CLIENT_SECRET ?? ''
 };
 
 BigInt.prototype.toJSON = function() {

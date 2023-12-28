@@ -82,7 +82,7 @@ export default function Index({ translate }) {
       }
     }
     catch(error) {
-      setIsCalling(false);
+      setIsCalling(false);  
       // @todo: Handle error here...
       console.warn(error.message);
     }
