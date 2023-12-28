@@ -58,15 +58,17 @@ publicRouter.get('/socket/toggle/:id', async (req, res, next) => {
 publicRouter.get('/device/status/:id', async (req, res, next) => {
   const { id } = req.params;
   const { codes = 'switch_1' } = req.query;
-  try {
-    const result = await studioService.getProperties(id, codes);
-    if(result && result.properties && result.properties.length > 0) {
-      return res.send(httpNormal({ result }));
-    }
-    return next(httpError(httpCodes.BAD_REQUEST, httpMessages.BAD_REQUEST));
+  const result = await studioService.getProperties(id, codes);
+  if(result && result.properties && result.properties.length > 0) {
+    return res.send(httpNormal({ result }));
   }
-  catch(error) {}
-  return next(httpError(httpCodes.SYSTEM_FAILURE, httpMessages.SYSTEM_FAILURE));
+  return next(httpError(httpCodes.BAD_REQUEST, httpMessages.BAD_REQUEST));
+  try {
+
+  }
+  catch(error) {
+    return next(httpError(httpCodes.SYSTEM_FAILURE, httpMessages.SYSTEM_FAILURE, error));
+  }
 });
 
 /**

@@ -71,8 +71,8 @@ class StudioService {
    * @param {'GET'|'POST'|'DELETE'|'PUT'} method Method
    * @returns {Promise<{}>} Returns signed headers for device commands
    */
-  async executeCommand(url, body = {}, method = 'GET', query = {}) {
-    const { result: payload } = await this.fetchToken();
+  async #executeCommand(url, body = {}, method = 'GET', query = {}) {
+    const { result: payload } = await this.#fetchToken();
     const headers = this.#sign(method, url, query, body, payload.access_token);
     const { data } = await this.#request({ url: headers.path, method, headers, data: body, params: {} });
     if(data.success) {
@@ -86,7 +86,7 @@ class StudioService {
    * Fetch access token
    * @returns {Promise<{ code: number, msg: string, success: boolean, t: number, tid: string, result: DeviceTokenPayload }>} Returns authentication result
    */
-  async fetchToken() {
+  async #fetchToken() {
     const method = 'GET';
     const headers = this.#sign(method, API_TOKEN_URL);
     /** @type {{ data: { code: number, msg: string, success: boolean, t: number, tid: string, result: DeviceTokenPayload } }} */
@@ -104,7 +104,7 @@ class StudioService {
    * @returns {Promise<DeviceInfo>}
    */
   async deviceInfo(deviceId) {
-    const data = await this.executeCommand(`/v2.0/cloud/thing/${deviceId}`, {});
+    const data = await this.#executeCommand(`/v2.0/cloud/thing/${deviceId}`, {});
     return data;
   }
 
@@ -115,7 +115,7 @@ class StudioService {
    * @returns {Promise<object>} Returns result
    */
   async setProperties(deviceId, properties = {}) {
-    const data = await this.executeCommand(`/v2.0/cloud/thing/${deviceId}/shadow/properties/issue`, { properties }, 'POST');
+    const data = await this.#executeCommand(`/v2.0/cloud/thing/${deviceId}/shadow/properties/issue`, { properties }, 'POST');
     return data;
   }
 
@@ -126,9 +126,46 @@ class StudioService {
    * @returns {Promise<DeviceProperties>} Returns result
    */
   async getProperties(deviceId, codes = '') {
-    const data = await this.executeCommand(`/v2.0/cloud/thing/${deviceId}/shadow/properties?codes=${codes}`, {}, 'GET');
+    const data = await this.#executeCommand(`/v2.0/cloud/thing/${deviceId}/shadow/properties?codes=${codes}`, {}, 'GET');
     return data;
   }
 }
 
-export const studioService = new StudioService();
+class RemoteService extends StudioService {
+  /** @type {import("axios").AxiosInstance} */
+  #request;
+  constructor() {
+    super();
+    this.#request = axios.create({
+      baseURL: VARS.REMOTE_API_ENDPOINT
+    });
+  }
+
+  async deviceInfo(deviceId) {
+    const response = await this.#request(`/api/studio/device/info/${deviceId}`, {
+      method: 'GET'
+    });
+    return response.data;
+  }
+
+  async setProperties(deviceId, properties = {}) {
+    const response = await this.#request(`/api/studio/device/status/${deviceId}`, {
+      method: 'POST',
+      data: { properties },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
+  }
+
+  async getProperties(deviceId, codes = '') {
+    const response = await this.#request(`/api/studio/device/status/${deviceId}?codes=${codes}`, {
+      method: 'GET'
+    });
+    return response.data.result;
+  }
+}
+
+export const studioService = new RemoteService();
+export const remoteService = new RemoteService();

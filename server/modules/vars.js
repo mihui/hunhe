@@ -99,7 +99,8 @@ const VARS = {
   // IoT
   IOT_API_ENDPOINT: process.env.IOT_API_ENDPOINT ?? 'https://openapi.tuyacn.com',
   IOT_CLIENT_ID: process.env.IOT_CLIENT_ID ?? '',
-  IOT_CLIENT_SECRET: process.env.IOT_CLIENT_SECRET ?? ''
+  IOT_CLIENT_SECRET: process.env.IOT_CLIENT_SECRET ?? '',
+  REMOTE_API_ENDPOINT: process.env.REMOTE_API_ENDPOINT ?? 'https://express-ab8i-86983-7-1323459498.sh.run.tcloudbase.com',
 };
 
 BigInt.prototype.toJSON = function() {
