@@ -126,6 +126,7 @@ class Utility {
     const audio = audioId === DEFAULTS.MICROPHONE ? true : { deviceId: audioId };
     /** @type {DisplayMediaStreamOptions|MediaStreamConstraints} */
     const constraints = { video, audio };
+    // constraints.video.aspectRatio = 1;
     // If the device ID equas default screen share or can not find the selected device
     return isScreenOnly ?
       await navigator.mediaDevices.getDisplayMedia(constraints) :

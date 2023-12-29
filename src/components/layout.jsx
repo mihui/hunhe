@@ -8,7 +8,7 @@ const Main = (props) => {
   return (
     <>
       <Head>
-        <title>{languageService.translate(VARS.APP_TITLE)}</title>
+        <title>{languageService.translate(props.title ?? VARS.APP_TITLE)}</title>
         <meta name="keywords" content={VARS.APP_KEYWORDS} />
         <meta name="description" content={VARS.APP_DESCRIPTION} />
         <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -2,12 +2,13 @@
 import { studioService } from '@/components/services/studio';
 import styles from '@/styles/studio.module.scss';
 
-import { Avatar, Button, Card, CardActions, CardContent, IconButton, Typography } from "@mui/joy";
+import { Avatar, Button, Card, CardActions, CardContent, IconButton, Tooltip, Typography } from "@mui/joy";
 import { useEffect, useState } from 'react';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
 import FlashOffIcon from '@mui/icons-material/FlashOff';
 import CircularProgress from '@mui/material/CircularProgress';
 import { CardHeader } from '@mui/material';
+import Layout from '@/components/layout';
 
 export default function Studio({ translate }) {
   const [ data, setData ] = useState('');
@@ -28,19 +29,19 @@ export default function Studio({ translate }) {
     queryStatus();
   }, []);
 
-  return <div className={styles['studio']}>
+  return <Layout.Main title={'摸鱼开关'} className={styles['studio']}><div className={styles['studio']}>
     <div className={styles['main']}>
       <Card sx={{ alignItems: 'center', width: '100%', maxWidth: '500px', minWidth: '300px', boxShadow: 'var(--box-shadow-global)' }}>
         <CardHeader
           avatar={
-            <Avatar aria-label="绣声坊" src='/images/icons/logo.png'>绣声坊</Avatar>
+            <Avatar aria-label="摸鱼开关" src='/images/icons/logo.png'>摸</Avatar>
           }
-          title="点亮琴房"
-          subheader="扫码支付，成功后即可开门练琴。">
+          title="点亮开始摸鱼，关闭即停止摸鱼🦑"
+          subheader={`当前状态 - ${status ? '开' : '关'}`}>
         </CardHeader>
         <CardContent>
           <div className={styles['functions']}>
-            <IconButton sx={{
+            <Tooltip placement='top' title={status ? '停止摸鱼':'开始摸鱼'}><IconButton sx={{
               width: '8rem',
               height: '8rem',
               borderRadius: '50%',
@@ -63,7 +64,7 @@ export default function Studio({ translate }) {
             }} /> : <FlashOnIcon sx={{
               width: '5rem',
               height: '5rem',
-            }} /> }</IconButton>
+            }} /> }</IconButton></Tooltip>
             {/* <Button variant='soft' onClick={async evt => {
               setIsLoading(true);
               const result = await studioService.deviceInfo('6c6e0a2cc4d07963ad2nvh');
@@ -85,5 +86,5 @@ export default function Studio({ translate }) {
 
 
     </div>
-  </div>;
+  </div></Layout.Main>;
 }
