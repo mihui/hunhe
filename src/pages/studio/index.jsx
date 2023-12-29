@@ -87,7 +87,7 @@ export default function Studio({ translate }) {
           </div>
         </CardContent>
         <CardActions>
-          <Button variant='outlined' disabled={isLoading} onClick={evt => {
+          <Button variant='soft' disabled={isLoading} onClick={evt => {
             queryStatus();
           }}>刷新状态</Button>
         </CardActions>
