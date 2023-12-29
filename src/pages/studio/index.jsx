@@ -46,7 +46,7 @@ export default function Studio({ translate }) {
             }} aria-label="摸鱼开关" src='/images/icons/octopus.png'>摸</Avatar>
           }
           title="点亮开始摸鱼 🦑，关闭即停止。"
-          subheader={`当前状态 - ${status ? '开' : '关'}`}>
+          subheader={`当前状态 - ${isLoading ? '...' : status ? '开' : '关'}`}>
         </CardHeader>
         <CardContent>
           <div className={styles['functions']}>
