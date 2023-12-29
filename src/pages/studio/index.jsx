@@ -29,14 +29,23 @@ export default function Studio({ translate }) {
     queryStatus();
   }, []);
 
-  return <Layout.Main title={'摸鱼开关'} className={styles['studio']}><div className={styles['studio']}>
-    <div className={styles['main']}>
-      <Card sx={{ alignItems: 'center', width: '100%', maxWidth: '500px', minWidth: '300px', boxShadow: 'var(--box-shadow-global)' }}>
+  return <Layout.Main title={'摸鱼开关'} className={styles['studio']}>
+    <div className={styles['main']} style={{
+      background: `${status ? 'url(/images/icons/slack.png) no-repeat center center / contain' : 'url(/images/icons/slack-off.png) no-repeat center center / contain'}`,
+    }}>
+      <Card sx={{ alignItems: 'center', width: '100%', maxWidth: '500px', minWidth: '300px', boxShadow: 'var(--box-shadow-global)', opacity: '0.95' }}>
         <CardHeader
           avatar={
-            <Avatar aria-label="摸鱼开关" src='/images/icons/logo.png'>摸</Avatar>
+            <Avatar sx={{
+              border: '1px solid #ddd',
+              padding: '4px',
+              width: '3.5rem',
+              height: '3.5rem',
+              filter: `${status ? 'none' : 'grayscale(1)'}`,
+              overflow: 'hidden'
+            }} aria-label="摸鱼开关" src='/images/icons/octopus.png'>摸</Avatar>
           }
-          title="点亮开始摸鱼，关闭即停止摸鱼🦑"
+          title="点亮开始摸鱼 🦑，关闭即停止。"
           subheader={`当前状态 - ${status ? '开' : '关'}`}>
         </CardHeader>
         <CardContent>
@@ -83,8 +92,5 @@ export default function Studio({ translate }) {
           }}>刷新状态</Button>
         </CardActions>
       </Card>
-
-
-    </div>
   </div></Layout.Main>;
 }
