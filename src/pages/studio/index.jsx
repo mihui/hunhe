@@ -67,9 +67,6 @@ export default function Studio({ translate }) {
             }} size='lg'>{ isLoading ? <CircularProgress size='lg' sx={{
               width: '5rem',
               height: '5rem',
-            }} /> : status ? <FlashOffIcon sx={{
-              width: '5rem',
-              height: '5rem',
             }} /> : <FlashOnIcon sx={{
               width: '5rem',
               height: '5rem',
