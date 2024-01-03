@@ -55,7 +55,7 @@ export default function Studio({ translate }) {
               height: '8rem',
               borderRadius: '50%',
               boxShadow: '3px 7px 5px #bbb'
-            }} disabled={isLoading} variant='solid' color={status ? 'danger' : 'success'} onClick={async evt => {
+            }} disabled={isLoading} variant='solid' color={status ? 'success' : 'neutral'} onClick={async evt => {
               setIsLoading(true);
               const newStatus = !status;
               const result = await studioService.setDeviceProperties('6c6e0a2cc4d07963ad2nvh', { switch_1: newStatus });
