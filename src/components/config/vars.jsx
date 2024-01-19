@@ -1,5 +1,3 @@
-const DEFAULT_HOST = '';
-
 const VARS = {
   APP_TITLE: process.env.NEXT_PUBLIC_APP_TITLE || '',
   APP_KEYWORDS: process.env.NEXT_PUBLIC_APP_KEYWORDS || '',
@@ -7,6 +5,7 @@ const VARS = {
   APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://hunhe.app.com',
   APP_HOST: '',
   IS_DEBUGGING: process.env.NEXT_PUBLIC_IS_DEBUGGING === 'true' || false,
+  SWITCH_DEVICE_ID: process.env.NEXT_PUBLIC_SWITCH_DEVICE_ID || '6c84275675c0b09d64bo9n'
 };
 
 VARS.APP_HOST = new URL(VARS.APP_URL).host;

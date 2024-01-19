@@ -9,6 +9,7 @@ import FlashOffIcon from '@mui/icons-material/FlashOff';
 import CircularProgress from '@mui/material/CircularProgress';
 import { CardHeader } from '@mui/material';
 import Layout from '@/components/layout';
+import VARS from '@/components/config/vars';
 
 export default function Studio({ translate }) {
   const [ data, setData ] = useState('');
@@ -17,7 +18,7 @@ export default function Studio({ translate }) {
 
   const queryStatus = async () => {
     setIsLoading(true);
-      const result = await studioService.getDeviceProperties('6c6e0a2cc4d07963ad2nvh', { codes: 'switch_1' });
+      const result = await studioService.getDeviceProperties(VARS.SWITCH_DEVICE_ID, { codes: 'switch_1' });
       if(result && result.properties && result.properties.length > 0) {
         setStatus(result.properties[0].value);
         setData(JSON.stringify(result.properties[0]));
@@ -58,7 +59,7 @@ export default function Studio({ translate }) {
             }} disabled={isLoading} variant='solid' color={status ? 'success' : 'neutral'} onClick={async evt => {
               setIsLoading(true);
               const newStatus = !status;
-              const result = await studioService.setDeviceProperties('6c6e0a2cc4d07963ad2nvh', { switch_1: newStatus });
+              const result = await studioService.setDeviceProperties(VARS.SWITCH_DEVICE_ID, { switch_1: newStatus });
               if(result) {
                 setData(JSON.stringify(result));
                 setStatus(newStatus);
@@ -73,7 +74,7 @@ export default function Studio({ translate }) {
             }} /> }</IconButton></Tooltip>
             {/* <Button variant='soft' onClick={async evt => {
               setIsLoading(true);
-              const result = await studioService.deviceInfo('6c6e0a2cc4d07963ad2nvh');
+              const result = await studioService.deviceInfo(VARS.SWITCH_DEVICE_ID);
               if(result) {
                 setData(JSON.stringify(result));
               }
