@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <title>Player</title>
+
+<style>
+html, body {
+  width: 100%;
+  height: 100%;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  background-color: #f0f4f8;
+  color: #333;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  align-items: center;
+}
+  .container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    margin: 1rem auto;
+  }
+  .container .video-container {
+    flex: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 1rem;
+    min-width: 300px;
+    width: 90%;
+    max-height: 60%;
+  }
+
+    .container .video-container #videoPlayer {
+      width: 60%;
+      height: 30%;
+      max-height: 100%;
+      max-width: 100%;
+      min-width: 300px;
+      height: auto;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      flex: 1;
+    }
+
+    .container #playlistContainer {
+      min-width: 300px;
+      width: 90%;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+      flex: 1;
+      height: 100%;
+      overflow: auto;
+    }
+
+textarea, #categorySelect, #searchInput, #searchButton, #m3uInput, #loadM3uButton, #loadContentuButton, #m3uContentKey {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+}
+
+#searchContainer {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+#searchInput {
+  flex-grow: 1;
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+textarea:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 1px solid #ddd;
+}
+
+#searchButton {
+  width: auto;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#playlistItems {
+  list-style-type: none;
+  padding: 0;
+}
+
+#playlistItems li {
+  cursor: pointer;
+  padding: 15px;
+  margin: 10px 0;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#playlistItems li:hover {
+  background-color: #e9ecef;
+}
+
+#pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+button {
+  padding: 12px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+#pagination button:disabled {
+  background-color: #bdc3c7;
+}
+
+#pageInfo {
+  font-size: 16px;
+}
+
+#errorMessage {
+  color: #e74c3c;
+  margin-top: 10px;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  #videoPlayer {
+    width: 640px;
+  }
+
+  #playlistContainer {
+    width: 640px;
+  }
+}
+
+#loadM3uButton {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+#loadM3uButton:disabled {
+  background-color: gray;
+}
+
+#closeVideoButton {
+  background-color: #e74c3c;
+}
+
+#reloadM3uButton {
+  background-color: #2ecc71;
+}
+#m3uList {
+  display: flex;
+  column-gap: 1rem;
+  flex-wrap: wrap;
+}
+#m3uContentKey {
+  margin-top: 1rem;
+}
+#m3uList a {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+  #m3uList a:hover {
+    background-color: #eee;
+  }
+
+#m3uContent {
+  resize: vertical;
+}
+
+.hidden {
+  display: none;
+}
+
+</style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="video-container">
+      <video id="videoPlayer" playsinline></video>
+      <div class="video-control">
+        <button id="reloadM3uButton">重载</button>
+        <button id="closeVideoButton" class="hidden">停止</button>
+        <button id="playVideoButton" class="hidden">播放</button>
+      </div>
+    </div>
+
+    <div id="playlistContainer">
+      <div id="m3uInputContainer">
+        <input type="url" id="m3uInput" placeholder="输入 M3U 文件 URL">
+        <button id="loadM3uButton">加载播放列表</button>
+        <div id="m3uList"></div>
+
+        <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
+        <textarea id="m3uContent"></textarea>
+        <button id="loadContentuButton">加载内容</button>
+      </div>
+      <div id="playlistContent" style="display: none;">
+        <div id="searchContainer">
+          <input type="text" id="searchInput" placeholder="搜索...">
+          <button id="searchButton">搜索</button>
+        </div>
+        <select id="categorySelect"></select>
+        <ul id="playlistItems"></ul>
+        <div id="pagination">
+          <button id="prevPage">上一页</button>
+          <span id="pageInfo"></span>
+          <button id="nextPage">下一页</button>
+          <button id="refreshPage">刷新</button>
+        </div>
+      </div>
+    </div>
+    <div id="errorMessage"></div>
+  </div>
+<script>
+const storeName = 'm3u-store';
+const database = {
+  openDB: () => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("m3u", 1);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        db.createObjectStore(storeName, { keyPath: "id" });
+      };
+
+      request.onsuccess = (event) => {
+        resolve(event.target.result);
+      };
+
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  },
+  addData: async (data) => {
+    const db = await database.openDB();
+    const transaction = db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
+    const request = store.add(data);
+
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  },
+  readData: async (id) => {
+    const db = await database.openDB();
+    const transaction = db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
+    const request = store.get(id);
+
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  },
+  updateData: async (data) => {
+    const db = await database.openDB();
+    const transaction = db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
+    const request = store.put(data);
+
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  },
+  deleteData: async (id) => {
+    const db = await database.openDB();
+    const transaction = db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
+    const request = store.delete(id);
+
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  },
+  listData: async () => {
+    const db = await database.openDB();
+    const transaction = db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
+    let request = store.openCursor();
+    const list = [];
+    return new Promise((resolve, reject) => {
+      request.onsuccess = (evt) => {
+        const cursor = evt.target.result;
+        if(cursor) {
+          request = store.get(cursor.key);
+          request.onsuccess = function (evt) {
+            const path = database.decodeString(cursor.key);
+            const pathSegments = path.split('/');
+            const fileName = pathSegments[pathSegments.length - 1];
+            list.push({ key: fileName, id: cursor.key });
+          };
+          cursor.continue();
+        }
+        else {
+          resolve(list);
+        }
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  },
+  encodeString: (plainText) => {
+    const base64Encoded = btoa(unescape(encodeURIComponent(plainText)));
+    return base64Encoded;
+  },
+  decodeString: (encodedText) => {
+    const decodedText = decodeURIComponent(escape(atob(encodedText)));
+    return decodedText;
+  }
+};
+
+const allChannels = '所有频道';
+const originalChannels = '原始所有频道';
+const videoPlayer = document.getElementById('videoPlayer');
+const errorMessage = document.getElementById('errorMessage');
+const m3uInput = document.getElementById('m3uInput');
+
+const loadM3uButton = document.getElementById('loadM3uButton');
+const reloadM3uButton = document.getElementById('reloadM3uButton');
+const m3uInputContainer = document.getElementById('m3uInputContainer');
+const playlistContent = document.getElementById('playlistContent');
+const playlistContainer = document.getElementById("playlistContainer");
+const closeVideoButton = document.getElementById("closeVideoButton");
+const playVideoButton = document.getElementById("playVideoButton");
+const m3uList = document.getElementById('m3uList');
+
+/** @type {HTMLTextAreaElement} **/
+const m3uContent = document.getElementById('m3uContent');
+/** @type {HTMLInputElement} **/
+const m3uContentKey = document.getElementById('m3uContentKey');
+const loadContentuButton = document.getElementById('loadContentuButton');
+
+let playlistData = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let categories = {};
+let currentCategory = allChannels;
+let filteredPlaylistData = [];
+let uniqueUrls = new Set();
+let playabilityCache = {};
+
+const stopURL = URL.createObjectURL(new Blob());
+
+async function listStore () {
+  m3uList.innerHTML = '';
+  /** @type {Array<{ key: string, id: string }>} */
+  const list = await database.listData();
+  for(const m3uItem of list) {
+    const aItem = document.createElement('a');
+    aItem.innerText = m3uItem.key;
+    aItem.dataset['id'] = m3uItem.id;
+    aItem.onclick = async (evt) => {
+      const element = evt.target;
+      const data = await database.readData(element.dataset['id']);
+      m3uInput.value = database.decodeString(m3uItem.id);
+      gotoPage(1);
+      processM3uData(data.m3u);
+    };
+    m3uList.append(aItem);
+  }
+}
+
+// 加载缓存的数据
+async function loadCachedData() {
+  const cachedM3uUrl = localStorage.getItem('cachedM3uUrl');
+  if (cachedM3uUrl) {
+    m3uInput.value = cachedM3uUrl;
+    await loadM3uFile(true); // 添加一个参数来表示这是从缓存加载
+  } else {
+    showM3uInput();
+  }
+
+  currentPage = parseInt(localStorage.getItem('currentPage')) || 1;
+  currentCategory = localStorage.getItem('currentCategory') || allChannels;
+
+  const cachedPlayabilityCache = localStorage.getItem('playabilityCache');
+  if (cachedPlayabilityCache) {
+    playabilityCache = JSON.parse(cachedPlayabilityCache);
+  }
+
+  playLastVideo(false);
+
+  listStore();
+}
+
+function playLastVideo(isUserAction = true) {
+  const lastPlayedUrl = localStorage.getItem('lastPlayedUrl');
+  const lastPlayedTime = parseFloat(localStorage.getItem('lastPlayedTime'));
+  if (lastPlayedUrl) {
+    playVideo(lastPlayedUrl, isUserAction);
+    if (!isNaN(lastPlayedTime)) {
+      videoPlayer.currentTime = lastPlayedTime;
+    }
+    playVideoButton.className = '';
+  }
+}
+
+// 保存数据到缓存
+function saveDataToCache() {
+  localStorage.setItem('cachedM3uUrl', m3uInput.value);
+  localStorage.setItem('currentPage', currentPage);
+  localStorage.setItem('currentCategory', currentCategory);
+  localStorage.setItem('playabilityCache', JSON.stringify(playabilityCache));
+}
+
+// 显示播放列表内容
+function showPlaylistContent() {
+  m3uInputContainer.style.display = 'none';
+  playlistContent.style.display = 'block';
+}
+
+// 显示 M3U 输入界面
+function showM3uInput() {
+  m3uInputContainer.style.display = 'block';
+  playlistContent.style.display = 'none';
+  listStore();
+}
+
+function processM3uData (data, fromCache = false) {
+  parseM3uData(data);
+  initializeCategories();
+  initializePlaylist();
+  showPlaylistContent();
+  if (!fromCache) {
+    saveDataToCache();
+  }
+  errorMessage.textContent = '';
+}
+
+// 加载 M3U 文件
+async function loadM3uFile(fromCache = false) {
+  const m3uUrl = m3uInput.value.trim();
+  if (m3uUrl) {
+    const id = database.encodeString(m3uUrl);
+    const payload = await database.readData(id);
+    if(payload && payload.m3u && fromCache) {
+      console.log('from database');
+      processM3uData(payload.m3u, true);
+    }
+    else {
+      console.log('from url');
+      loadM3uButton.disabled = true;
+      fetch(m3uUrl)
+      .then(response => {
+        if(response.status === 200) {
+          return response.text();
+        }
+        return null;
+      })
+      .then(async data => {
+        loadM3uButton.disabled = false;
+        if(data) {
+          if(payload) {
+            await database.updateData({ id, m3u: data, source: 'url' });
+          }
+          else {
+            await database.addData({ id, m3u: data, source: 'url' });
+          }
+          processM3uData(data, fromCache);
+          listStore();
+        }
+        else {
+          errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
+          showM3uInput();  
+        }
+      })
+      .catch(error => {
+        console.error('加载 M3U 文件错误:', error);
+        errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
+        showM3uInput();
+        loadM3uButton.disabled = false;
+      });
+    }
+
+  } else {
+    errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
+  }
+}
+
+async function loadM3uContent() {
+  if(m3uContent.value.includes('#EXTINF:')) {
+    const id = database.encodeString(m3uContentKey.value);
+    const payload = await database.readData(id);
+    const data = { id, m3u: m3uContent.value, source: 'content' };
+    if(payload) {
+      await database.updateData(data);
+    }
+    else {
+      await database.addData(data);
+    }
+    processM3uData(data.m3u, true);
+  }
+}
+
+// 解析 M3U 数据
+function parseM3uData(data) {
+  playlistData = [];
+  categories = { [allChannels]: [] };
+  uniqueUrls = new Set();
+
+  const lines = data.split('\n');
+  let currentTitle = '';
+  let currentGroup = '';
+
+  lines.forEach((line, index) => {
+    line = line.trim();
+    if (line.startsWith('#EXTINF:')) {
+      const infoLine = line.substring(8);
+      const groupMatch = infoLine.match(/group-title="([^"]+)"/);
+      currentGroup = groupMatch ? groupMatch[1] : allChannels;
+      currentTitle = infoLine.split(',').pop().trim();
+    } else if (line && !line.startsWith('#')) {
+      if (!uniqueUrls.has(line)) {
+        uniqueUrls.add(line);
+        const item = { title: currentTitle || line, url: line, group: currentGroup };
+        playlistData.push(item);
+        categories[allChannels].push(item);
+        if (currentGroup !== allChannels) {
+          if (!categories[currentGroup]) {
+            categories[currentGroup] = [];
+          }
+          categories[currentGroup].push(item);
+        }
+      }
+    }
+  });
+  categories[originalChannels] = [...categories[allChannels]];
+}
+
+// 初始化分类
+function initializeCategories() {
+  const categorySelect = document.getElementById('categorySelect');
+  categorySelect.innerHTML = '';
+  for (let category in categories) {
+    if(category === originalChannels){
+      continue;
+    }
+    const option = document.createElement('option');
+    option.value = category;
+    option.textContent = category;
+    categorySelect.appendChild(option);
+  }
+
+  categorySelect.value = currentCategory = allChannels;;
+
+  categorySelect.addEventListener('change', (e) => {
+    currentCategory = e.target.value;
+    currentPage = 1;
+    // 重置搜索
+    document.getElementById('searchInput').value = '';
+    // 更新当前类别的数据
+    filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
+    gotoPage(currentPage);
+  });
+}
+
+// 显示播放列表页面
+function displayPlaylistPage(page) {
+  const playlistItems = document.getElementById('playlistItems');
+  playlistItems.innerHTML = '';
+
+  const itemsToDisplay = filteredPlaylistData || [];
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const pageItems = itemsToDisplay.slice(startIndex, endIndex);
+
+  pageItems.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item.group === allChannels ? item.title : `[${item.group}] ${item.title}`;
+    li.setAttribute('data-url', item.url);
+    li.setAttribute('title', item.title);
+    li.onclick = () => playVideo(item.url);
+    playlistItems.appendChild(li);
+  });
+
+  pageItems.forEach(async (item, index) => {
+    const li = playlistItems.children[index];
+    if (playabilityCache.hasOwnProperty(item.url)) {
+      updateListItemStyle(li, playabilityCache[item.url]);
+    } else {
+      const isPlayable = await checkVideoPlayability(item.url);
+      playabilityCache[item.url] = isPlayable;
+      updateListItemStyle(li, isPlayable);
+      saveDataToCache();
+    }
+  });
+}
+
+// 更新列表项样式
+function updateListItemStyle(li, isPlayable) {
+  if (!isPlayable) {
+    li.style.color = 'gray';
+    li.style.textDecoration = 'line-through';
+    li.title = '此视频源可能无法播放';
+  }
+}
+
+// 更新分页控件
+function updatePaginationControls() {
+  const prevButton = document.getElementById('prevPage');
+  const nextButton = document.getElementById('nextPage');
+  const pageInfo = document.getElementById('pageInfo');
+
+  const itemsToDisplay = categories[currentCategory] || [];
+  const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
+
+  prevButton.disabled = currentPage === 1;
+  nextButton.disabled = currentPage === totalPages;
+
+  pageInfo.textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
+}
+
+// 初始化播放列表
+function initializePlaylist() {
+  filteredPlaylistData = categories[currentCategory] || playlistData;
+  displayPlaylistPage(currentPage);
+  updatePaginationControls();
+}
+
+// 执行搜索
+function performSearch() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+  if (currentCategory === allChannels || currentCategory === originalChannels) {
+    filteredPlaylistData = categories[originalChannels].filter(item => 
+      item.title.toLowerCase().includes(searchTerm) || 
+      item.group.toLowerCase().includes(searchTerm)
+    );
+  } else {
+    filteredPlaylistData = categories[currentCategory].filter(item => 
+      item.title.toLowerCase().includes(searchTerm) || // 添加对组名的搜索
+      item.group.toLowerCase().includes(searchTerm)   // 添加对组名的搜索
+    );
+  }
+  currentPage = 1;
+
+  gotoPage(currentPage);
+}
+
+// 刷新当前页面
+async function refreshCurrentPage() {
+  const playlistItems = document.getElementById('playlistItems');
+  const items = playlistItems.children;
+
+  for (let i = 0; i < items.length; i++) {
+    const li = items[i];
+    li.style.color = '';
+    li.style.textDecoration = '';
+    li.title = '';
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const li = items[i];
+    const itemUrl = li.getAttribute('data-url');
+    if (itemUrl) {
+      delete playabilityCache[itemUrl];
+      const isPlayable = await checkVideoPlayability(itemUrl);
+      playabilityCache[itemUrl] = isPlayable;
+      updateListItemStyle(li, isPlayable);
+    }
+  }
+
+  saveDataToCache();
+}
+
+// 播放视频
+function playVideo(source, isUserAction = true) {
+  const playingItem = playlistData.find(item => item.url === source);
+ 
+  if (playingItem) {
+    document.title = `正在播放：${playingItem.title}`;
+  } else {
+    document.title = '正在播放';
+  }
+  if(source.startsWith('http://')){ 
+    return;
+  }
+  if(isUserAction === false) {
+    return;
+  }
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(source);
+    hls.attachMedia(videoPlayer);
+    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+      videoPlayer.play().catch(error => {
+        console.warn('播放错误:', error);
+        errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
+      }).then(() => {
+        videoPlayer.controls = true;
+      });
+    });
+  } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+    videoPlayer.src = source;
+    videoPlayer.addEventListener('loadedmetadata', function () {
+      videoPlayer.play().catch(error => {
+        console.warn('播放错误:', error);
+        errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
+      }).then(() => {
+        videoPlayer.controls = true;
+      });
+    });
+  } else {
+    errorMessage.textContent = '您的浏览器不支持 HLS 视频流。';
+  }
+
+  localStorage.setItem('lastPlayedUrl', source);
+}
+
+// 检查视频可播放性
+async function checkVideoPlayability(url) {
+  return new Promise((resolve) => {
+
+    if(url.startsWith('http://')) {
+      return resolve(false);
+    }
+
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      let timeoutId;
+
+      const cleanup = () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        hls.destroy();
+      };
+
+      hls.loadSource(url);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        cleanup();
+        resolve(true);
+      });
+
+      hls.on(Hls.Events.ERROR, () => {
+        cleanup();
+        resolve(false);
+      });
+
+      timeoutId = setTimeout(() => {
+        cleanup();
+        resolve(false);
+      }, 5000);
+    } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+      const video = document.createElement('video');
+      video.src = url;
+
+      let timeoutId;
+
+      const cleanup = () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        video.remove();
+      };
+
+      video.onloadedmetadata = () => {
+        cleanup();
+        resolve(true);
+      };
+
+      video.onerror = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      timeoutId = setTimeout(() => {
+        cleanup();
+        resolve(false);
+      }, 5000);
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+function gotoPage(p) {
+  currentPage = p;
+  displayPlaylistPage(currentPage);
+  updatePaginationControls();
+  saveDataToCache();
+}
+
+// 事件监听器
+loadM3uButton.addEventListener('click', () => loadM3uFile(false));
+loadContentuButton.addEventListener('click', () => loadM3uContent());
+
+reloadM3uButton.addEventListener('click', showM3uInput);
+document.getElementById('prevPage').addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
+    gotoPage(currentPage);
+  }
+});
+
+document.getElementById('nextPage').addEventListener('click', () => {
+  if (currentPage < Math.ceil(playlistData.length / itemsPerPage)) {
+    currentPage++;
+    gotoPage(currentPage);
+  }
+});
+
+document.getElementById('searchButton').addEventListener('click', performSearch);
+document.getElementById('searchInput').addEventListener('input', function() {
+  if (this.value === '') {
+    // 清空搜索关键字后，恢复到当前类别的播放列表
+    filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
+    gotoPage(1);
+  }
+});
+document.getElementById('refreshPage').addEventListener('click', refreshCurrentPage);
+
+videoPlayer.addEventListener('error', (e) => {
+  if(videoPlayer.src === stopURL) {
+    showPlayButton();
+    return;
+  }
+  console.error('视频加载错误:', videoPlayer.error);
+  errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
+});
+
+function showPlayButton() {
+  closeVideoButton.className = 'hidden';
+  playVideoButton.className = '';
+  videoPlayer.controls = false;
+}
+
+videoPlayer.addEventListener('timeupdate', () => {
+  localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
+});
+
+videoPlayer.addEventListener('pause', () => {
+  showPlayButton();
+});
+videoPlayer.addEventListener('play', () => {
+  closeVideoButton.className = '';
+  playVideoButton.className = 'hidden';
+  videoPlayer.controls = true;
+});
+closeVideoButton.addEventListener('click', () => {
+  videoPlayer.src = stopURL;
+  videoPlayer.pause();
+  videoPlayer.currentTime = 0;
+});
+playVideoButton.addEventListener('click', () => {
+  playLastVideo();
+});
+
+// 初始化
+loadCachedData();
+
+</script>
+
+</body>
+
+</html>
