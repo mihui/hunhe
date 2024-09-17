@@ -4,11 +4,18 @@ import { httpError, httpCodes, httpMessages } from '../modules/http-manager.js';
 import jwt from '../modules/jwt.js';
 import { Logger } from '../modules/logger.js';
 import mongo from '../modules/managers/mongo-manager.js';
+import axios from 'axios';
 const { logger } = Logger('token');
 const publicRouter = Router();
 const publicPath = '/api';
 
 const reports = [];
+
+const httpClient = axios.create({
+  headers: {
+    "User-Agent": 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0'
+  }
+});
 
 /**
  * API endpoint
@@ -24,6 +31,18 @@ publicRouter.get('/health', async (req, res, next) => {
   if(await mongo.isConnected())
     return res.send({ status: httpCodes.OK, message: 'OK' });
   return next(httpError(httpCodes.BAD_REQUEST, httpMessages.BAD_REQUEST));
+});
+
+/**
+ * Request delegate
+ */
+publicRouter.get('/fetch', async (req, res, next) => {
+  const { url, method = 'GET' } = req.query;
+  const response = await httpClient.request({ url, method });
+  if(response.status === httpCodes.OK) {
+    return res.send(response.data);
+  }
+  return res.send('');
 });
 
 /**
