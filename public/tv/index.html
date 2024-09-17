@@ -937,7 +937,6 @@ async function updateListItemStyle(li, checkResult, currentUrl) {
       li.className = 'bad';
     }
   }
-  console.log(currentUrl, li.dataset['url']);
   if(currentUrl === li.dataset['url']) {
     li.classList.add('active');
   }
