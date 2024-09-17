@@ -68,7 +68,7 @@ body {
       justify-content: space-between;
       width: 100%;
       flex-flow: column;
-      row-gap: 1rem;
+      row-gap: 0.5rem;
     }
 
     .container .video-container .video-control .controls {
@@ -77,6 +77,7 @@ body {
       align-items: center;
       justify-content: space-between;
       flex-flow: row;
+      column-gap: 1rem;
     }
 
     .container .video-container #pagination {
@@ -197,7 +198,7 @@ select:focus-visible {
 
 button {
   user-select: none;
-  padding: 12px 20px;
+  padding: 10px 20px;
   background-color: #3498db;
   color: white;
   border: none;
@@ -207,7 +208,7 @@ button {
   white-space: nowrap;
 }
 
-#pagination button {
+#pagination button, .controls button {
   flex: 1;
 }
 
@@ -336,7 +337,7 @@ button {
 
 <body>
   <div class="container" id="pageContainer">
-    <div id="playlistContainer">
+    <div id="playlistContainer" class="hidden">
       <div class="box">
         <div id="m3uInputContainer">
           <input type="url" id="m3uInput" placeholder="输入 M3U 文件 URL">
@@ -370,20 +371,20 @@ button {
             <button id="forwardButton">前进</button>
           </div>
 
-          <div class="controls">
+          <div class="controls" id="errorControl">
             <div id="errorMessage"></div>
           </div>
 
           <div class="controls">
+            <button id="sideButton">列表</button>
             <button id="refreshPage">检测</button>
             <button id="favoriteButton" disabled>收藏</button>
-            <button id="sideButton">列表</button>
             <button id="reloadM3uButton">设置</button>
           </div>
         </div>
 
-        <div id="pageInfo"></div>
-        <div id="pagination">
+        <div id="pageInfo" class="hidden"></div>
+        <div id="pagination" class="hidden">
           <button id="firstPage" disabled>首页</button>
           <button id="prevPage" disabled>上一页</button>
           <button id="nextPage" disabled>下一页</button>
@@ -545,7 +546,10 @@ const originalChannels = '原始所有频道';
 const favoriteChannels = '收藏频道';
 /** @type {HTMLVideoElement} **/
 const videoPlayer = document.getElementById('videoPlayer');
+/** @type {HTMLDivElement} **/
 const errorMessage = document.getElementById('errorMessage');
+/** @type {HTMLDivElement} **/
+const errorControl = document.getElementById('errorControl');
 const m3uInput = document.getElementById('m3uInput');
 
 const loadM3uButton = document.getElementById('loadM3uButton');
@@ -689,6 +693,7 @@ function showPlaylistContent() {
 // 显示 M3U 输入界面
 function showM3uInput() {
   pageInfo.className = paginationGroup.className = playlistContainer.className = '';
+  errorControl.classList.remove('hidden');
   if(m3uInputContainer.style.display === 'block') {
     m3uInputContainer.style.display = 'none';
     playlistContent.style.display = 'flex';
@@ -1334,14 +1339,36 @@ forwardButton.addEventListener('click', (evt) => {
   videoPlayer.currentTime += 30;
   localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
 });
-sideButton.addEventListener('click', (evt) => {
-  if(playlistContainer.className === '') {
+
+function initSideMenu() {
+  const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
+  console.log('playListVisible', playListVisible, typeof playListVisible);
+  if(playListVisible === 'false') {
     pageInfo.className = paginationGroup.className = playlistContainer.className = 'hidden';
+    errorControl.classList.add('hidden');
   }
   else {
     pageInfo.className = paginationGroup.className = playlistContainer.className = '';
+    errorControl.classList.remove('hidden');
   }
+}
+
+sideButton.addEventListener('click', (evt) => {
+  let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
+  if(playListVisible === 'true') {
+    pageInfo.className = paginationGroup.className = playlistContainer.className = 'hidden';
+    errorControl.classList.add('hidden');
+    playListVisible = 'false';
+  }
+  else {
+    pageInfo.className = paginationGroup.className = playlistContainer.className = '';
+    errorControl.classList.remove('hidden');
+    playListVisible = 'true';
+  }
+  window.localStorage.setItem('playListVisible', playListVisible);
 });
+
+initSideMenu();
 
 let muted = true, isHidden = false;
 const pageContainer = document.getElementById('pageContainer');
