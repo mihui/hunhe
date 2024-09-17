@@ -280,7 +280,9 @@ export default function Index({ translate }) {
       </Typography>
       </Box>
 
-      <AspectRatio className={styles['hero']}
+      <AspectRatio onClick={evt => {
+        window.location.href = '/tv/index.html';
+      }} className={styles['hero']}
         ratio={600 / 520}
         variant="outlined"
         maxHeight={300}
