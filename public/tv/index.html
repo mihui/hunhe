@@ -67,6 +67,16 @@ body {
       column-gap: 1rem;
       justify-content: space-between;
       width: 100%;
+      flex-flow: column;
+      row-gap: 1rem;
+    }
+
+    .container .video-container .video-control .controls {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-flow: row;
     }
 
     .container .video-container #pagination {
@@ -247,12 +257,19 @@ button {
 #favoriteButton {
   background-color: #952ecc;
 }
+#sideButton {
+  background-color: #2e6bcc;
+}
 #fullscreenButton {
   background-color: darkblue;
 }
 #refreshPage {
   background-color: orange;
 }
+#playVideoButton {
+  background-color: blueviolet;
+}
+
 #m3uList {
   display: flex;
   column-gap: 1rem;
@@ -297,7 +314,7 @@ button {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 .box {
   display: flex;
@@ -343,13 +360,22 @@ button {
     <div class="video-container">
       <div class="box">
         <div class="video-wrapper"><video id="videoPlayer" playsinline></video></div>
-        <div class="video-control" id="videoControl">
-          <button id="closeVideoButton" class="hidden">停止</button>
-          <button id="playVideoButton" class="hidden">播放</button>
-          <button id="fullscreenButton">全屏</button>
-          <button id="refreshPage">检测</button>
-          <button id="favoriteButton" disabled>收藏</button>
-          <button id="reloadM3uButton">设置</button>
+
+        <div class="video-control">
+          <div class="controls">
+            <button id="rewindButton">后退</button>
+            <button id="closeVideoButton" class="hidden">停止</button>
+            <button id="playVideoButton" class="hidden">播放</button>
+            <button id="fullscreenButton">全屏</button>
+            <button id="forwardButton">前进</button>
+          </div>
+
+          <div class="controls">
+            <button id="refreshPage">检测</button>
+            <button id="favoriteButton" disabled>收藏</button>
+            <button id="sideButton">列表</button>
+            <button id="reloadM3uButton">设置</button>
+          </div>
         </div>
         <div id="errorMessage"></div>
         <div id="pageInfo"></div>
@@ -381,7 +407,6 @@ const database = {
       request.onblocked = (event) => {
         // If some other tab is loaded with the database, then it needs to be closed
         // before we can proceed.
-        console.log("Please close all other tabs with this site open!");
       };
 
       request.onupgradeneeded = (event) => {
@@ -399,9 +424,6 @@ const database = {
 
         db.onversionchange = (event) => {
           db.close();
-          console.log(
-            "A new version of this page is ready. Please reload or close this tab!",
-          );
         };
       };
 
@@ -432,7 +454,6 @@ const database = {
   },
   readData: async (id, name = M3U_STORE) => {
     const db = await database.openDB();
-    console.log('using--->', name);
     const transaction = db.transaction(name, "readonly");
     const store = transaction.objectStore(name);
     const request = store.get(id);
@@ -534,6 +555,13 @@ const m3uList = document.getElementById('m3uList');
 const searchContainer = document.getElementById('searchContainer');
 /** @type {HTMLButtonElement} **/
 const favoriteButton = document.getElementById('favoriteButton');
+/** @type {HTMLButtonElement} **/
+const sideButton  = document.getElementById('sideButton');
+
+/** @type {HTMLButtonElement} **/
+const rewindButton = document.getElementById('rewindButton');
+/** @type {HTMLButtonElement} **/
+const forwardButton = document.getElementById('forwardButton');
 
 /** @type {HTMLInputElement} **/
 const searchInput = document.getElementById('searchInput');
@@ -654,6 +682,7 @@ function showPlaylistContent() {
 
 // 显示 M3U 输入界面
 function showM3uInput() {
+  playlistContainer.className = '';
   if(m3uInputContainer.style.display === 'block') {
     m3uInputContainer.style.display = 'none';
     playlistContent.style.display = 'flex';
@@ -663,7 +692,6 @@ function showM3uInput() {
     playlistContent.style.display = 'none';
     listStore();
   }
-  
 }
 
 function processM3uData (type, data, fromCache = false) {
@@ -687,11 +715,9 @@ async function loadM3uFile(fromCache = false) {
     const id = database.encodeString(m3uUrl);
     const payload = await database.readData(id);
     if(payload && payload.m3u && fromCache) {
-      console.log('from database');
       processM3uData(type, payload.m3u, true);
     }
     else {
-      console.log('from url');
       loadM3uButton.disabled = true;
       const url = m3uUrl.startsWith(UNSAFE_HTTP) ? `/api/fetch?url=${m3uUrl}` : m3uUrl;
       fetch(url).then(response => {
@@ -719,7 +745,6 @@ async function loadM3uFile(fromCache = false) {
         }
       })
       .catch(error => {
-        console.error('加载 M3U 文件错误:', error);
         errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
         showM3uInput();
         loadM3uButton.disabled = false;
@@ -1014,7 +1039,6 @@ function nativePlay(playingItem) {
   videoPlayer.src = playingItem.url;
   videoPlayer.addEventListener('loadedmetadata', function () {
     videoPlayer.play().catch(error => {
-      console.warn('播放错误:', error);
       errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
     }).then(() => {
       onPlay(playingItem);
@@ -1093,15 +1117,12 @@ function playVideo(source, isUserAction = true) {
     hls.attachMedia(videoPlayer);
     hls.on(Hls.Events.MANIFEST_PARSED, function () {
       videoPlayer.play().catch(error => {
-        console.warn('播放错误:', error);
         errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
       }).then(() => {
         onPlay(playingItem);
       });
     });
-    hls.on(Hls.Events.ERROR, function (error) {
-      console.log('error--->', error);
-    });
+    hls.on(Hls.Events.ERROR, function (error) {});
   } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
     nativePlay(playingItem);
   } else {
@@ -1253,7 +1274,6 @@ videoPlayer.addEventListener('error', (e) => {
     showPlayButton();
     return;
   }
-  console.error('视频加载错误:', videoPlayer.error);
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
 });
 
@@ -1264,13 +1284,17 @@ function showPlayButton(showControls = false) {
   videoPlayer.className = 'paused';
 }
 
-videoPlayer.addEventListener('timeupdate', () => {
+videoPlayer.addEventListener('timeupdate', (evt) => {
+  if(videoPlayer.src === stopURL) {
+    return;
+  }
   localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
 });
 
 videoPlayer.addEventListener('pause', () => {
   showPlayButton(true);
   document.title = SITE_TITLE;
+  rewindButton.disabled = forwardButton.disabled = false;
 });
 
 videoPlayer.addEventListener('play', () => {
@@ -1279,6 +1303,7 @@ videoPlayer.addEventListener('play', () => {
   videoPlayer.controls = true;
   errorMessage.textContent = '';
   videoPlayer.className = '';
+  rewindButton.disabled = forwardButton.disabled = false;
 });
 closeVideoButton.addEventListener('click', () => {
   videoPlayer.src = stopURL;
@@ -1293,6 +1318,23 @@ fullscreenButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
   videoPlayer.requestFullscreen();
+});
+
+rewindButton.addEventListener('click', (evt) => {
+  videoPlayer.currentTime -= 30;
+  localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
+});
+forwardButton.addEventListener('click', (evt) => {
+  videoPlayer.currentTime += 30;
+  localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
+});
+sideButton.addEventListener('click', (evt) => {
+  if(playlistContainer.className === '') {
+    playlistContainer.className = 'hidden';
+  }
+  else {
+    playlistContainer.className = '';
+  }
 });
 
 let muted = true, isHidden = false;
