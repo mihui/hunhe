@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <title>Player</title>
+  <title>Hunhe IPTV</title>
 
 <style>
 html, body {
@@ -32,7 +32,6 @@ body {
     flex-flow: row;
     align-items: flex-start;
     margin: 0px;
-    column-gap: 0.5rem;
   }
   .container .video-container {
     flex: 1;
@@ -40,21 +39,16 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    column-gap: 1rem;
     min-width: 300px;
     width: 100%;
     height: 100%;
-    row-gap: 1rem;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
   }
     .container .video-container #videoPlayer {
       width: 100%;
       max-height: 100%;
       min-width: 300px;
       height: auto;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.2);
       border-radius: 8px;
       flex: 0;
     }
@@ -77,20 +71,12 @@ body {
       width: 100%;
     }
 
-
     .container #playlistContainer {
       min-width: 300px;
       width: 100%;
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      box-sizing: border-box;
       flex: 1;
       height: 100%;
-      overflow: auto;
       display: flex;
-      flex-flow: column;
     }
 
 textarea, #categorySelect, #searchInput, #searchButton, #m3uInput, #loadM3uButton, #loadContentuButton, #m3uContentKey {
@@ -145,18 +131,24 @@ select:focus-visible {
 
 #playlistItems li {
   cursor: pointer;
-  background-color: #f8f9fa;
+  background-color: #f1f1f1;
   border-radius: 8px;
-  padding: 0.9rem;
+  padding: 0.5rem 0.9rem;
+  height: 100%;
   transition: background-color 0.2s;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
 }
+  #playlistItems li:nth-of-type(even) {
+    background-color: transparent;
+  }
 
-#playlistItems li:hover {
-  background-color: #e9ecef;
-}
+  #playlistItems li:hover {
+    background-color: #e9ecef;
+  }
 
 button {
   padding: 12px 20px;
@@ -166,6 +158,7 @@ button {
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+  white-space: nowrap;
 }
 
 #pagination button {
@@ -177,12 +170,17 @@ button {
 
 #pageInfo {
   font-size: 16px;
+  white-space: nowrap;
+  width: 100%;
+  flex: 0;
+  text-align: center;
 }
 
 #errorMessage {
   color: #e74c3c;
   margin-top: 10px;
   text-align: center;
+  flex: 0;
 }
 
 @media (min-width: 768px) {
@@ -215,6 +213,9 @@ button {
 #fullscreenButton {
   background-color: darkblue;
 }
+#refreshPage {
+  background-color: orange;
+}
 #m3uList {
   display: flex;
   column-gap: 1rem;
@@ -246,46 +247,65 @@ button {
 .hidden {
   display: none;
 }
-
+.box {
+  display: flex;
+  flex-flow: column;
+  width: 100%;
+  flex: 1;
+  position: relative;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 1rem;
+  column-gap: 1rem;
+  row-gap: 1rem;
+}
 </style>
 </head>
 
 <body>
   <div class="container">
-
     <div id="playlistContainer">
-      <div id="m3uInputContainer">
-        <input type="url" id="m3uInput" placeholder="输入 M3U 文件 URL">
-        <button id="loadM3uButton">加载播放列表</button>
-        <div id="m3uList"></div>
-        <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
-        <textarea id="m3uContent"></textarea>
-        <button id="loadContentuButton">加载内容</button>
-      </div>
-      <div id="playlistContent">
-        <form id="searchContainer">
-          <input type="text" id="searchInput" placeholder="搜索...">
-          <button type="submit" id="searchButton">搜索</button>
-        </form>
-        <select id="categorySelect"></select>
-        <ul id="playlistItems"></ul>
+      <div class="box">
+        <div id="m3uInputContainer">
+          <input type="url" id="m3uInput" placeholder="输入 M3U 文件 URL">
+          <button id="loadM3uButton">加载播放列表</button>
+          <div id="m3uList"></div>
+          <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
+          <textarea id="m3uContent"></textarea>
+          <button id="loadContentuButton">加载内容</button>
+        </div>
+        <div id="playlistContent">
+          <form id="searchContainer">
+            <input type="text" id="searchInput" placeholder="搜索...">
+            <button type="submit" id="searchButton">搜索</button>
+          </form>
+          <select id="categorySelect"></select>
+          <ul id="playlistItems"></ul>
+        </div>
       </div>
     </div>
     <div class="video-container">
-      <video id="videoPlayer" playsinline></video>
-      <div class="video-control">
-        <button id="reloadM3uButton">重载</button>
-        <button id="closeVideoButton" class="hidden">停止</button>
-        <button id="playVideoButton" class="hidden">播放</button>
-        <button id="fullscreenButton">全屏</button>
+      <div class="box">
+        <video id="videoPlayer" playsinline></video>
+        <div class="video-control">
+          <button id="closeVideoButton" class="hidden">停止</button>
+          <button id="playVideoButton" class="hidden">播放</button>
+          <button id="fullscreenButton">全屏</button>
+          <button id="refreshPage">检测</button>
+          <button id="reloadM3uButton">重载</button>
+        </div>
+        <div id="errorMessage"></div>
+        <div id="pageInfo"></div>
+        <div id="pagination">
+          <button id="firstPage">首页</button>
+          <button id="prevPage">上一页</button>
+          <button id="nextPage">下一页</button>
+          <button id="lastPage">尾页</button>
+        </div>
       </div>
-      <div id="pagination">
-        <button id="prevPage">上一页</button>
-        <span id="pageInfo"></span>
-        <button id="nextPage">下一页</button>
-        <button id="refreshPage">刷新</button>
-      </div>
-      <div id="errorMessage"></div>
     </div>
 
   </div>
@@ -430,6 +450,12 @@ const m3uList = document.getElementById('m3uList');
 const searchContainer = document.getElementById('searchContainer');
 const searchInput = document.getElementById('searchInput');
 const fullscreenButton = document.getElementById('fullscreenButton');
+
+const firstPage = document.getElementById('firstPage');
+const prevButton = document.getElementById('prevPage');
+const nextButton = document.getElementById('nextPage');
+const pageInfo = document.getElementById('pageInfo');
+const lastPage = document.getElementById('lastPage');
 
 /** @type {HTMLTextAreaElement} **/
 const m3uContent = document.getElementById('m3uContent');
@@ -711,17 +737,13 @@ function updateListItemStyle(li, isPlayable) {
 
 // 更新分页控件
 function updatePaginationControls() {
-  const prevButton = document.getElementById('prevPage');
-  const nextButton = document.getElementById('nextPage');
-  const pageInfo = document.getElementById('pageInfo');
-
   const itemsToDisplay = filteredPlaylistData || [];
   const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
 
-  prevButton.disabled = currentPage === 1;
-  nextButton.disabled = currentPage === totalPages;
+  firstPage.disabled = prevButton.disabled = currentPage === 1;
+  lastPage.disabled = nextButton.disabled = currentPage === totalPages;
 
-  pageInfo.textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
+  pageInfo.textContent = `第 ${currentPage}/${totalPages} 页`;
 }
 
 // 初始化播放列表
@@ -737,13 +759,11 @@ function performSearch() {
 
   if (currentCategory === allChannels || currentCategory === originalChannels) {
     filteredPlaylistData = categories[originalChannels].filter(item => 
-      item.title.toLowerCase().includes(searchTerm) || 
-      item.group.toLowerCase().includes(searchTerm)
+      item.title.toLowerCase().includes(searchTerm)
     );
   } else {
     filteredPlaylistData = categories[currentCategory].filter(item => 
-      item.title.toLowerCase().includes(searchTerm) || // 添加对组名的搜索
-      item.group.toLowerCase().includes(searchTerm)   // 添加对组名的搜索
+      item.title.toLowerCase().includes(searchTerm)
     );
   }
   currentPage = 1;
@@ -782,9 +802,9 @@ function playVideo(source, isUserAction = true) {
   const playingItem = playlistData.find(item => item.url === source);
  
   if (playingItem) {
-    document.title = `正在播放：${playingItem.title}`;
+    document.title = playingItem.title;
   } else {
-    document.title = '正在播放';
+    document.title = 'Hunhe IPTV';
   }
   if(source.startsWith('http://')){ 
     return;
@@ -902,15 +922,30 @@ loadM3uButton.addEventListener('click', () => loadM3uFile(false));
 loadContentuButton.addEventListener('click', () => loadM3uContent());
 
 reloadM3uButton.addEventListener('click', showM3uInput);
-document.getElementById('prevPage').addEventListener('click', () => {
+firstPage.addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage = 1;
+    gotoPage(currentPage); 
+  }
+});
+lastPage.addEventListener('click', () => {
+  const itemsToDisplay = filteredPlaylistData || [];
+  const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
+  if (currentPage < totalPages) {
+    currentPage = totalPages;
+    gotoPage(totalPages); 
+  }
+});
+prevPage.addEventListener('click', () => {
   if (currentPage > 1) {
     currentPage--;
     gotoPage(currentPage);
   }
 });
 
-document.getElementById('nextPage').addEventListener('click', () => {
-  if (currentPage < Math.ceil(playlistData.length / itemsPerPage)) {
+nextPage.addEventListener('click', () => {
+  const itemsToDisplay = filteredPlaylistData || [];
+  if (currentPage < Math.ceil(itemsToDisplay.length / itemsPerPage)) {
     currentPage++;
     gotoPage(currentPage);
   }
@@ -970,6 +1005,10 @@ fullscreenButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
   videoPlayer.requestFullscreen();
+});
+document.addEventListener('dblclick', function (event) {
+  event.preventDefault();
+
 });
 
 // 初始化
