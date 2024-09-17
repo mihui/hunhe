@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <title>Hunhe IPTV</title>
-
 <style>
 html, body {
   width: 100%;
@@ -43,15 +42,25 @@ body {
     width: 100%;
     height: 100%;
   }
-    .container .video-container #videoPlayer {
+    .container .video-container .video-wrapper {
+      box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.5);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
       width: 100%;
       max-height: 100%;
       min-width: 300px;
       height: auto;
-      box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      flex: 0;
+      background-color: #333;
     }
+    .container .video-container #videoPlayer {
+      width: 100%;
+      max-height: 100%;
+      height: auto;
+    }
+      .container .video-container #videoPlayer.paused {
+        opacity: 0;
+      }
 
     .container .video-container .video-control {
       flex: 1;
@@ -79,7 +88,7 @@ body {
       display: flex;
     }
 
-textarea, #categorySelect, #searchInput, #searchButton, #m3uInput, #loadM3uButton, #loadContentuButton, #m3uContentKey {
+textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #m3uInput, #loadM3uButton, #loadContentuButton, #m3uContentKey {
   width: 100%;
   padding: 12px;
   margin-bottom: 15px;
@@ -108,14 +117,22 @@ select:focus-visible {
 }
 
 #searchButton {
+  border-radius: 0px;
+}
+
+#searchButton, #clearButton {
   width: auto;
   background-color: #3498db;
   color: white;
   border: none;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
   cursor: pointer;
   white-space: nowrap;
+}
+
+#clearButton {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  background-color: #db6634;
 }
 
 #playlistItems {
@@ -137,10 +154,12 @@ select:focus-visible {
   height: 100%;
   transition: background-color 0.2s;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: auto;
+  overflow-y: hidden;
   text-overflow: ellipsis;
   display: flex;
   align-items: center;
+  scrollbar-width: none;
 }
   #playlistItems li:nth-of-type(even) {
     background-color: transparent;
@@ -148,6 +167,9 @@ select:focus-visible {
 
   #playlistItems li:hover {
     background-color: #e9ecef;
+  }
+  #playlistItems li::-webkit-scrollbar { 
+    display: none;
   }
 
 button {
@@ -164,7 +186,8 @@ button {
 #pagination button {
   flex: 1;
 }
-#pagination button:disabled {
+
+#pagination button:disabled, #clearButton:disabled, #loadM3uButton:disabled, #favoriteButton:disabled {
   background-color: #bdc3c7;
 }
 
@@ -199,9 +222,6 @@ button {
   border: none;
   cursor: pointer;
 }
-#loadM3uButton:disabled {
-  background-color: gray;
-}
 
 #closeVideoButton {
   background-color: #e74c3c;
@@ -209,6 +229,9 @@ button {
 
 #reloadM3uButton {
   background-color: #2ecc71;
+}
+#favoriteButton {
+  background-color: #952ecc;
 }
 #fullscreenButton {
   background-color: darkblue;
@@ -219,20 +242,35 @@ button {
 #m3uList {
   display: flex;
   column-gap: 1rem;
-  flex-wrap: wrap;
+  flex-flow: column;
 }
-#m3uContentKey {
-  margin-top: 1rem;
+
+#m3uList div {
+  display: flex;
+  justify-content: space-between;
 }
-#m3uList a {
+#m3uList div a {
   cursor: pointer;
   padding: 0.5rem 1rem;
   border-radius: 4px;
 }
-  #m3uList a:hover {
+  #m3uList div a:hover {
     background-color: #eee;
   }
-
+  #m3uList div a.load {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #m3uList div a.delete {
+    color: #e74c3c;;
+  }
+  #m3uList div a.delete:hover {
+    background-color: #fbe3e3;
+  }
+#m3uContentKey {
+  margin-top: 1rem;
+}
 #m3uContent {
   resize: vertical;
 }
@@ -281,6 +319,7 @@ button {
           <form id="searchContainer">
             <input type="text" id="searchInput" placeholder="搜索...">
             <button type="submit" id="searchButton">搜索</button>
+            <button type="reset" id="clearButton" disabled>重置</button>
           </form>
           <select id="categorySelect"></select>
           <ul id="playlistItems"></ul>
@@ -289,36 +328,61 @@ button {
     </div>
     <div class="video-container">
       <div class="box">
-        <video id="videoPlayer" playsinline></video>
+        <div class="video-wrapper"><video id="videoPlayer" playsinline></video></div>
         <div class="video-control">
           <button id="closeVideoButton" class="hidden">停止</button>
           <button id="playVideoButton" class="hidden">播放</button>
           <button id="fullscreenButton">全屏</button>
           <button id="refreshPage">检测</button>
-          <button id="reloadM3uButton">重载</button>
+          <button id="favoriteButton" disabled>收藏</button>
+          <button id="reloadM3uButton">设置</button>
         </div>
         <div id="errorMessage"></div>
         <div id="pageInfo"></div>
         <div id="pagination">
-          <button id="firstPage">首页</button>
-          <button id="prevPage">上一页</button>
-          <button id="nextPage">下一页</button>
-          <button id="lastPage">尾页</button>
+          <button id="firstPage" disabled>首页</button>
+          <button id="prevPage" disabled>上一页</button>
+          <button id="nextPage" disabled>下一页</button>
+          <button id="lastPage" disabled>尾页</button>
         </div>
       </div>
     </div>
 
   </div>
 <script>
-const storeName = 'm3u-store';
+const SITE_TITLE = 'Hunhe IPTV';
+const M3U_STORE = 'm3u-store';
+const FAVORITE_STORE = 'fav-store';
+
 const database = {
-  openDB: () => {
+  openDB: (dbName = 'm3u') => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open("m3u", 1);
+      const request = indexedDB.open(dbName, 3);
+      request.onblocked = (event) => {
+        // If some other tab is loaded with the database, then it needs to be closed
+        // before we can proceed.
+        console.log("Please close all other tabs with this site open!");
+      };
 
       request.onupgradeneeded = (event) => {
+        /** @type {IDBDatabase} **/
         const db = event.target.result;
-        db.createObjectStore(storeName, { keyPath: "id" });
+        try {
+          db.createObjectStore(M3U_STORE, { keyPath: "id" });
+        }
+        catch(error) {}
+
+        try {
+          db.createObjectStore(FAVORITE_STORE, { keyPath: "id" });
+        }
+        catch(error) {}
+
+        db.onversionchange = (event) => {
+          db.close();
+          console.log(
+            "A new version of this page is ready. Please reload or close this tab!",
+          );
+        };
       };
 
       request.onsuccess = (event) => {
@@ -330,10 +394,10 @@ const database = {
       };
     });
   },
-  addData: async (data) => {
+  addData: async (data, name = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readwrite");
-    const store = transaction.objectStore(storeName);
+    const transaction = db.transaction(name, "readwrite");
+    const store = transaction.objectStore(name);
     const request = store.add(data);
 
     return new Promise((resolve, reject) => {
@@ -346,10 +410,11 @@ const database = {
       };
     });
   },
-  readData: async (id) => {
+  readData: async (id, name = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readonly");
-    const store = transaction.objectStore(storeName);
+    console.log('using--->', name);
+    const transaction = db.transaction(name, "readonly");
+    const store = transaction.objectStore(name);
     const request = store.get(id);
 
     return new Promise((resolve, reject) => {
@@ -362,10 +427,10 @@ const database = {
       };
     });
   },
-  updateData: async (data) => {
+  updateData: async (data, name = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readwrite");
-    const store = transaction.objectStore(storeName);
+    const transaction = db.transaction(name, "readwrite");
+    const store = transaction.objectStore(name);
     const request = store.put(data);
 
     return new Promise((resolve, reject) => {
@@ -378,10 +443,10 @@ const database = {
       };
     });
   },
-  deleteData: async (id) => {
+  deleteData: async (id, name = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readwrite");
-    const store = transaction.objectStore(storeName);
+    const transaction = db.transaction(name, "readwrite");
+    const store = transaction.objectStore(name);
     const request = store.delete(id);
 
     return new Promise((resolve, reject) => {
@@ -394,23 +459,20 @@ const database = {
       };
     });
   },
-  listData: async () => {
+  listData: async (name = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readonly");
-    const store = transaction.objectStore(storeName);
+    const transaction = db.transaction(name, "readonly");
+    const store = transaction.objectStore(name);
     let request = store.openCursor();
     const list = [];
     return new Promise((resolve, reject) => {
       request.onsuccess = (evt) => {
         const cursor = evt.target.result;
         if(cursor) {
-          request = store.get(cursor.key);
-          request.onsuccess = function (evt) {
-            const path = database.decodeString(cursor.key);
-            const pathSegments = path.split('/');
-            const fileName = pathSegments[pathSegments.length - 1];
-            list.push({ key: fileName, id: cursor.key });
-          };
+          // const path = database.decodeString(cursor.key);
+          // const pathSegments = path.split('/');
+          // const fileName = pathSegments[pathSegments.length - 1];
+          list.push(cursor.value);
           cursor.continue();
         }
         else {
@@ -435,6 +497,8 @@ const database = {
 
 const allChannels = '所有频道';
 const originalChannels = '原始所有频道';
+const favoriteChannels = '收藏频道';
+
 const videoPlayer = document.getElementById('videoPlayer');
 const errorMessage = document.getElementById('errorMessage');
 const m3uInput = document.getElementById('m3uInput');
@@ -448,6 +512,10 @@ const closeVideoButton = document.getElementById("closeVideoButton");
 const playVideoButton = document.getElementById("playVideoButton");
 const m3uList = document.getElementById('m3uList');
 const searchContainer = document.getElementById('searchContainer');
+/** @type {HTMLButtonElement} **/
+const favoriteButton = document.getElementById('favoriteButton');
+
+/** @type {HTMLInputElement} **/
 const searchInput = document.getElementById('searchInput');
 const fullscreenButton = document.getElementById('fullscreenButton');
 
@@ -457,12 +525,17 @@ const nextButton = document.getElementById('nextPage');
 const pageInfo = document.getElementById('pageInfo');
 const lastPage = document.getElementById('lastPage');
 
+/** @type {HTMLButtonElement} **/
+const clearButton = document.getElementById('clearButton');
 /** @type {HTMLTextAreaElement} **/
 const m3uContent = document.getElementById('m3uContent');
 /** @type {HTMLInputElement} **/
 const m3uContentKey = document.getElementById('m3uContentKey');
 const loadContentuButton = document.getElementById('loadContentuButton');
+/** @type {HTMLSelectElement} **/
+const categorySelect = document.getElementById('categorySelect');
 
+/** @type {Array<{ title: string, url: string, group: string }>} **/
 let playlistData = [];
 let currentPage = 1;
 const itemsPerPage = 15;
@@ -479,8 +552,20 @@ async function listStore () {
   /** @type {Array<{ key: string, id: string }>} */
   const list = await database.listData();
   for(const m3uItem of list) {
+    const url = database.decodeString(m3uItem.id);
+    const divItem = document.createElement('div');
     const aItem = document.createElement('a');
-    aItem.innerText = m3uItem.key;
+    const dItem = document.createElement('a');
+    dItem.innerText = 'Delete';
+    dItem.className = 'delete';
+    dItem.dataset['id'] = m3uItem.id;
+    dItem.onclick = async (evt) => {
+      evt.preventDefault();
+      await database.deleteData(evt.target.dataset['id']);
+      listStore();
+    };
+    aItem.innerText = url;
+    aItem.className = 'load';
     aItem.dataset['id'] = m3uItem.id;
     aItem.onclick = async (evt) => {
       const element = evt.target;
@@ -489,7 +574,9 @@ async function listStore () {
       gotoPage(1);
       processM3uData(data.m3u);
     };
-    m3uList.append(aItem);
+    divItem.append(aItem);
+    divItem.append(dItem);
+    m3uList.append(divItem);
   }
 }
 
@@ -505,6 +592,7 @@ async function loadCachedData() {
 
   currentPage = parseInt(localStorage.getItem('currentPage')) || 1;
   currentCategory = localStorage.getItem('currentCategory') || allChannels;
+  gotoPage(currentPage);
 
   const cachedPlayabilityCache = localStorage.getItem('playabilityCache');
   if (cachedPlayabilityCache) {
@@ -598,6 +686,7 @@ async function loadM3uFile(fromCache = false) {
           }
           processM3uData(data, fromCache);
           listStore();
+          gotoPage(1);
         }
         else {
           errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
@@ -635,7 +724,7 @@ async function loadM3uContent() {
 // 解析 M3U 数据
 function parseM3uData(data) {
   playlistData = [];
-  categories = { [allChannels]: [] };
+  categories = { [allChannels]: [], [favoriteChannels]: [] };
   uniqueUrls = new Set();
 
   const lines = data.split('\n');
@@ -669,7 +758,6 @@ function parseM3uData(data) {
 
 // 初始化分类
 function initializeCategories() {
-  const categorySelect = document.getElementById('categorySelect');
   categorySelect.innerHTML = '';
   for (let category in categories) {
     if(category === originalChannels){
@@ -682,17 +770,22 @@ function initializeCategories() {
   }
 
   categorySelect.value = currentCategory = allChannels;;
-
-  categorySelect.addEventListener('change', (e) => {
-    currentCategory = e.target.value;
-    currentPage = 1;
-    // 重置搜索
-    searchInput.value = '';
-    // 更新当前类别的数据
-    filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
-    gotoPage(currentPage);
-  });
 }
+
+categorySelect.addEventListener('change', async (e) => {
+  currentCategory = e.target.value;
+  currentPage = 1;
+  // 重置搜索
+  searchInput.value = '';
+  // 更新当前类别的数据
+  if(currentCategory === favoriteChannels) {
+    filteredPlaylistData = await database.listData(FAVORITE_STORE);
+  }
+  else {
+    filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
+  }
+  gotoPage(currentPage);
+});
 
 // 显示播放列表页面
 function displayPlaylistPage(page) {
@@ -706,10 +799,13 @@ function displayPlaylistPage(page) {
 
   pageItems.forEach(item => {
     const li = document.createElement('li');
-    li.textContent = item.group === allChannels ? item.title : `[${item.group}] ${item.title}`;
+    const div = document.createElement('div');
+    div.className = 'label';
+    div.textContent = item.group === allChannels ? item.title : `[${item.group}] ${item.title}`;
     li.setAttribute('data-url', item.url);
     li.setAttribute('title', item.title);
     li.onclick = () => playVideo(item.url);
+    li.append(div);
     playlistItems.appendChild(li);
   });
 
@@ -739,11 +835,16 @@ function updateListItemStyle(li, isPlayable) {
 function updatePaginationControls() {
   const itemsToDisplay = filteredPlaylistData || [];
   const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
+  const hasData = itemsToDisplay.length > 0;
 
-  firstPage.disabled = prevButton.disabled = currentPage === 1;
-  lastPage.disabled = nextButton.disabled = currentPage === totalPages;
-
-  pageInfo.textContent = `第 ${currentPage}/${totalPages} 页`;
+  if(hasData) {
+    pageInfo.textContent = `第 ${currentPage}/${totalPages} 页`;
+  }
+  else {
+    pageInfo.textContent = '';
+  }
+  firstPage.disabled = prevButton.disabled = (currentPage === 1 || hasData === false);
+  lastPage.disabled = nextButton.disabled = (currentPage === totalPages || hasData === false);
 }
 
 // 初始化播放列表
@@ -797,18 +898,77 @@ async function refreshCurrentPage() {
   saveDataToCache();
 }
 
+function nativePlay(playingItem) {
+  videoPlayer.src = playingItem.url;
+  videoPlayer.addEventListener('loadedmetadata', function () {
+    videoPlayer.play().catch(error => {
+      console.warn('播放错误:', error);
+      errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
+    }).then(() => {
+      onPlay(playingItem);
+    });
+  });
+}
+
+function refreshFavoriteButton(hasFavorite) {
+  if(hasFavorite) {
+    favoriteButton.textContent = '移除';
+    favoriteButton.dataset['action'] = 'remove';
+  }
+  else {
+    favoriteButton.textContent = '收藏';
+    favoriteButton.dataset['action'] = 'add';
+  }
+}
+
+/**
+ * @param {{ title: string, url: string, group: string }} playingItem Play item
+ **/
+async function onPlay(playingItem) {
+  videoPlayer.controls = true;
+  errorMessage.textContent = '';
+  favoriteButton.disabled = false;
+  const id = database.encodeString(playingItem.url);
+  const data = await database.readData(id, FAVORITE_STORE);
+
+  favoriteButton.dataset['id'] = id;
+  favoriteButton.dataset['url'] = playingItem.url;
+  favoriteButton.dataset['group'] = playingItem.group;
+  favoriteButton.dataset['title'] = playingItem.title;
+
+  refreshFavoriteButton(data ? true : false);
+}
+
+favoriteButton.addEventListener('click', async (evt) => {
+  const id = favoriteButton.dataset['id'];
+  const url = favoriteButton.dataset['url'];
+  const group = favoriteButton.dataset['group'];
+  const title = favoriteButton.dataset['title'];
+  const isAddingData = favoriteButton.dataset['action'] === 'add';
+  const isDeletingData = favoriteButton.dataset['action'] === 'remove';
+  if(isAddingData) {
+    await database.addData({ id, url, title, group }, FAVORITE_STORE);
+  }
+  else if(isDeletingData) {
+    await database.deleteData(id, FAVORITE_STORE);
+  }
+  refreshFavoriteButton(isAddingData);
+  categories[favoriteChannels] = await database.listData(FAVORITE_STORE);
+  initializePlaylist();
+});
+
 // 播放视频
 function playVideo(source, isUserAction = true) {
+  /** @type {{ title: string, url: string, group: string }} **/
   const playingItem = playlistData.find(item => item.url === source);
- 
+  favoriteButton.disabled = true;
+
   if (playingItem) {
     document.title = playingItem.title;
   } else {
-    document.title = 'Hunhe IPTV';
+    document.title = SITE_TITLE;
   }
-  if(source.startsWith('http://')){ 
-    return;
-  }
+
   if(isUserAction === false) {
     return;
   }
@@ -821,21 +981,14 @@ function playVideo(source, isUserAction = true) {
         console.warn('播放错误:', error);
         errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
       }).then(() => {
-        videoPlayer.controls = true;
-        errorMessage.textContent = '';
+        onPlay(playingItem);
       });
+    });
+    hls.on(Hls.Events.ERROR, function (error) {
+      console.log('error--->', error);
     });
   } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-    videoPlayer.src = source;
-    videoPlayer.addEventListener('loadedmetadata', function () {
-      videoPlayer.play().catch(error => {
-        console.warn('播放错误:', error);
-        errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
-      }).then(() => {
-        videoPlayer.controls = true;
-        errorMessage.textContent = '';
-      });
-    });
+    nativePlay(playingItem);
   } else {
     errorMessage.textContent = '您的浏览器不支持 HLS 视频流。';
   }
@@ -846,11 +999,6 @@ function playVideo(source, isUserAction = true) {
 // 检查视频可播放性
 async function checkVideoPlayability(url) {
   return new Promise((resolve) => {
-
-    if(url.startsWith('http://')) {
-      return resolve(false);
-    }
-
     if (Hls.isSupported()) {
       const hls = new Hls();
       let timeoutId;
@@ -936,14 +1084,14 @@ lastPage.addEventListener('click', () => {
     gotoPage(totalPages); 
   }
 });
-prevPage.addEventListener('click', () => {
+prevButton.addEventListener('click', () => {
   if (currentPage > 1) {
     currentPage--;
     gotoPage(currentPage);
   }
 });
 
-nextPage.addEventListener('click', () => {
+nextButton.addEventListener('click', (evt) => {
   const itemsToDisplay = filteredPlaylistData || [];
   if (currentPage < Math.ceil(itemsToDisplay.length / itemsPerPage)) {
     currentPage++;
@@ -956,13 +1104,28 @@ searchContainer.addEventListener('submit', (evt) => {
   evt.stopImmediatePropagation();
   performSearch();
 });
+
+searchInput.addEventListener('keyup', (evt) => {
+  clearButton.disabled = evt.target.value === '';
+});
+
 searchInput.addEventListener('input', function() {
   if (this.value === '') {
     // 清空搜索关键字后，恢复到当前类别的播放列表
     filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
     gotoPage(1);
   }
+  searchInput.dispatchEvent(new Event('keyup'));
 });
+
+clearButton.addEventListener('click', (evt) => {
+  evt.preventDefault();
+  searchInput.value = '';
+  performSearch();
+  gotoPage(1);
+  searchInput.dispatchEvent(new Event('keyup'));
+});
+
 document.getElementById('refreshPage').addEventListener('click', refreshCurrentPage);
 
 videoPlayer.addEventListener('error', (e) => {
@@ -978,6 +1141,7 @@ function showPlayButton(showControls = false) {
   closeVideoButton.className = 'hidden';
   playVideoButton.className = '';
   videoPlayer.controls = showControls;
+  videoPlayer.className = 'paused';
 }
 
 videoPlayer.addEventListener('timeupdate', () => {
@@ -986,11 +1150,15 @@ videoPlayer.addEventListener('timeupdate', () => {
 
 videoPlayer.addEventListener('pause', () => {
   showPlayButton(true);
+  document.title = SITE_TITLE;
 });
+
 videoPlayer.addEventListener('play', () => {
   closeVideoButton.className = '';
   playVideoButton.className = 'hidden';
   videoPlayer.controls = true;
+  errorMessage.textContent = '';
+  videoPlayer.className = '';
 });
 closeVideoButton.addEventListener('click', () => {
   videoPlayer.src = stopURL;
