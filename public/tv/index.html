@@ -23,6 +23,8 @@ body {
   position: relative;
   overflow: hidden;
   align-items: center;
+  background: url(background.jpeg) no-repeat center center;
+  background-size: cover;
 }
   .container {
     width: 100%;
@@ -58,10 +60,6 @@ body {
       max-height: 100%;
       height: auto;
     }
-      .container .video-container #videoPlayer.paused {
-        opacity: 0;
-      }
-
     .container .video-container .video-control {
       flex: 1;
       align-items: flex-start;
@@ -170,6 +168,16 @@ select:focus-visible {
   }
   #playlistItems li::-webkit-scrollbar { 
     display: none;
+  }
+  #playlistItems li.good {
+    border-left: 3px solid green;
+  }
+  #playlistItems li.average {
+    border-left: 2px solid orange;
+  }
+
+  #playlistItems li.bad {
+    border-left: 1px solid red;
   }
 
 button {
@@ -291,7 +299,7 @@ button {
   width: 100%;
   flex: 1;
   position: relative;
-  background-color: white;
+  background-color: rgba(237, 237, 237, 0.85);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
@@ -304,7 +312,7 @@ button {
 </head>
 
 <body>
-  <div class="container">
+  <div class="container" id="pageContainer">
     <div id="playlistContainer">
       <div class="box">
         <div id="m3uInputContainer">
@@ -347,7 +355,6 @@ button {
         </div>
       </div>
     </div>
-
   </div>
 <script>
 const SITE_TITLE = 'Hunhe IPTV';
@@ -498,7 +505,7 @@ const database = {
 const allChannels = '所有频道';
 const originalChannels = '原始所有频道';
 const favoriteChannels = '收藏频道';
-
+/** @type {HTMLVideoElement} **/
 const videoPlayer = document.getElementById('videoPlayer');
 const errorMessage = document.getElementById('errorMessage');
 const m3uInput = document.getElementById('m3uInput');
@@ -668,8 +675,7 @@ async function loadM3uFile(fromCache = false) {
     else {
       console.log('from url');
       loadM3uButton.disabled = true;
-      fetch(m3uUrl)
-      .then(response => {
+      fetch(m3uUrl).then(response => {
         if(response.status === 200) {
           return response.text();
         }
@@ -814,21 +820,34 @@ function displayPlaylistPage(page) {
     if (playabilityCache.hasOwnProperty(item.url)) {
       updateListItemStyle(li, playabilityCache[item.url]);
     } else {
-      const isPlayable = await checkVideoPlayability(item.url);
-      playabilityCache[item.url] = isPlayable;
-      updateListItemStyle(li, isPlayable);
+      const result = await checkVideoPlayability(item.url);
+      playabilityCache[item.url] = result;
+      updateListItemStyle(li, result);
       saveDataToCache();
     }
   });
 }
 
 // 更新列表项样式
-function updateListItemStyle(li, isPlayable) {
-  if (!isPlayable) {
+function updateListItemStyle(li, checkResult) {
+  if (!checkResult.ok) {
     li.style.color = 'gray';
     li.style.textDecoration = 'line-through';
-    li.title = '此视频源可能无法播放';
+    li.title = `此视频源可能无法播放 (${checkResult.duration}ms)`;
+    li.className = 'bad';
   }
+  else {
+    if(checkResult.duration < 300) {
+      li.className = 'good';
+    }
+    else if (checkResult.duration >= 300 && checkResult.duration <= 1000) {
+      li.className = 'average';
+    }
+    else {
+      li.className = 'bad';
+    }
+  }
+  li.title = li.title + ` (${checkResult.duration} ms)`
 }
 
 // 更新分页控件
@@ -889,9 +908,9 @@ async function refreshCurrentPage() {
     const itemUrl = li.getAttribute('data-url');
     if (itemUrl) {
       delete playabilityCache[itemUrl];
-      const isPlayable = await checkVideoPlayability(itemUrl);
-      playabilityCache[itemUrl] = isPlayable;
-      updateListItemStyle(li, isPlayable);
+      const result = await checkVideoPlayability(itemUrl);
+      playabilityCache[itemUrl] = result;
+      updateListItemStyle(li, result);
     }
   }
 
@@ -937,6 +956,7 @@ async function onPlay(playingItem) {
   favoriteButton.dataset['title'] = playingItem.title;
 
   refreshFavoriteButton(data ? true : false);
+
 }
 
 favoriteButton.addEventListener('click', async (evt) => {
@@ -972,6 +992,8 @@ function playVideo(source, isUserAction = true) {
   if(isUserAction === false) {
     return;
   }
+
+  videoPlayer.muted = true;
   if (Hls.isSupported()) {
     const hls = new Hls();
     hls.loadSource(source);
@@ -996,8 +1018,13 @@ function playVideo(source, isUserAction = true) {
   localStorage.setItem('lastPlayedUrl', source);
 }
 
-// 检查视频可播放性
+/**
+ * 检查视频可播放性
+ * @param {string} url URL
+ * @returns {{ ok: boolean, duration: number }}
+ **/
 async function checkVideoPlayability(url) {
+  const timestamp = new Date().getTime();
   return new Promise((resolve) => {
     if (Hls.isSupported()) {
       const hls = new Hls();
@@ -1013,17 +1040,17 @@ async function checkVideoPlayability(url) {
       hls.loadSource(url);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         cleanup();
-        resolve(true);
+        resolve({ ok: true, duration: new Date().getTime() - timestamp });
       });
 
       hls.on(Hls.Events.ERROR, () => {
         cleanup();
-        resolve(false);
+        resolve({ ok: false, duration: new Date().getTime() - timestamp });
       });
 
       timeoutId = setTimeout(() => {
         cleanup();
-        resolve(false);
+        resolve({ ok: false, duration: new Date().getTime() - timestamp });
       }, 5000);
     } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
       const video = document.createElement('video');
@@ -1040,20 +1067,20 @@ async function checkVideoPlayability(url) {
 
       video.onloadedmetadata = () => {
         cleanup();
-        resolve(true);
+        resolve({ ok: true, duration: new Date().getTime() - timestamp });
       };
 
       video.onerror = () => {
         cleanup();
-        resolve(false);
+        resolve({ ok: false, duration: new Date().getTime() - timestamp });
       };
 
       timeoutId = setTimeout(() => {
         cleanup();
-        resolve(false);
+        resolve({ ok: false, duration: new Date().getTime() - timestamp });
       }, 5000);
     } else {
-      resolve(false);
+      resolve({ ok: false, duration: new Date().getTime() - timestamp });
     }
   });
 }
@@ -1174,9 +1201,22 @@ fullscreenButton.addEventListener('click', (evt) => {
   evt.stopPropagation();
   videoPlayer.requestFullscreen();
 });
+
+let muted = true, isHidden = false;
+const pageContainer = document.getElementById('pageContainer');
 document.addEventListener('dblclick', function (event) {
   event.preventDefault();
-
+  if(isHidden) {
+    pageContainer.className = 'container';
+  }
+  else {
+    pageContainer.className = 'hidden';
+    muted = videoPlayer.muted;
+    //
+    videoPlayer.muted = true;
+    videoPlayer.pause();
+  }
+  isHidden = !isHidden;
 });
 
 // 初始化
