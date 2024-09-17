@@ -38,10 +38,13 @@ publicRouter.get('/health', async (req, res, next) => {
  */
 publicRouter.get('/fetch', async (req, res, next) => {
   const { url, method = 'GET' } = req.query;
-  const response = await httpClient.request({ url, method });
-  if(response.status === httpCodes.OK) {
-    return res.send(response.data);
+  try {
+    const response = await httpClient.request({ url, method });
+    if(response.status === httpCodes.OK) {
+      return res.send(response.data);
+    }
   }
+  catch(error) {}
   return res.send('');
 });
 

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en-US">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <title>Hunhe IPTV</title>
+  <title>Hunhe TV</title>
 <style>
 html, body {
   width: 100%;
@@ -361,6 +361,7 @@ button {
 const SITE_TITLE = 'Hunhe IPTV';
 const M3U_STORE = 'm3u-store';
 const FAVORITE_STORE = 'fav-store';
+const UNSAFE_HTTP = 'http://';
 const TYPES = {
   M3U: 'm3u', TXT: 'txt'
 };
@@ -673,7 +674,7 @@ function processM3uData (type, data, fromCache = false) {
 async function loadM3uFile(fromCache = false) {
   /** @type {string} **/
   const m3uUrl = m3uInput.value.trim();
-  const type = m3uUrl.endsWith('m3u') ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
+  const type = m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8') ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
 
   if (type) {
     const id = database.encodeString(m3uUrl);
@@ -685,8 +686,9 @@ async function loadM3uFile(fromCache = false) {
     else {
       console.log('from url');
       loadM3uButton.disabled = true;
-      fetch(m3uUrl).then(response => {
-        if(response.status === 200) {
+      const url = m3uUrl.startsWith(UNSAFE_HTTP) ? `/api/fetch?url=${m3uUrl}` : m3uUrl;
+      fetch(url).then(response => {
+        if(response.status === 200 || response.status === 202 || response.status === 302) {
           return response.text();
         }
         return null;
@@ -716,7 +718,6 @@ async function loadM3uFile(fromCache = false) {
         loadM3uButton.disabled = false;
       });
     }
-
   } else {
     errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
   }
@@ -751,6 +752,10 @@ function processM3uLine(line) {
   } else if (line && !line.startsWith('#')) {
     if (!uniqueUrls.has(line)) {
       uniqueUrls.add(line);
+      if(line.startsWith(UNSAFE_HTTP)) {
+        line = `${window.location.origin}/api/fetch?url=${line}`;
+      }
+
       const item = { title: VARS.CURRENT_TITLE || line, url: line, group: VARS.CURRENT_GROUP };
       playlistData.push(item);
       categories[allChannels].push(item);
@@ -776,6 +781,11 @@ function processTxtLine(line) {
     if(lineArray.length < 2) return;
 
     VARS.CURRENT_URL = lineArray.pop().trim();
+
+    if(VARS.CURRENT_URL.startsWith(UNSAFE_HTTP)) {
+      VARS.CURRENT_URL = `${window.location.origin}/api/fetch?url=${VARS.CURRENT_URL}`;
+    }
+
     VARS.CURRENT_TITLE = lineArray.pop().trim();
 
     if (!uniqueUrls.has(VARS.CURRENT_URL)) {
@@ -873,7 +883,10 @@ function displayPlaylistPage(page) {
   });
 
   pageItems.forEach(async (item, index) => {
+    /** @type {HTMLLIElement} **/
     const li = playlistItems.children[index];
+    li.dataset['url'] = item.url;
+    li.dataset['proxy'] = false;
     if (playabilityCache.hasOwnProperty(item.url)) {
       updateListItemStyle(li, playabilityCache[item.url]);
     } else {
@@ -886,11 +899,16 @@ function displayPlaylistPage(page) {
 }
 
 // 更新列表项样式
-function updateListItemStyle(li, checkResult) {
+async function updateListItemStyle(li, checkResult) {
   if (!checkResult.ok) {
     li.style.color = 'gray';
     li.style.textDecoration = 'line-through';
-    li.title = `此视频源可能无法播放 (${checkResult.duration}ms)`;
+    li.title = `此视频源可能无法播放`;
+    const finalResult = await checkVideoPlayability(`${window.location.origin}/api/fetch?url=${li.dataset['url']}`);
+    if(finalResult.ok) {
+      // li.style.textDecoration = 'none';
+      li.dataset['proxy'] = true;
+    }
   }
   else {
     if(checkResult.duration < 300) {
