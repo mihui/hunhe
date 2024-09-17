@@ -338,7 +338,7 @@ button {
     <div class="video-container">
       <div class="box">
         <div class="video-wrapper"><video id="videoPlayer" playsinline></video></div>
-        <div class="video-control">
+        <div class="video-control" id="videoControl">
           <button id="closeVideoButton" class="hidden">停止</button>
           <button id="playVideoButton" class="hidden">播放</button>
           <button id="fullscreenButton">全屏</button>
@@ -361,6 +361,12 @@ button {
 const SITE_TITLE = 'Hunhe IPTV';
 const M3U_STORE = 'm3u-store';
 const FAVORITE_STORE = 'fav-store';
+const TYPES = {
+  M3U: 'm3u', TXT: 'txt'
+};
+const SOURCES = {
+  URL: 'url', CONTENT: 'content'
+};
 
 const database = {
   openDB: (dbName = 'm3u') => {
@@ -547,10 +553,10 @@ const categorySelect = document.getElementById('categorySelect');
 let playlistData = [];
 let currentPage = 1;
 const itemsPerPage = 15;
+/** @type {Object.<string, Array<{ title: string, group: string, url: string }>>} **/
 let categories = {};
 let currentCategory = allChannels;
 let filteredPlaylistData = [];
-let uniqueUrls = new Set();
 let playabilityCache = {};
 
 const stopURL = URL.createObjectURL(new Blob());
@@ -580,7 +586,7 @@ async function listStore () {
       const data = await database.readData(element.dataset['id']);
       m3uInput.value = database.decodeString(m3uItem.id);
       gotoPage(1);
-      processM3uData(data.m3u);
+      processM3uData(data.type || TYPES.M3U, data.m3u);
     };
     divItem.append(aItem);
     divItem.append(dItem);
@@ -652,8 +658,8 @@ function showM3uInput() {
   
 }
 
-function processM3uData (data, fromCache = false) {
-  parseM3uData(data);
+function processM3uData (type, data, fromCache = false) {
+  parseM3uData(type, data);
   initializeCategories();
   initializePlaylist();
   showPlaylistContent();
@@ -665,13 +671,16 @@ function processM3uData (data, fromCache = false) {
 
 // 加载 M3U 文件
 async function loadM3uFile(fromCache = false) {
+  /** @type {string} **/
   const m3uUrl = m3uInput.value.trim();
-  if (m3uUrl) {
+  const type = m3uUrl.endsWith('m3u') ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
+
+  if (type) {
     const id = database.encodeString(m3uUrl);
     const payload = await database.readData(id);
     if(payload && payload.m3u && fromCache) {
       console.log('from database');
-      processM3uData(payload.m3u, true);
+      processM3uData(type, payload.m3u, true);
     }
     else {
       console.log('from url');
@@ -686,12 +695,12 @@ async function loadM3uFile(fromCache = false) {
         loadM3uButton.disabled = false;
         if(data) {
           if(payload) {
-            await database.updateData({ id, m3u: data, source: 'url' });
+            await database.updateData({ id, m3u: data, source: SOURCES.URL, type });
           }
           else {
-            await database.addData({ id, m3u: data, source: 'url' });
+            await database.addData({ id, m3u: data, source: SOURCES.URL, type });
           }
-          processM3uData(data, fromCache);
+          processM3uData(type, data, fromCache);
           listStore();
           gotoPage(1);
         }
@@ -717,48 +726,95 @@ async function loadM3uContent() {
   if(m3uContent.value.includes('#EXTINF:')) {
     const id = database.encodeString(m3uContentKey.value);
     const payload = await database.readData(id);
-    const data = { id, m3u: m3uContent.value, source: 'content' };
+    const data = { id, m3u: m3uContent.value, source: SOURCES.CONTENT, type: TYPES.M3U }; // m3u only
     if(payload) {
       await database.updateData(data);
     }
     else {
       await database.addData(data);
     }
-    processM3uData(data.m3u, true);
+    processM3uData(TYPES.M3U, data.m3u, true);
+  }
+}
+
+const uniqueUrls = new Set();
+const VARS = {
+  CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: ''
+};
+
+function processM3uLine(line) { 
+  if (line.startsWith('#EXTINF:')) {
+    const infoLine = line.substring(8);
+    const groupMatch = infoLine.match(/group-title="([^"]+)"/);
+    VARS.CURRENT_GROUP = groupMatch ? groupMatch[1] : allChannels;
+    VARS.CURRENT_TITLE = infoLine.split(',').pop().trim();
+  } else if (line && !line.startsWith('#')) {
+    if (!uniqueUrls.has(line)) {
+      uniqueUrls.add(line);
+      const item = { title: VARS.CURRENT_TITLE || line, url: line, group: VARS.CURRENT_GROUP };
+      playlistData.push(item);
+      categories[allChannels].push(item);
+      if (VARS.CURRENT_GROUP !== allChannels) {
+        if (!categories[VARS.CURRENT_GROUP]) {
+          categories[VARS.CURRENT_GROUP] = [];
+        }
+        categories[VARS.CURRENT_GROUP].push(item);
+      }
+    }
+  }
+}
+
+/**
+ * @param {string} line Text line
+ */
+function processTxtLine(line) {
+  if (line.endsWith('#genre#')) {
+    const infoLine = line.replace(',#genre#', '');
+    VARS.CURRENT_GROUP = infoLine ? infoLine : allChannels;
+  } else if (line && !line.endsWith('#genre#')) {
+    const lineArray = line.split(',');
+    if(lineArray.length < 2) return;
+
+    VARS.CURRENT_URL = lineArray.pop().trim();
+    VARS.CURRENT_TITLE = lineArray.pop().trim();
+
+    if (!uniqueUrls.has(VARS.CURRENT_URL)) {
+      uniqueUrls.add(VARS.CURRENT_URL);
+      const group = VARS.CURRENT_GROUP || allChannels;
+      const item = { title: VARS.CURRENT_TITLE, url: VARS.CURRENT_URL, group };
+      playlistData.push(item);
+      categories[allChannels].push(item);
+      if (group !== allChannels) {
+        if (!categories[group]) {
+          categories[group] = [];
+        }
+        categories[group].push(item);
+      }
+    }
   }
 }
 
 // 解析 M3U 数据
-function parseM3uData(data) {
+function parseM3uData(type, data) {
+  // Data for all
   playlistData = [];
+  // Data in categories
   categories = { [allChannels]: [], [favoriteChannels]: [] };
-  uniqueUrls = new Set();
+  uniqueUrls.clear();
 
   const lines = data.split('\n');
-  let currentTitle = '';
-  let currentGroup = '';
 
   lines.forEach((line, index) => {
     line = line.trim();
-    if (line.startsWith('#EXTINF:')) {
-      const infoLine = line.substring(8);
-      const groupMatch = infoLine.match(/group-title="([^"]+)"/);
-      currentGroup = groupMatch ? groupMatch[1] : allChannels;
-      currentTitle = infoLine.split(',').pop().trim();
-    } else if (line && !line.startsWith('#')) {
-      if (!uniqueUrls.has(line)) {
-        uniqueUrls.add(line);
-        const item = { title: currentTitle || line, url: line, group: currentGroup };
-        playlistData.push(item);
-        categories[allChannels].push(item);
-        if (currentGroup !== allChannels) {
-          if (!categories[currentGroup]) {
-            categories[currentGroup] = [];
-          }
-          categories[currentGroup].push(item);
-        }
-      }
+    // [M3U] Start - Process data
+    if(type === TYPES.M3U) {
+      processM3uLine(line);
     }
+    else if (type === TYPES.TXT) {
+      processTxtLine(line);
+    }
+    
+    // [M3U] End - Process data
   });
   categories[originalChannels] = [...categories[allChannels]];
 }
@@ -1203,19 +1259,21 @@ fullscreenButton.addEventListener('click', (evt) => {
 
 let muted = true, isHidden = false;
 const pageContainer = document.getElementById('pageContainer');
-document.addEventListener('dblclick', function (event) {
-  event.preventDefault();
-  if(isHidden) {
-    pageContainer.className = 'container';
+document.addEventListener('keydown', function (event) {
+  if (event.key === 'Escape' || event.keyCode === 27) {
+    event.preventDefault();
+    if(isHidden) {
+      pageContainer.className = 'container';
+    }
+    else {
+      pageContainer.className = 'hidden';
+      muted = videoPlayer.muted;
+      //
+      videoPlayer.muted = true;
+      videoPlayer.pause();
+    }
+    isHidden = !isHidden;
   }
-  else {
-    pageContainer.className = 'hidden';
-    muted = videoPlayer.muted;
-    //
-    videoPlayer.muted = true;
-    videoPlayer.pause();
-  }
-  isHidden = !isHidden;
 });
 
 // 初始化
