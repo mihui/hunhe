@@ -225,9 +225,9 @@ button {
 
 #errorMessage {
   color: #e74c3c;
-  margin-top: 10px;
   text-align: center;
-  flex: 0;
+  flex: 1;
+  width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -371,13 +371,17 @@ button {
           </div>
 
           <div class="controls">
+            <div id="errorMessage"></div>
+          </div>
+
+          <div class="controls">
             <button id="refreshPage">检测</button>
             <button id="favoriteButton" disabled>收藏</button>
             <button id="sideButton">列表</button>
             <button id="reloadM3uButton">设置</button>
           </div>
         </div>
-        <div id="errorMessage"></div>
+
         <div id="pageInfo"></div>
         <div id="pagination">
           <button id="firstPage" disabled>首页</button>
@@ -584,6 +588,8 @@ const loadContentuButton = document.getElementById('loadContentuButton');
 const categorySelect = document.getElementById('categorySelect');
 /** @type {HTMLUListElement} **/
 const playlistItems = document.getElementById('playlistItems');
+/** @type {HTMLDivElement} **/
+const paginationGroup = document.getElementById('pagination');
 
 /** @type {Array<{ title: string, url: string, group: string }>} **/
 let playlistData = [];
@@ -682,7 +688,7 @@ function showPlaylistContent() {
 
 // 显示 M3U 输入界面
 function showM3uInput() {
-  playlistContainer.className = '';
+  pageInfo.className = paginationGroup.className = playlistContainer.className = '';
   if(m3uInputContainer.style.display === 'block') {
     m3uInputContainer.style.display = 'none';
     playlistContent.style.display = 'flex';
@@ -1330,10 +1336,10 @@ forwardButton.addEventListener('click', (evt) => {
 });
 sideButton.addEventListener('click', (evt) => {
   if(playlistContainer.className === '') {
-    playlistContainer.className = 'hidden';
+    pageInfo.className = paginationGroup.className = playlistContainer.className = 'hidden';
   }
   else {
-    playlistContainer.className = '';
+    pageInfo.className = paginationGroup.className = playlistContainer.className = '';
   }
 });
 
