@@ -29,38 +29,58 @@ body {
     width: 100%;
     height: 100%;
     display: flex;
-    flex-flow: column;
-    align-items: center;
-    margin: 1rem auto;
+    flex-flow: row;
+    align-items: flex-start;
+    margin: 0px;
+    column-gap: 0.5rem;
   }
   .container .video-container {
-    flex: 0;
+    flex: 1;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: space-between;
     column-gap: 1rem;
     min-width: 300px;
-    width: 90%;
-    max-height: 30%;
+    width: 100%;
+    height: 100%;
+    row-gap: 1rem;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
   }
-
     .container .video-container #videoPlayer {
-      width: 60%;
-      height: 30%;
+      width: 100%;
       max-height: 100%;
-      max-width: 100%;
       min-width: 300px;
       height: auto;
-      margin-bottom: 20px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       border-radius: 8px;
-      flex: 1;
+      flex: 0;
     }
+
+    .container .video-container .video-control {
+      flex: 1;
+      align-items: flex-start;
+      display: flex;
+      column-gap: 1rem;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .container .video-container #pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      column-gap: 1rem;
+      flex: 0;
+      width: 100%;
+    }
+
 
     .container #playlistContainer {
       min-width: 300px;
-      width: 90%;
+      width: 100%;
       background-color: white;
       padding: 20px;
       border-radius: 8px;
@@ -69,6 +89,8 @@ body {
       flex: 1;
       height: 100%;
       overflow: auto;
+      display: flex;
+      flex-flow: column;
     }
 
 textarea, #categorySelect, #searchInput, #searchButton, #m3uInput, #loadM3uButton, #loadContentuButton, #m3uContentKey {
@@ -84,7 +106,6 @@ textarea, #categorySelect, #searchInput, #searchButton, #m3uInput, #loadM3uButto
 
 #searchContainer {
   display: flex;
-  margin-bottom: 15px;
 }
 
 #searchInput {
@@ -113,15 +134,20 @@ select:focus-visible {
 
 #playlistItems {
   list-style-type: none;
-  padding: 0;
+  padding: 0px;
+  margin: 0px;
+  display: flex;
+  flex-flow: column;
+  flex: 1;
+  row-gap: 0.3rem;
+  justify-content: space-evenly;
 }
 
 #playlistItems li {
   cursor: pointer;
-  padding: 15px;
-  margin: 10px 0;
   background-color: #f8f9fa;
   border-radius: 8px;
+  padding: 0.9rem;
   transition: background-color 0.2s;
   white-space: nowrap;
   overflow: hidden;
@@ -130,13 +156,6 @@ select:focus-visible {
 
 #playlistItems li:hover {
   background-color: #e9ecef;
-}
-
-#pagination {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 button {
@@ -149,6 +168,9 @@ button {
   font-size: 16px;
 }
 
+#pagination button {
+  flex: 1;
+}
 #pagination button:disabled {
   background-color: #bdc3c7;
 }
@@ -190,6 +212,9 @@ button {
 #reloadM3uButton {
   background-color: #2ecc71;
 }
+#fullscreenButton {
+  background-color: darkblue;
+}
 #m3uList {
   display: flex;
   column-gap: 1rem;
@@ -211,6 +236,13 @@ button {
   resize: vertical;
 }
 
+#playlistContent {
+  display: flex;
+  flex-flow: column;
+  display: none;
+  height: 100%;
+}
+
 .hidden {
   display: none;
 }
@@ -220,41 +252,42 @@ button {
 
 <body>
   <div class="container">
-    <div class="video-container">
-      <video id="videoPlayer" playsinline></video>
-      <div class="video-control">
-        <button id="reloadM3uButton">重载</button>
-        <button id="closeVideoButton" class="hidden">停止</button>
-        <button id="playVideoButton" class="hidden">播放</button>
-      </div>
-    </div>
 
     <div id="playlistContainer">
       <div id="m3uInputContainer">
         <input type="url" id="m3uInput" placeholder="输入 M3U 文件 URL">
         <button id="loadM3uButton">加载播放列表</button>
         <div id="m3uList"></div>
-
         <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
         <textarea id="m3uContent"></textarea>
         <button id="loadContentuButton">加载内容</button>
       </div>
-      <div id="playlistContent" style="display: none;">
-        <div id="searchContainer">
+      <div id="playlistContent">
+        <form id="searchContainer">
           <input type="text" id="searchInput" placeholder="搜索...">
-          <button id="searchButton">搜索</button>
-        </div>
+          <button type="submit" id="searchButton">搜索</button>
+        </form>
         <select id="categorySelect"></select>
         <ul id="playlistItems"></ul>
-        <div id="pagination">
-          <button id="prevPage">上一页</button>
-          <span id="pageInfo"></span>
-          <button id="nextPage">下一页</button>
-          <button id="refreshPage">刷新</button>
-        </div>
       </div>
     </div>
-    <div id="errorMessage"></div>
+    <div class="video-container">
+      <video id="videoPlayer" playsinline></video>
+      <div class="video-control">
+        <button id="reloadM3uButton">重载</button>
+        <button id="closeVideoButton" class="hidden">停止</button>
+        <button id="playVideoButton" class="hidden">播放</button>
+        <button id="fullscreenButton">全屏</button>
+      </div>
+      <div id="pagination">
+        <button id="prevPage">上一页</button>
+        <span id="pageInfo"></span>
+        <button id="nextPage">下一页</button>
+        <button id="refreshPage">刷新</button>
+      </div>
+      <div id="errorMessage"></div>
+    </div>
+
   </div>
 <script>
 const storeName = 'm3u-store';
@@ -394,6 +427,9 @@ const playlistContainer = document.getElementById("playlistContainer");
 const closeVideoButton = document.getElementById("closeVideoButton");
 const playVideoButton = document.getElementById("playVideoButton");
 const m3uList = document.getElementById('m3uList');
+const searchContainer = document.getElementById('searchContainer');
+const searchInput = document.getElementById('searchInput');
+const fullscreenButton = document.getElementById('fullscreenButton');
 
 /** @type {HTMLTextAreaElement} **/
 const m3uContent = document.getElementById('m3uContent');
@@ -403,7 +439,7 @@ const loadContentuButton = document.getElementById('loadContentuButton');
 
 let playlistData = [];
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 15;
 let categories = {};
 let currentCategory = allChannels;
 let filteredPlaylistData = [];
@@ -477,14 +513,14 @@ function saveDataToCache() {
 // 显示播放列表内容
 function showPlaylistContent() {
   m3uInputContainer.style.display = 'none';
-  playlistContent.style.display = 'block';
+  playlistContent.style.display = 'flex';
 }
 
 // 显示 M3U 输入界面
 function showM3uInput() {
   if(m3uInputContainer.style.display === 'block') {
     m3uInputContainer.style.display = 'none';
-    playlistContent.style.display = 'block';
+    playlistContent.style.display = 'flex';
   }
   else {
     m3uInputContainer.style.display = 'block';
@@ -625,7 +661,7 @@ function initializeCategories() {
     currentCategory = e.target.value;
     currentPage = 1;
     // 重置搜索
-    document.getElementById('searchInput').value = '';
+    searchInput.value = '';
     // 更新当前类别的数据
     filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
     gotoPage(currentPage);
@@ -679,7 +715,7 @@ function updatePaginationControls() {
   const nextButton = document.getElementById('nextPage');
   const pageInfo = document.getElementById('pageInfo');
 
-  const itemsToDisplay = categories[currentCategory] || [];
+  const itemsToDisplay = filteredPlaylistData || [];
   const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
 
   prevButton.disabled = currentPage === 1;
@@ -697,7 +733,7 @@ function initializePlaylist() {
 
 // 执行搜索
 function performSearch() {
-  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const searchTerm = searchInput.value.toLowerCase();
 
   if (currentCategory === allChannels || currentCategory === originalChannels) {
     filteredPlaylistData = categories[originalChannels].filter(item => 
@@ -766,6 +802,7 @@ function playVideo(source, isUserAction = true) {
         errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
       }).then(() => {
         videoPlayer.controls = true;
+        errorMessage.textContent = '';
       });
     });
   } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
@@ -776,6 +813,7 @@ function playVideo(source, isUserAction = true) {
         errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
       }).then(() => {
         videoPlayer.controls = true;
+        errorMessage.textContent = '';
       });
     });
   } else {
@@ -878,8 +916,12 @@ document.getElementById('nextPage').addEventListener('click', () => {
   }
 });
 
-document.getElementById('searchButton').addEventListener('click', performSearch);
-document.getElementById('searchInput').addEventListener('input', function() {
+searchContainer.addEventListener('submit', (evt) => {
+  evt.preventDefault();
+  evt.stopImmediatePropagation();
+  performSearch();
+});
+searchInput.addEventListener('input', function() {
   if (this.value === '') {
     // 清空搜索关键字后，恢复到当前类别的播放列表
     filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
@@ -897,10 +939,10 @@ videoPlayer.addEventListener('error', (e) => {
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
 });
 
-function showPlayButton() {
+function showPlayButton(showControls = false) {
   closeVideoButton.className = 'hidden';
   playVideoButton.className = '';
-  videoPlayer.controls = false;
+  videoPlayer.controls = showControls;
 }
 
 videoPlayer.addEventListener('timeupdate', () => {
@@ -908,7 +950,7 @@ videoPlayer.addEventListener('timeupdate', () => {
 });
 
 videoPlayer.addEventListener('pause', () => {
-  showPlayButton();
+  showPlayButton(true);
 });
 videoPlayer.addEventListener('play', () => {
   closeVideoButton.className = '';
@@ -919,9 +961,15 @@ closeVideoButton.addEventListener('click', () => {
   videoPlayer.src = stopURL;
   videoPlayer.pause();
   videoPlayer.currentTime = 0;
+  showPlayButton(false);
 });
 playVideoButton.addEventListener('click', () => {
   playLastVideo();
+});
+fullscreenButton.addEventListener('click', (evt) => {
+  evt.preventDefault();
+  evt.stopPropagation();
+  videoPlayer.requestFullscreen();
 });
 
 // 初始化
