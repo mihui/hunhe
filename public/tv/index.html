@@ -180,6 +180,9 @@ select:focus-visible {
   #playlistItems li.bad {
     border-left: 3px solid red;
   }
+  #playlistItems li.active {
+    font-weight: bold;
+  }
 
 button {
   padding: 12px 20px;
@@ -549,6 +552,8 @@ const m3uContentKey = document.getElementById('m3uContentKey');
 const loadContentuButton = document.getElementById('loadContentuButton');
 /** @type {HTMLSelectElement} **/
 const categorySelect = document.getElementById('categorySelect');
+/** @type {HTMLUListElement} **/
+const playlistItems = document.getElementById('playlistItems');
 
 /** @type {Array<{ title: string, url: string, group: string }>} **/
 let playlistData = [];
@@ -860,15 +865,20 @@ categorySelect.addEventListener('change', async (e) => {
   gotoPage(currentPage);
 });
 
+function resetListStyle() {
+  for(const node of playlistItems.childNodes) {
+    node.classList.remove('active');
+  }
+}
+
 // 显示播放列表页面
 function displayPlaylistPage(page) {
-  const playlistItems = document.getElementById('playlistItems');
   playlistItems.innerHTML = '';
-
   const itemsToDisplay = filteredPlaylistData || [];
   const startIndex = (page - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const pageItems = itemsToDisplay.slice(startIndex, endIndex);
+  const lastPlayedUrl = localStorage.getItem('lastPlayedUrl');
 
   pageItems.forEach(item => {
     const li = document.createElement('li');
@@ -877,7 +887,11 @@ function displayPlaylistPage(page) {
     div.textContent = item.group === allChannels ? item.title : `[${item.group}] ${item.title}`;
     li.setAttribute('data-url', item.url);
     li.setAttribute('title', item.title);
-    li.onclick = () => playVideo(item.url);
+    li.onclick = () => {
+      resetListStyle();
+      li.classList.add('active');
+      playVideo(item.url);
+    };
     li.append(div);
     playlistItems.appendChild(li);
   });
@@ -888,18 +902,18 @@ function displayPlaylistPage(page) {
     li.dataset['url'] = item.url;
     li.dataset['proxy'] = false;
     if (playabilityCache.hasOwnProperty(item.url)) {
-      updateListItemStyle(li, playabilityCache[item.url]);
+      updateListItemStyle(li, playabilityCache[item.url], lastPlayedUrl);
     } else {
       const result = await checkVideoPlayability(item.url);
       playabilityCache[item.url] = result;
-      updateListItemStyle(li, result);
+      updateListItemStyle(li, result, lastPlayedUrl);
       saveDataToCache();
     }
   });
 }
 
 // 更新列表项样式
-async function updateListItemStyle(li, checkResult) {
+async function updateListItemStyle(li, checkResult, currentUrl) {
   if (!checkResult.ok) {
     li.style.color = 'gray';
     li.style.textDecoration = 'line-through';
@@ -920,6 +934,10 @@ async function updateListItemStyle(li, checkResult) {
     else {
       li.className = 'bad';
     }
+  }
+  console.log(currentUrl, li.dataset['url']);
+  if(currentUrl === li.dataset['url']) {
+    li.classList.add('active');
   }
 }
 
@@ -966,6 +984,7 @@ function performSearch() {
 
 // 刷新当前页面
 async function refreshCurrentPage() {
+  const lastPlayedUrl = localStorage.getItem('lastPlayedUrl');
   const playlistItems = document.getElementById('playlistItems');
   const items = playlistItems.children;
 
@@ -983,7 +1002,7 @@ async function refreshCurrentPage() {
       delete playabilityCache[itemUrl];
       const result = await checkVideoPlayability(itemUrl);
       playabilityCache[itemUrl] = result;
-      updateListItemStyle(li, result);
+      updateListItemStyle(li, result, lastPlayedUrl);
     }
   }
 
