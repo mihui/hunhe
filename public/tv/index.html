@@ -1236,20 +1236,28 @@ lastPage.addEventListener('click', () => {
     gotoPage(totalPages); 
   }
 });
-prevButton.addEventListener('click', () => {
+
+function gotoPrevPage(evt) {
+  evt.preventDefault();
   if (currentPage > 1) {
     currentPage--;
     gotoPage(currentPage);
   }
-});
+}
+prevButton.addEventListener('click', gotoPrevPage);
+prevButton.addEventListener('dblclick', gotoPrevPage);
 
-nextButton.addEventListener('click', (evt) => {
+function gotoNextPage(evt) {
+  evt.preventDefault();
   const itemsToDisplay = filteredPlaylistData || [];
   if (currentPage < Math.ceil(itemsToDisplay.length / itemsPerPage)) {
     currentPage++;
     gotoPage(currentPage);
   }
-});
+}
+
+nextButton.addEventListener('click', gotoNextPage);
+nextButton.addEventListener('dblclick', gotoNextPage);
 
 searchContainer.addEventListener('submit', (evt) => {
   evt.preventDefault();
