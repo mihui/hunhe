@@ -7,6 +7,9 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <title>Hunhe TV</title>
 <style>
+html {
+  background: url(background.jpeg) no-repeat center center;
+}
 html, body {
   width: 100%;
   height: 100%;
@@ -17,13 +20,12 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 0;
-  background-color: #f0f4f8;
+  background: transparent;
   color: #333;
   margin: 0;
   position: relative;
   overflow: hidden;
   align-items: center;
-  background: url(background.jpeg) no-repeat center center;
   background-size: cover;
 }
   .container {
@@ -211,6 +213,11 @@ button {
 #pagination button, .controls button {
   flex: 1;
 }
+#pagination button {
+  padding: 3px 20px;
+  font-size: 12px;
+  border-radius: 4px;
+}
 
 #pagination button:disabled, #clearButton:disabled, #loadM3uButton:disabled, #favoriteButton:disabled {
   background-color: #bdc3c7;
@@ -324,13 +331,49 @@ button {
   flex: 1;
   position: relative;
   background-color: rgba(237, 237, 237, 0.85);
-  border-radius: 8px;
+  border-radius: 0px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   overflow: auto;
   padding: 1rem;
-  column-gap: 1rem;
-  row-gap: 1rem;
+  column-gap: 0.6rem;
+  row-gap: 0.6rem;
+}
+
+#pageControl {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 15px;
+  border-radius: 5px;  
+  background: #b5b5b5;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+#pageControl:hover {
+  opacity: 1; /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+#pageControl::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%; 
+  background: #04AA6D;
+  cursor: pointer;
+}
+
+#pageControl::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #04AA6D;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -382,13 +425,11 @@ button {
             <button id="reloadM3uButton">设置</button>
           </div>
         </div>
-
         <div id="pageInfo" class="hidden"></div>
         <div id="pagination" class="hidden">
-          <button id="firstPage" disabled>首页</button>
-          <button id="prevPage" disabled>上一页</button>
-          <button id="nextPage" disabled>下一页</button>
-          <button id="lastPage" disabled>尾页</button>
+          <button id="prevPage" disabled>&lt;</button>
+          <input id="pageControl" min="1" type="range" />
+          <button id="nextPage" disabled>&gt;</button>
         </div>
       </div>
     </div>
@@ -575,11 +616,12 @@ const forwardButton = document.getElementById('forwardButton');
 const searchInput = document.getElementById('searchInput');
 const fullscreenButton = document.getElementById('fullscreenButton');
 
-const firstPage = document.getElementById('firstPage');
 const prevButton = document.getElementById('prevPage');
 const nextButton = document.getElementById('nextPage');
 const pageInfo = document.getElementById('pageInfo');
-const lastPage = document.getElementById('lastPage');
+
+/** @type {HTMLInputElement} **/
+const pageControl = document.getElementById('pageControl');
 
 /** @type {HTMLButtonElement} **/
 const clearButton = document.getElementById('clearButton');
@@ -694,6 +736,7 @@ function showPlaylistContent() {
 function showM3uInput() {
   pageInfo.className = paginationGroup.className = playlistContainer.className = '';
   errorControl.classList.remove('hidden');
+  window.localStorage.setItem('playListVisible', 'true');
   if(m3uInputContainer.style.display === 'block') {
     m3uInputContainer.style.display = 'none';
     playlistContent.style.display = 'flex';
@@ -890,7 +933,6 @@ function initializeCategories() {
 
 categorySelect.addEventListener('change', async (e) => {
   currentCategory = e.target.value;
-  currentPage = 1;
   // 重置搜索
   searchInput.value = '';
   // 更新当前类别的数据
@@ -900,7 +942,7 @@ categorySelect.addEventListener('change', async (e) => {
   else {
     filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
   }
-  gotoPage(currentPage);
+  gotoPage(1);
 });
 
 function resetListStyle() {
@@ -983,15 +1025,18 @@ function updatePaginationControls() {
   const itemsToDisplay = filteredPlaylistData || [];
   const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
   const hasData = itemsToDisplay.length > 0;
+  pageControl.max = totalPages;
 
   if(hasData) {
-    pageInfo.textContent = `第 ${currentPage}/${totalPages} 页`;
+    pageInfo.innerHTML = `第 <span id="pageCurrent">${currentPage}</span>/${totalPages} 页`;
+    pageControl.min = 1;
   }
   else {
     pageInfo.textContent = '';
+    pageControl.min = 0;
   }
-  firstPage.disabled = prevButton.disabled = (currentPage === 1 || hasData === false);
-  lastPage.disabled = nextButton.disabled = (currentPage === totalPages || hasData === false);
+  prevButton.disabled = (currentPage === 1 || hasData === false);
+  nextButton.disabled = (currentPage === totalPages || hasData === false);
 }
 
 // 初始化播放列表
@@ -1014,9 +1059,7 @@ function performSearch() {
       item.title.toLowerCase().includes(searchTerm)
     );
   }
-  currentPage = 1;
-
-  gotoPage(currentPage);
+  gotoPage(1);
 }
 
 // 刷新当前页面
@@ -1212,6 +1255,7 @@ async function checkVideoPlayability(url) {
 
 function gotoPage(p) {
   currentPage = p;
+  pageControl.value = p;
   displayPlaylistPage(currentPage);
   updatePaginationControls();
   saveDataToCache();
@@ -1222,20 +1266,6 @@ loadM3uButton.addEventListener('click', () => loadM3uFile(false));
 loadContentuButton.addEventListener('click', () => loadM3uContent());
 
 reloadM3uButton.addEventListener('click', showM3uInput);
-firstPage.addEventListener('click', () => {
-  if (currentPage > 1) {
-    currentPage = 1;
-    gotoPage(currentPage); 
-  }
-});
-lastPage.addEventListener('click', () => {
-  const itemsToDisplay = filteredPlaylistData || [];
-  const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
-  if (currentPage < totalPages) {
-    currentPage = totalPages;
-    gotoPage(totalPages); 
-  }
-});
 
 function gotoPrevPage(evt) {
   evt.preventDefault();
@@ -1258,6 +1288,14 @@ function gotoNextPage(evt) {
 
 nextButton.addEventListener('click', gotoNextPage);
 nextButton.addEventListener('dblclick', gotoNextPage);
+
+pageControl.addEventListener('change', (evt) => {
+  gotoPage(evt.target.value);
+  document.getElementById('pageCurrent').textContent = currentPage;
+});
+pageControl.addEventListener('input', (evt) => {
+  document.getElementById('pageCurrent').textContent = evt.target.value;
+});
 
 searchContainer.addEventListener('submit', (evt) => {
   evt.preventDefault();
@@ -1350,7 +1388,6 @@ forwardButton.addEventListener('click', (evt) => {
 
 function initSideMenu() {
   const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
-  console.log('playListVisible', playListVisible, typeof playListVisible);
   if(playListVisible === 'false') {
     pageInfo.className = paginationGroup.className = playlistContainer.className = 'hidden';
     errorControl.classList.add('hidden');
