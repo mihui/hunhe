@@ -35,6 +35,7 @@ body {
     flex-flow: row;
     align-items: flex-start;
     margin: 0px;
+    position: relative;
   }
   .container .video-container {
     flex: 1;
@@ -82,13 +83,14 @@ body {
       column-gap: 1rem;
     }
 
-    .container .video-container #pagination {
+    .container #pagination {
       display: flex;
       justify-content: space-between;
       align-items: center;
       column-gap: 1rem;
       flex: 0;
       width: 100%;
+      margin-top: 14px;
     }
 
     .container #playlistContainer {
@@ -97,9 +99,11 @@ body {
       flex: 1;
       height: 100%;
       display: flex;
+      /* position: absolute; */
+      z-index: 10;
     }
 
-textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #m3uInput, #loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey {
+textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uInput, #loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey {
   width: 100%;
   padding: 12px;
   margin-bottom: 15px;
@@ -131,7 +135,7 @@ select:focus-visible {
   border-radius: 0px;
 }
 
-#searchButton, #clearButton {
+#searchButton, #clearButton, #closeButton {
   width: auto;
   background-color: #3498db;
   color: white;
@@ -141,6 +145,10 @@ select:focus-visible {
 }
 
 #clearButton {
+  border-radius: 0px;
+  background-color: #39db34;
+}
+#closeButton {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   background-color: #db6634;
@@ -155,6 +163,7 @@ select:focus-visible {
   flex: 1;
   row-gap: 0.3rem;
   justify-content: space-evenly;
+  overflow: auto;
 }
 
 #playlistItems li {
@@ -163,6 +172,7 @@ select:focus-visible {
   border-radius: 8px;
   padding: 0.5rem 0.9rem;
   height: 100%;
+  min-height: 1rem;
   transition: background-color 0.2s;
   white-space: nowrap;
   overflow: auto;
@@ -197,6 +207,9 @@ select:focus-visible {
   #playlistItems li.active {
     font-weight: bold;
   }
+  #playlistItems li div {
+    width: 100%;
+  }
 
 button {
   user-select: none;
@@ -214,9 +227,10 @@ button {
   flex: 1;
 }
 #pagination button {
-  padding: 5px 20px;
-  font-size: 14px;
+  font-size: 16px;
   border-radius: 4px;
+  flex: 0;
+  background-color: darkgreen;
 }
 
 #pagination button:disabled, #clearButton:disabled, #loadM3uButton:disabled, #favoriteButton:disabled, #refreshPage:disabled {
@@ -288,7 +302,11 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-radius: 4px;
 }
+  #m3uList div.active {
+    background-color: #fff;
+  }
 #m3uList div a {
   cursor: pointer;
   padding: 0.5rem 0.8rem;
@@ -341,7 +359,7 @@ button {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   overflow: auto;
-  padding: 1rem;
+  padding: 0.5rem;
   column-gap: 0.6rem;
   row-gap: 0.6rem;
 }
@@ -370,7 +388,7 @@ button {
   width: 25px;
   height: 25px;
   border-radius: 50%; 
-  background: #04AA6D;
+  background: darkgreen;
   cursor: pointer;
 }
 
@@ -389,6 +407,9 @@ button {
   .m3u-controls #closeM3uButton {
     background-color: #db6634;
   }
+.page-information {
+  flex: 1;
+}
 </style>
 </head>
 
@@ -414,22 +435,33 @@ button {
             <input type="text" id="searchInput" placeholder="搜索...">
             <button type="submit" id="searchButton">搜索</button>
             <button type="reset" id="clearButton" disabled>重置</button>
+            <button type="button" id="closeButton">关闭</button>
           </form>
           <select id="categorySelect"></select>
           <ul id="playlistItems"></ul>
+          <div class="controls">
+            <div id="pagination">
+              <button id="prevPage" disabled>上一页</button>
+              <div class="page-information">
+                <input id="pageControl" min="1" type="range" />
+                <div id="pageInfo"></div>
+              </div>
+              <button id="nextPage" disabled>下一页</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
     <div class="video-container">
       <div class="box">
         <div class="video-wrapper"><video id="videoPlayer" playsinline></video></div>
-
         <div class="video-control">
           <div class="controls">
-            <button id="rewindButton">后退</button>
             <button id="closeVideoButton" class="hidden">停止</button>
             <button id="playVideoButton" class="hidden">播放</button>
             <button id="fullscreenButton">全屏</button>
+            <button id="rewindButton">后退</button>
             <button id="forwardButton">前进</button>
           </div>
 
@@ -444,19 +476,20 @@ button {
             <button id="sideButton">列表</button>
           </div>
         </div>
-        <div id="pageInfo" class="hidden"></div>
-        <div id="pagination" class="hidden">
-          <button id="prevPage" disabled>上一页</button>
-          <input id="pageControl" min="1" type="range" />
-          <button id="nextPage" disabled>下一页</button>
-        </div>
+        
       </div>
     </div>
   </div>
 <script>
+const DB_VERSION = 4;
 const SITE_TITLE = 'Hunhe IPTV';
+// M3U list store
 const M3U_STORE = 'm3u-store';
-const FAVORITE_STORE = 'fav-store';
+// Favorites
+const FAV_STORE = 'fav-store';
+// The status cache of the playlist item
+const STA_STORE = 'sta-store';
+
 const UNSAFE_HTTP = 'http://';
 const TYPES = {
   M3U: 'm3u', TXT: 'txt'
@@ -468,7 +501,7 @@ const SOURCES = {
 const database = {
   openDB: (dbName = 'm3u') => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(dbName, 3);
+      const request = indexedDB.open(dbName, DB_VERSION);
       request.onblocked = (event) => {
         // If some other tab is loaded with the database, then it needs to be closed
         // before we can proceed.
@@ -483,7 +516,12 @@ const database = {
         catch(error) {}
 
         try {
-          db.createObjectStore(FAVORITE_STORE, { keyPath: "id" });
+          db.createObjectStore(FAV_STORE, { keyPath: "id" });
+        }
+        catch(error) {}
+
+        try {
+          db.createObjectStore(STA_STORE, { keyPath: "id" });
         }
         catch(error) {}
 
@@ -501,10 +539,10 @@ const database = {
       };
     });
   },
-  addData: async (data, name = M3U_STORE) => {
+  addData: async (data, storeName = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(name, "readwrite");
-    const store = transaction.objectStore(name);
+    const transaction = db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
     const request = store.add(data);
 
     return new Promise((resolve, reject) => {
@@ -517,10 +555,10 @@ const database = {
       };
     });
   },
-  readData: async (id, name = M3U_STORE) => {
+  readData: async (id, storeName = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(name, "readonly");
-    const store = transaction.objectStore(name);
+    const transaction = db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
     const request = store.get(id);
 
     return new Promise((resolve, reject) => {
@@ -533,10 +571,10 @@ const database = {
       };
     });
   },
-  updateData: async (data, name = M3U_STORE) => {
+  updateData: async (data, storeName = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(name, "readwrite");
-    const store = transaction.objectStore(name);
+    const transaction = db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
     const request = store.put(data);
 
     return new Promise((resolve, reject) => {
@@ -549,10 +587,10 @@ const database = {
       };
     });
   },
-  deleteData: async (id, name = M3U_STORE) => {
+  deleteData: async (id, storeName = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(name, "readwrite");
-    const store = transaction.objectStore(name);
+    const transaction = db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
     const request = store.delete(id);
 
     return new Promise((resolve, reject) => {
@@ -565,10 +603,10 @@ const database = {
       };
     });
   },
-  listData: async (name = M3U_STORE) => {
+  listData: async (storeName = M3U_STORE) => {
     const db = await database.openDB();
-    const transaction = db.transaction(name, "readonly");
-    const store = transaction.objectStore(name);
+    const transaction = db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
     let request = store.openCursor();
     const list = [];
     return new Promise((resolve, reject) => {
@@ -646,6 +684,8 @@ const pageControl = document.getElementById('pageControl');
 
 /** @type {HTMLButtonElement} **/
 const clearButton = document.getElementById('clearButton');
+/** @type {HTMLButtonElement} **/
+const closeButton = document.getElementById('closeButton');
 /** @type {HTMLTextAreaElement} **/
 const m3uContent = document.getElementById('m3uContent');
 /** @type {HTMLInputElement} **/
@@ -666,16 +706,22 @@ const itemsPerPage = 15;
 let categories = {};
 let currentCategory = allChannels;
 let filteredPlaylistData = [];
-let playabilityCache = {};
 
 const stopURL = URL.createObjectURL(new Blob());
 
-async function listStore () {
+async function listStore(source) {
+
+  const cachedM3uSource = localStorage.getItem('cachedM3uSource') || SOURCES.URL;
+  const cachedM3uUrl = localStorage.getItem('cachedM3uUrl') || '';
+
   m3uList.innerHTML = '';
-  /** @type {Array<{ key: string, id: string }>} */
+
+  /** @type {Array<{ key: string, id: string, source: string }>} */
   const list = await database.listData();
   for(const m3uItem of list) {
     const url = database.decodeString(m3uItem.id);
+    const isCurrent = cachedM3uUrl.includes(url) || (cachedM3uSource === SOURCES.CONTENT && m3uItem.source === SOURCES.CONTENT && cachedM3uUrl.includes(url));
+
     const divItem = document.createElement('div');
     const aItem = document.createElement('a');
     const dItem = document.createElement('a');
@@ -685,7 +731,7 @@ async function listStore () {
     dItem.ondblclick = async (evt) => {
       evt.preventDefault();
       await database.deleteData(evt.target.dataset['id']);
-      listStore();
+      listStore('click');
     };
     aItem.innerText = url;
     aItem.className = 'load';
@@ -693,38 +739,49 @@ async function listStore () {
     aItem.onclick = async (evt) => {
       const element = evt.target;
       const data = await database.readData(element.dataset['id']);
-      m3uInput.value = database.decodeString(m3uItem.id);
+      if(data.source === SOURCES.CONTENT) {
+        m3uInput.value = '';
+        m3uContent.value = data.m3u;
+      }
+      else if(data.source === SOURCES.URL) {
+        m3uInput.value = database.decodeString(m3uItem.id);
+      }
       gotoPage(1);
       processM3uData(data.type || TYPES.M3U, data.m3u);
     };
     divItem.append(aItem);
-    divItem.append(dItem);
+    if(isCurrent) {
+      divItem.classList.add('active');
+    }
+    else {
+      divItem.append(dItem);
+    }
     m3uList.append(divItem);
   }
 }
 
+async function loadPlayabilityCache() {
+}
+
 // 加载缓存的数据
 async function loadCachedData() {
-  const cachedM3uUrl = localStorage.getItem('cachedM3uUrl');
+  const cachedM3uUrl = localStorage.getItem('cachedM3uUrl') || '';
   if (cachedM3uUrl) {
     m3uInput.value = cachedM3uUrl;
     await loadM3uFile(true); // 添加一个参数来表示这是从缓存加载
   } else {
-    showM3uInput();
+    await showM3uInput();
   }
+
+  await loadPlayabilityCache();
 
   currentPage = parseInt(localStorage.getItem('currentPage')) || 1;
   currentCategory = localStorage.getItem('currentCategory') || allChannels;
   gotoPage(currentPage);
 
-  const cachedPlayabilityCache = localStorage.getItem('playabilityCache');
-  if (cachedPlayabilityCache) {
-    playabilityCache = JSON.parse(cachedPlayabilityCache);
-  }
-
   playLastVideo(false);
 
-  listStore();
+  listStore('loadCachedData');
 }
 
 function playLastVideo(isUserAction = true) {
@@ -744,7 +801,6 @@ function saveDataToCache() {
   localStorage.setItem('cachedM3uUrl', m3uInput.value);
   localStorage.setItem('currentPage', currentPage);
   localStorage.setItem('currentCategory', currentCategory);
-  localStorage.setItem('playabilityCache', JSON.stringify(playabilityCache));
 }
 
 // 显示播放列表内容
@@ -754,8 +810,8 @@ function showPlaylistContent() {
 }
 
 // 显示 M3U 输入界面
-function showM3uInput() {
-  pageInfo.className = paginationGroup.className = playlistContainer.className = '';
+async function showM3uInput() {
+  playlistContainer.className = '';
   errorControl.classList.remove('hidden');
   window.localStorage.setItem('playListVisible', 'true');
 
@@ -768,12 +824,12 @@ function showM3uInput() {
     m3uInputContainer.style.display = 'block';
     playlistContent.style.display = 'none';
     refreshPage.disabled = true;
-    listStore();
+    await listStore('showM3uInput');
   }
 }
 
 function processM3uData (type, data, fromCache = false) {
-  parseM3uData(type, data);
+  initPlayData(type, data);
   initializeCategories();
   initializePlaylist();
   showPlaylistContent();
@@ -814,7 +870,7 @@ async function loadM3uFile(fromCache = false) {
             await database.addData({ id, m3u: data, source: SOURCES.URL, type });
           }
           processM3uData(type, data, fromCache);
-          listStore();
+          listStore('fetch');
           gotoPage(1);
         }
         else {
@@ -853,6 +909,9 @@ const VARS = {
   CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: ''
 };
 
+/**
+ * @param {string} line Line
+ */
 function processM3uLine(line) { 
   if (line.startsWith('#EXTINF:')) {
     const infoLine = line.substring(8);
@@ -862,6 +921,7 @@ function processM3uLine(line) {
   } else if (line && !line.startsWith('#')) {
     if (!uniqueUrls.has(line)) {
       uniqueUrls.add(line);
+
       if(line.startsWith(UNSAFE_HTTP)) {
         line = `${window.location.origin}/api/fetch?url=${line}`;
       }
@@ -915,7 +975,7 @@ function processTxtLine(line) {
 }
 
 // 解析 M3U 数据
-function parseM3uData(type, data) {
+function initPlayData(type, data) {
   // Data for all
   playlistData = [];
   // Data in categories
@@ -924,8 +984,8 @@ function parseM3uData(type, data) {
 
   const lines = data.split('\n');
 
-  lines.forEach((line, index) => {
-    line = line.trim();
+  for(const item of lines) {
+    const line = item.trim();
     // [M3U] Start - Process data
     if(type === TYPES.M3U) {
       processM3uLine(line);
@@ -933,9 +993,8 @@ function parseM3uData(type, data) {
     else if (type === TYPES.TXT) {
       processTxtLine(line);
     }
-    
     // [M3U] End - Process data
-  });
+  }
   categories[originalChannels] = [...categories[allChannels]];
 }
 
@@ -961,7 +1020,7 @@ categorySelect.addEventListener('change', async (e) => {
   searchInput.value = '';
   // 更新当前类别的数据
   if(currentCategory === favoriteChannels) {
-    filteredPlaylistData = await database.listData(FAVORITE_STORE);
+    filteredPlaylistData = await database.listData(FAV_STORE);
   }
   else {
     filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
@@ -983,6 +1042,7 @@ function displayPlaylistPage(page) {
   const endIndex = startIndex + itemsPerPage;
   const pageItems = itemsToDisplay.slice(startIndex, endIndex);
   const lastPlayedUrl = localStorage.getItem('lastPlayedUrl');
+  let hasCacheUpdates = false;
 
   pageItems.forEach(item => {
     const li = document.createElement('li');
@@ -1005,15 +1065,19 @@ function displayPlaylistPage(page) {
     const li = playlistItems.children[index];
     li.dataset['url'] = item.url;
     li.dataset['proxy'] = false;
-    if (playabilityCache.hasOwnProperty(item.url)) {
-      updateListItemStyle(li, playabilityCache[item.url], lastPlayedUrl);
+    const id = database.encodeString(item.url);
+    const playCache = await database.readData(id, STA_STORE);
+    if (playCache) {
+      updateListItemStyle(li, playCache.result, lastPlayedUrl);
     } else {
       const result = await checkVideoPlayability(item.url);
-      playabilityCache[item.url] = result;
+      await database.addData({ id, result }, STA_STORE);
       updateListItemStyle(li, result, lastPlayedUrl);
-      saveDataToCache();
+      hasCacheUpdates = true;
     }
   });
+  // Save
+  if(hasCacheUpdates) saveDataToCache();
 }
 
 // 更新列表项样式
@@ -1022,10 +1086,13 @@ async function updateListItemStyle(li, checkResult, currentUrl) {
     li.style.color = 'gray';
     li.style.textDecoration = 'line-through';
     li.title = `此视频源可能无法播放`;
-    const finalResult = await checkVideoPlayability(`${window.location.origin}/api/fetch?url=${li.dataset['url']}`);
-    if(finalResult.ok) {
-      // li.style.textDecoration = 'none';
-      li.dataset['proxy'] = true;
+    const url = li.dataset['url'];
+    if(url.startsWith(UNSAFE_HTTP)) {
+      const finalResult = await checkVideoPlayability(`${window.location.origin}/api/fetch?url=${li.dataset['url']}`);
+      if(finalResult.ok) {
+        li.style.textDecoration = 'none';
+        li.dataset['proxy'] = true;
+      }
     }
   }
   else {
@@ -1103,9 +1170,9 @@ async function refreshCurrentPage() {
     const li = items[i];
     const itemUrl = li.getAttribute('data-url');
     if (itemUrl) {
-      delete playabilityCache[itemUrl];
+      const id = database.encodeString(itemUrl);
       const result = await checkVideoPlayability(itemUrl);
-      playabilityCache[itemUrl] = result;
+      await database.updateData({ id, result }, STA_STORE);
       updateListItemStyle(li, result, lastPlayedUrl);
     }
   }
@@ -1143,7 +1210,7 @@ async function onPlay(playingItem) {
   errorMessage.textContent = '';
   favoriteButton.disabled = false;
   const id = database.encodeString(playingItem.url);
-  const data = await database.readData(id, FAVORITE_STORE);
+  const data = await database.readData(id, FAV_STORE);
 
   favoriteButton.dataset['id'] = id;
   favoriteButton.dataset['url'] = playingItem.url;
@@ -1162,13 +1229,13 @@ favoriteButton.addEventListener('click', async (evt) => {
   const isAddingData = favoriteButton.dataset['action'] === 'add';
   const isDeletingData = favoriteButton.dataset['action'] === 'remove';
   if(isAddingData) {
-    await database.addData({ id, url, title, group }, FAVORITE_STORE);
+    await database.addData({ id, url, title, group }, FAV_STORE);
   }
   else if(isDeletingData) {
-    await database.deleteData(id, FAVORITE_STORE);
+    await database.deleteData(id, FAV_STORE);
   }
   refreshFavoriteButton(isAddingData);
-  categories[favoriteChannels] = await database.listData(FAVORITE_STORE);
+  categories[favoriteChannels] = await database.listData(FAV_STORE);
   initializePlaylist();
 });
 
@@ -1321,11 +1388,11 @@ nextButton.addEventListener('click', gotoNextPage);
 nextButton.addEventListener('dblclick', gotoNextPage);
 
 pageControl.addEventListener('change', (evt) => {
-  gotoPage(evt.target.value);
+  gotoPage(parseInt(evt.target.value));
   document.getElementById('pageCurrent').textContent = currentPage;
 });
 pageControl.addEventListener('input', (evt) => {
-  document.getElementById('pageCurrent').textContent = evt.target.value;
+  document.getElementById('pageCurrent').textContent = parseInt(evt.target.value);
 });
 
 searchContainer.addEventListener('submit', (evt) => {
@@ -1355,7 +1422,13 @@ clearButton.addEventListener('click', (evt) => {
   searchInput.dispatchEvent(new Event('keyup'));
 });
 
-document.getElementById('refreshPage').addEventListener('click', refreshCurrentPage);
+closeButton.addEventListener('click', (evt) => {
+  sideButton.dispatchEvent(new Event('click'));
+});
+
+document.getElementById('refreshPage').addEventListener('click', (evt) => {
+  refreshCurrentPage();
+});
 
 videoPlayer.addEventListener('error', (e) => {
   if(videoPlayer.src === stopURL) {
@@ -1420,12 +1493,12 @@ forwardButton.addEventListener('click', (evt) => {
 function initSideMenu() {
   const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
   if(playListVisible === 'false') {
-    pageInfo.className = paginationGroup.className = playlistContainer.className = 'hidden';
+    playlistContainer.className = 'hidden';
     errorControl.classList.add('hidden');
     refreshPage.disabled = true;
   }
   else {
-    pageInfo.className = paginationGroup.className = playlistContainer.className = '';
+    playlistContainer.className = '';
     errorControl.classList.remove('hidden');
     refreshPage.disabled = false;
   }
@@ -1434,13 +1507,13 @@ function initSideMenu() {
 sideButton.addEventListener('click', (evt) => {
   let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
   if(playListVisible === 'true') {
-    pageInfo.className = paginationGroup.className = playlistContainer.className = 'hidden';
+    playlistContainer.className = 'hidden';
     errorControl.classList.add('hidden');
     playListVisible = 'false';
     refreshPage.disabled = true;
   }
   else {
-    pageInfo.className = paginationGroup.className = playlistContainer.className = '';
+    playlistContainer.className = '';
     errorControl.classList.remove('hidden');
     playListVisible = 'true';
     refreshPage.disabled = false;
