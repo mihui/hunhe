@@ -99,7 +99,7 @@ body {
       display: flex;
     }
 
-textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #m3uInput, #loadM3uButton, #loadContentuButton, #m3uContentKey {
+textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #m3uInput, #loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey {
   width: 100%;
   padding: 12px;
   margin-bottom: 15px;
@@ -214,12 +214,12 @@ button {
   flex: 1;
 }
 #pagination button {
-  padding: 3px 20px;
-  font-size: 12px;
+  padding: 5px 20px;
+  font-size: 14px;
   border-radius: 4px;
 }
 
-#pagination button:disabled, #clearButton:disabled, #loadM3uButton:disabled, #favoriteButton:disabled {
+#pagination button:disabled, #clearButton:disabled, #loadM3uButton:disabled, #favoriteButton:disabled, #refreshPage:disabled {
   background-color: #bdc3c7;
 }
 
@@ -287,10 +287,11 @@ button {
 #m3uList div {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 #m3uList div a {
   cursor: pointer;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.8rem;
   border-radius: 4px;
 }
   #m3uList div a:hover {
@@ -300,12 +301,17 @@ button {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9rem;
   }
   #m3uList div a.delete {
-    color: #e74c3c;;
+    color: #e74c3c;
+    opacity: 0.6;
+    transition: all 1s;
   }
   #m3uList div a.delete:hover {
     background-color: #fbe3e3;
+    opacity: 1;
   }
 #m3uContentKey {
   margin-top: 1rem;
@@ -375,6 +381,14 @@ button {
   background: #04AA6D;
   cursor: pointer;
 }
+.m3u-controls {
+  display: flex;
+  column-gap: 1rem;
+  flex-flow: row;
+}
+  .m3u-controls #closeM3uButton {
+    background-color: #db6634;
+  }
 </style>
 </head>
 
@@ -382,13 +396,18 @@ button {
   <div class="container" id="pageContainer">
     <div id="playlistContainer" class="hidden">
       <div class="box">
-        <div id="m3uInputContainer">
+        <div id="m3uInputContainer" style="display: none;">
           <input type="url" id="m3uInput" placeholder="输入 M3U 文件 URL">
-          <button id="loadM3uButton">加载播放列表</button>
+          <div class="m3u-controls">
+            <button id="loadM3uButton">加载播放列表</button>
+            <button id="closeM3uButton">关闭</button>
+          </div>
+
           <div id="m3uList"></div>
+
           <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
           <textarea id="m3uContent"></textarea>
-          <button id="loadContentuButton">加载内容</button>
+          <button id="loadContentuButton">读取内容</button>
         </div>
         <div id="playlistContent">
           <form id="searchContainer">
@@ -419,17 +438,17 @@ button {
           </div>
 
           <div class="controls">
-            <button id="sideButton">列表</button>
+            <button id="reloadM3uButton">设置</button>
             <button id="refreshPage">检测</button>
             <button id="favoriteButton" disabled>收藏</button>
-            <button id="reloadM3uButton">设置</button>
+            <button id="sideButton">列表</button>
           </div>
         </div>
         <div id="pageInfo" class="hidden"></div>
         <div id="pagination" class="hidden">
-          <button id="prevPage" disabled>&lt;</button>
+          <button id="prevPage" disabled>上一页</button>
           <input id="pageControl" min="1" type="range" />
-          <button id="nextPage" disabled>&gt;</button>
+          <button id="nextPage" disabled>下一页</button>
         </div>
       </div>
     </div>
@@ -592,7 +611,9 @@ const errorMessage = document.getElementById('errorMessage');
 /** @type {HTMLDivElement} **/
 const errorControl = document.getElementById('errorControl');
 const m3uInput = document.getElementById('m3uInput');
-
+/** @type {HTMLButtonElement} **/
+const closeM3uButton = document.getElementById('closeM3uButton');
+/** @type {HTMLButtonElement} **/
 const loadM3uButton = document.getElementById('loadM3uButton');
 const reloadM3uButton = document.getElementById('reloadM3uButton');
 const m3uInputContainer = document.getElementById('m3uInputContainer');
@@ -658,10 +679,10 @@ async function listStore () {
     const divItem = document.createElement('div');
     const aItem = document.createElement('a');
     const dItem = document.createElement('a');
-    dItem.innerText = 'Delete';
+    dItem.innerText = '删';
     dItem.className = 'delete';
     dItem.dataset['id'] = m3uItem.id;
-    dItem.onclick = async (evt) => {
+    dItem.ondblclick = async (evt) => {
       evt.preventDefault();
       await database.deleteData(evt.target.dataset['id']);
       listStore();
@@ -737,13 +758,16 @@ function showM3uInput() {
   pageInfo.className = paginationGroup.className = playlistContainer.className = '';
   errorControl.classList.remove('hidden');
   window.localStorage.setItem('playListVisible', 'true');
+
   if(m3uInputContainer.style.display === 'block') {
     m3uInputContainer.style.display = 'none';
     playlistContent.style.display = 'flex';
+    refreshPage.disabled = false;
   }
   else {
     m3uInputContainer.style.display = 'block';
     playlistContent.style.display = 'none';
+    refreshPage.disabled = true;
     listStore();
   }
 }
@@ -1264,6 +1288,9 @@ function gotoPage(p) {
 // 事件监听器
 loadM3uButton.addEventListener('click', () => loadM3uFile(false));
 loadContentuButton.addEventListener('click', () => loadM3uContent());
+closeM3uButton.addEventListener('click', (evt) => {
+  showM3uInput();
+});
 
 reloadM3uButton.addEventListener('click', showM3uInput);
 
@@ -1276,6 +1303,10 @@ function gotoPrevPage(evt) {
 }
 prevButton.addEventListener('click', gotoPrevPage);
 prevButton.addEventListener('dblclick', gotoPrevPage);
+paginationGroup.addEventListener('dblclick', (evt) => {
+  evt.preventDefault();
+  evt.stopPropagation();
+});
 
 function gotoNextPage(evt) {
   evt.preventDefault();
@@ -1391,10 +1422,12 @@ function initSideMenu() {
   if(playListVisible === 'false') {
     pageInfo.className = paginationGroup.className = playlistContainer.className = 'hidden';
     errorControl.classList.add('hidden');
+    refreshPage.disabled = true;
   }
   else {
     pageInfo.className = paginationGroup.className = playlistContainer.className = '';
     errorControl.classList.remove('hidden');
+    refreshPage.disabled = false;
   }
 }
 
@@ -1404,11 +1437,13 @@ sideButton.addEventListener('click', (evt) => {
     pageInfo.className = paginationGroup.className = playlistContainer.className = 'hidden';
     errorControl.classList.add('hidden');
     playListVisible = 'false';
+    refreshPage.disabled = true;
   }
   else {
     pageInfo.className = paginationGroup.className = playlistContainer.className = '';
     errorControl.classList.remove('hidden');
     playListVisible = 'true';
+    refreshPage.disabled = false;
   }
   window.localStorage.setItem('playListVisible', playListVisible);
 });
