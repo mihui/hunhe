@@ -704,15 +704,18 @@ const categorySelect = document.getElementById('categorySelect');
 const playlistItems = document.getElementById('playlistItems');
 /** @type {HTMLDivElement} **/
 const paginationGroup = document.getElementById('pagination');
+const pageContainer = document.getElementById('pageContainer');
 
+const itemsPerPage = 15;
 /** @type {Array<{ title: string, url: string, group: string }>} **/
 let playlistData = [];
 let currentPage = 1;
-const itemsPerPage = 15;
 /** @type {Object.<string, Array<{ title: string, group: string, url: string }>>} **/
 let categories = {};
 let currentCategory = allChannels;
 let filteredPlaylistData = [];
+/** @type {Object.<string, number>} **/
+let videoTimestamp = {};
 
 const stopURL = URL.createObjectURL(new Blob());
 
@@ -769,33 +772,77 @@ async function listStore(source) {
 
 }
 
-async function loadPlayabilityCache() {
+function loadCurrentChannel(isBooting = false, source = '') {
+  currentCategory = allChannels;
+  if(isBooting) {
+    const category = window.localStorage.getItem('currentCategory');
+    if(category) {
+      currentCategory = category;
+    }
+  }
+  return currentCategory;
+}
+
+function saveCurrentChannel() {
+  window.localStorage.setItem('currentCategory', currentCategory);
+}
+
+function loadLocalCache() {
+  const videoTimestampData = window.localStorage.getItem('videoTimestamp');
+  videoTimestamp = videoTimestampData ? JSON.parse(videoTimestampData) : {};
+
+  const currentPageNumber = localStorage.getItem('currentPage');
+
+  if(currentPageNumber) {
+    currentPage = parseInt(currentPageNumber) || 1;
+  }
+  else {
+    currentPage = 1;
+  }
+}
+
+function initSideMenu() {
+  const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
+  if(playListVisible === 'false') {
+    playlistContainer.className = 'hidden';
+    errorControl.classList.add('hidden');
+    refreshPage.disabled = true;
+  }
+  else {
+    playlistContainer.className = '';
+    errorControl.classList.remove('hidden');
+    refreshPage.disabled = false;
+  }
 }
 
 // 加载缓存的数据
-async function loadCachedData() {
+async function startup() {
   const cachedM3uUrl = localStorage.getItem('cachedM3uUrl') || '';
   if (cachedM3uUrl) {
     m3uInput.value = cachedM3uUrl;
-    await loadM3uFile(true); // 添加一个参数来表示这是从缓存加载
+    await loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
   } else {
     await showM3uInput();
   }
 
-  await loadPlayabilityCache();
+  loadLocalCache();
 
-  currentPage = parseInt(localStorage.getItem('currentPage')) || 1;
-  currentCategory = localStorage.getItem('currentCategory') || allChannels;
   gotoPage(currentPage);
 
   playLastVideo(false);
 
-  listStore('loadCachedData');
+  listStore('startup');
+
+  initSideMenu();
+}
+
+function getCurrentVideoUrl() {
+  return window.localStorage.getItem('lastPlayedUrl') || '';
 }
 
 function playLastVideo(isUserAction = true) {
-  const lastPlayedUrl = localStorage.getItem('lastPlayedUrl');
-  const lastPlayedTime = parseFloat(localStorage.getItem('lastPlayedTime'));
+  const lastPlayedUrl = getCurrentVideoUrl();
+  const lastPlayedTime = videoTimestamp[lastPlayedUrl];
   if (lastPlayedUrl) {
     playVideo(lastPlayedUrl, isUserAction);
     if (!isNaN(lastPlayedTime)) {
@@ -806,9 +853,9 @@ function playLastVideo(isUserAction = true) {
 
 // 保存数据到缓存
 function saveDataToCache() {
-  localStorage.setItem('cachedM3uUrl', m3uInput.value);
-  localStorage.setItem('currentPage', currentPage);
-  localStorage.setItem('currentCategory', currentCategory);
+  window.localStorage.setItem('cachedM3uUrl', m3uInput.value);
+  window.localStorage.setItem('currentPage', currentPage);
+  saveCurrentChannel();
 }
 
 // 显示播放列表内容
@@ -838,9 +885,9 @@ async function showM3uInput() {
   }
 }
 
-function processM3uData (type, data, fromCache = false) {
+function processM3uData (type, data, fromCache = false, isBooting = false) {
   initPlayData(type, data);
-  initializeCategories();
+  initializeCategories(isBooting);
   initializePlaylist();
   showPlaylistContent();
   if (!fromCache) {
@@ -850,7 +897,7 @@ function processM3uData (type, data, fromCache = false) {
 }
 
 // 加载 M3U 文件
-async function loadM3uFile(fromCache = false) {
+async function loadM3uFile(fromCache = false, isBooting = false) {
   /** @type {string} **/
   const m3uUrl = m3uInput.value.trim();
   const type = m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8') ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
@@ -859,7 +906,7 @@ async function loadM3uFile(fromCache = false) {
     const id = database.encodeString(m3uUrl);
     const payload = await database.readData(id);
     if(payload && payload.m3u && fromCache) {
-      processM3uData(type, payload.m3u, true);
+      processM3uData(type, payload.m3u, true, isBooting);
     }
     else {
       loadM3uButton.disabled = true;
@@ -879,7 +926,7 @@ async function loadM3uFile(fromCache = false) {
           else {
             await database.addData({ id, m3u: data, source: SOURCES.URL, type });
           }
-          processM3uData(type, data, fromCache);
+          processM3uData(type, data, fromCache, false, isBooting);
           listStore('fetch');
           gotoPage(1);
         }
@@ -1009,7 +1056,7 @@ function initPlayData(type, data) {
 }
 
 // 初始化分类
-function initializeCategories() {
+function initializeCategories(isBooting = false) {
   categorySelect.innerHTML = '';
   for (let category in categories) {
     if(category === originalChannels){
@@ -1021,22 +1068,8 @@ function initializeCategories() {
     categorySelect.appendChild(option);
   }
 
-  categorySelect.value = currentCategory = allChannels;;
+  categorySelect.value = loadCurrentChannel(isBooting, 'initializeCategories');
 }
-
-categorySelect.addEventListener('change', async (e) => {
-  currentCategory = e.target.value;
-  // 重置搜索
-  searchInput.value = '';
-  // 更新当前类别的数据
-  if(currentCategory === favoriteChannels) {
-    filteredPlaylistData = await database.listData(FAV_STORE);
-  }
-  else {
-    filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
-  }
-  gotoPage(1);
-});
 
 function resetListStyle() {
   for(const node of playlistItems.childNodes) {
@@ -1051,7 +1084,7 @@ function displayPlaylistPage(page) {
   const startIndex = (page - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const pageItems = itemsToDisplay.slice(startIndex, endIndex);
-  const lastPlayedUrl = localStorage.getItem('lastPlayedUrl');
+  const lastPlayedUrl = getCurrentVideoUrl();
   let hasCacheUpdates = false;
 
   pageItems.forEach(item => {
@@ -1165,7 +1198,7 @@ function performSearch() {
 
 // 刷新当前页面
 async function refreshCurrentPage() {
-  const lastPlayedUrl = localStorage.getItem('lastPlayedUrl');
+  const lastPlayedUrl = getCurrentVideoUrl();
   const playlistItems = document.getElementById('playlistItems');
   const items = playlistItems.children;
 
@@ -1227,8 +1260,9 @@ async function onPlay(playingItem) {
   favoriteButton.dataset['group'] = playingItem.group;
   favoriteButton.dataset['title'] = playingItem.title;
 
-  // playVideoButton.className = 'played';
   refreshFavoriteButton(data ? true : false);
+
+  window.localStorage.setItem('lastPlayedUrl', playingItem.url);
 }
 function onPlaying() {
   playVideoButton.textContent = '停止';
@@ -1245,24 +1279,6 @@ function onStopped() {
   document.title = SITE_TITLE;
   rewindButton.disabled = forwardButton.disabled = false;
 }
-
-favoriteButton.addEventListener('click', async (evt) => {
-  const id = favoriteButton.dataset['id'];
-  const url = favoriteButton.dataset['url'];
-  const group = favoriteButton.dataset['group'];
-  const title = favoriteButton.dataset['title'];
-  const isAddingData = favoriteButton.dataset['action'] === 'add';
-  const isDeletingData = favoriteButton.dataset['action'] === 'remove';
-  if(isAddingData) {
-    await database.addData({ id, url, title, group }, FAV_STORE);
-  }
-  else if(isDeletingData) {
-    await database.deleteData(id, FAV_STORE);
-  }
-  refreshFavoriteButton(isAddingData);
-  categories[favoriteChannels] = await database.listData(FAV_STORE);
-  initializePlaylist();
-});
 
 // 播放视频
 function playVideo(source, isUserAction = true) {
@@ -1303,8 +1319,6 @@ function playVideo(source, isUserAction = true) {
   } else {
     errorMessage.textContent = '您的浏览器不支持 HLS 视频流。';
   }
-
-  localStorage.setItem('lastPlayedUrl', source);
 }
 
 /**
@@ -1388,6 +1402,36 @@ function gotoPage(p) {
 }
 
 // 事件监听器
+favoriteButton.addEventListener('click', async (evt) => {
+  const id = favoriteButton.dataset['id'];
+  const url = favoriteButton.dataset['url'];
+  const group = favoriteButton.dataset['group'];
+  const title = favoriteButton.dataset['title'];
+  const isAddingData = favoriteButton.dataset['action'] === 'add';
+  const isDeletingData = favoriteButton.dataset['action'] === 'remove';
+  if(isAddingData) {
+    await database.addData({ id, url, title, group }, FAV_STORE);
+  }
+  else if(isDeletingData) {
+    await database.deleteData(id, FAV_STORE);
+  }
+  refreshFavoriteButton(isAddingData);
+  categories[favoriteChannels] = await database.listData(FAV_STORE);
+  initializePlaylist();
+});
+categorySelect.addEventListener('change', async (evt) => {
+  currentCategory = evt.target.value;
+  // 重置搜索
+  searchInput.value = '';
+  // 更新当前类别的数据
+  if(currentCategory === favoriteChannels) {
+    filteredPlaylistData = await database.listData(FAV_STORE);
+  }
+  else {
+    filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
+  }
+  gotoPage(1);
+});
 loadM3uButton.addEventListener('click', () => loadM3uFile(false));
 loadContentuButton.addEventListener('click', () => loadM3uContent());
 closeM3uButton.addEventListener('click', (evt) => {
@@ -1475,14 +1519,6 @@ document.getElementById('refreshPage').addEventListener('click', (evt) => {
   refreshCurrentPage();
 });
 
-videoPlayer.addEventListener('error', (e) => {
-  if(videoPlayer.src === stopURL) {
-    showPlayButton();
-    return;
-  }
-  errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
-});
-
 function showPlayButton(showControls = false) {
   playVideoButton.textContent = '播放';
   fullscreenButton.disabled = true;
@@ -1495,7 +1531,7 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
   if(videoPlayer.src === stopURL) {
     return;
   }
-  localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
+  videoTimestamp[getCurrentVideoUrl()] = evt.target.currentTime;
 });
 
 videoPlayer.addEventListener('pause', (evt) => {
@@ -1519,6 +1555,14 @@ videoPlayer.addEventListener('end', (evt) => {
   onStopped();
 });
 
+videoPlayer.addEventListener('error', (evt) => {
+  if(videoPlayer.src === stopURL) {
+    showPlayButton();
+    return;
+  }
+  errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
+});
+
 playVideoButton.addEventListener('click', () => {
   if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
     videoPlayer.src = stopURL;
@@ -1538,26 +1582,14 @@ fullscreenButton.addEventListener('click', (evt) => {
 
 rewindButton.addEventListener('click', (evt) => {
   videoPlayer.currentTime -= 30;
-  localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
+  // localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
+  videoTimestamp[getCurrentVideoUrl()] = videoPlayer.currentTime;
 });
 forwardButton.addEventListener('click', (evt) => {
   videoPlayer.currentTime += 30;
-  localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
+  // localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
+  videoTimestamp[getCurrentVideoUrl()] = videoPlayer.currentTime;
 });
-
-function initSideMenu() {
-  const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
-  if(playListVisible === 'false') {
-    playlistContainer.className = 'hidden';
-    errorControl.classList.add('hidden');
-    refreshPage.disabled = true;
-  }
-  else {
-    playlistContainer.className = '';
-    errorControl.classList.remove('hidden');
-    refreshPage.disabled = false;
-  }
-}
 
 sideButton.addEventListener('click', (evt) => {
   let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
@@ -1576,10 +1608,8 @@ sideButton.addEventListener('click', (evt) => {
   window.localStorage.setItem('playListVisible', playListVisible);
 });
 
-initSideMenu();
-
 let muted = true, isHidden = false;
-const pageContainer = document.getElementById('pageContainer');
+
 document.addEventListener('keydown', function (event) {
   if (event.key === 'Escape' || event.keyCode === 27) {
     event.preventDefault();
@@ -1597,8 +1627,12 @@ document.addEventListener('keydown', function (event) {
   }
 });
 
+window.addEventListener('beforeunload', (evt) => {
+  window.localStorage.setItem('videoTimestamp', JSON.stringify(videoTimestamp));
+});
+
 // 初始化
-loadCachedData();
+startup();
 
 </script>
 
