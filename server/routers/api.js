@@ -40,11 +40,57 @@ publicRouter.get('/fetch', async (req, res, next) => {
   const { url, method = 'GET' } = req.query;
   try {
     const response = await httpClient.request({ url, method });
+    const origin = url.substring(0, url.lastIndexOf('/'));
+
     if(response.status === httpCodes.OK) {
-      return res.send(response.data);
+      const content = response.data;
+      const list = content.split('\n');
+      let result = '';
+      for(const line of list) {
+        if(line.startsWith('#')) {
+          result = result.concat(line);
+        }
+        else if(line) {
+          result = result.concat(url.startsWith('http://') ? VARS.APP_ADDRESS.concat('/api/feed?url=').concat(origin) : origin).concat('/').concat(line);
+        }
+        result = result.concat('\n');
+      }
+      return res.send(result);
     }
   }
   catch(error) {}
+  return res.send('');
+});
+
+publicRouter.get('/feed', async (req, res, next) => {
+  const { url } = req.query;
+  try {
+    const response = await httpClient.request({ url, responseType: 'stream' });
+    return response.data.pipe(res);
+  }
+  catch(error) {}
+  return res.send();
+});
+
+/**
+ * Request delegate
+ */
+publicRouter.post('/fetch', async (req, res, next) => {
+  /** @type {{ url: string, method: string }} */
+  const { url = '', method = 'GET' } = req.body;
+  const urls = url.split('#');
+
+  for(const item of urls) {
+    try {
+      const response = await httpClient.request({ url: item, method });
+      if(response.status === httpCodes.OK) {
+        return res.send({ url: item });
+      }
+    }
+    catch(error) {
+
+    }
+  }
   return res.send('');
 });
 

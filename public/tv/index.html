@@ -207,6 +207,9 @@ select:focus-visible {
   #playlistItems li.bad {
     border-left: 3px solid red;
   }
+  #playlistItems li.proxy {
+    border-left: 3px solid rgb(166, 0, 255);
+  }
   #playlistItems li.active {
     font-weight: bold;
   }
@@ -934,7 +937,8 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
     }
     else {
       loadM3uButton.disabled = true;
-      const url = m3uUrl.startsWith(UNSAFE_HTTP) ? `/api/fetch?url=${m3uUrl}` : m3uUrl;
+      // Main M3U URL
+      const url = m3uUrl.startsWith(UNSAFE_HTTP) ? `${window.location.origin}/api/fetch?url=${m3uUrl}` : m3uUrl;
       fetch(url).then(response => {
         if(response.status === 200 || response.status === 202 || response.status === 302) {
           return response.text();
@@ -999,10 +1003,6 @@ function processM3uLine(line) {
     if (!uniqueUrls.has(line)) {
       uniqueUrls.add(line);
 
-      if(line.startsWith(UNSAFE_HTTP)) {
-        line = `${window.location.origin}/api/fetch?url=${line}`;
-      }
-
       const item = { title: VARS.CURRENT_TITLE || line, url: line, group: VARS.CURRENT_GROUP };
       playlistData.push(item);
       categories[allChannels].push(item);
@@ -1029,11 +1029,6 @@ function processTxtLine(line) {
     if(lineArray.length < 2) return;
 
     VARS.CURRENT_URL = lineArray.pop().trim();
-
-    if(VARS.CURRENT_URL.startsWith(UNSAFE_HTTP)) {
-      VARS.CURRENT_URL = `${window.location.origin}/api/fetch?url=${VARS.CURRENT_URL}`;
-    }
-
     VARS.CURRENT_TITLE = lineArray.pop().trim();
 
     if (!uniqueUrls.has(VARS.CURRENT_URL)) {
@@ -1109,30 +1104,31 @@ function displayPlaylistPage(page) {
   const lastPlayedItem = getCurrentVideoItem();
   let hasCacheUpdates = false;
 
-  pageItems.forEach(item => {
+  pageItems.forEach(async item => {
     /** @type {HTMLLIElement} **/
     const li = document.createElement('li');
     const div = document.createElement('div');
     div.className = 'label';
     div.textContent = item.group === currentCategory ? item.title : `[${item.group}] ${item.title}`;
+    if(item.url.startsWith(UNSAFE_HTTP)) {
+      item.url = `${window.location.origin}/api/fetch?url=${item.url}`;
+      li.dataset['proxy'] = true;
+      li.classList.add('proxy');
+    }
     li.dataset['url'] = item.url;
-    li.dataset['group'] = item.group;
-    li.title = item.title;
 
+    li.dataset['group'] = item.group;
+
+    li.title = item.title;
     li.onclick = () => {
+      if(li.dataset['proxy']) return;
       resetListStyle();
       li.classList.add('active');
       playVideo(item);
     };
     li.append(div);
     playlistItems.appendChild(li);
-  });
 
-  pageItems.forEach(async (item, index) => {
-    /** @type {HTMLLIElement} **/
-    const li = playlistItems.children[index];
-    li.dataset['url'] = item.url;
-    li.dataset['proxy'] = false;
     const id = database.encodeString(item.url);
     const playCache = await database.readData(id, STA_STORE);
     if (playCache) {
@@ -1150,27 +1146,35 @@ function displayPlaylistPage(page) {
 
 // 更新列表项样式
 async function updateListItemStyle(li, checkResult, lastPlayedItem) {
-  if (!checkResult.ok) {
+  if (checkResult.ok) {
+    if(checkResult.duration < 300) {
+      li.classList.add('good');
+    }
+    else if (checkResult.duration >= 300 && checkResult.duration <= 1000) {
+      li.classList.add('average');
+    }
+    else {
+      li.classList.add('bad');
+    }
+  }
+  else {
     li.classList.add('broken');
     li.title = `此视频源可能无法播放`;
     const url = li.dataset['url'];
     if(url.startsWith(UNSAFE_HTTP)) {
-      const finalResult = await checkVideoPlayability(`${window.location.origin}/api/fetch?url=${li.dataset['url']}`);
-      if(finalResult.ok) {
-        li.classList.remove('broken');
-        li.dataset['proxy'] = true;
+      try {
+        const response = await fetch(`${window.location.origin}/api/fetch`, { method: 'POST', headers: {
+          'Content-Type': 'application/json',
+        }, body: JSON.stringify({ url }) });
+        if(response.status === 200) {
+          const { url } = await response.json();
+          li.classList.remove('broken');
+          li.dataset['proxy'] = url.startsWith(UNSAFE_HTTP);
+          li.dataset['url'] = url;
+        }
       }
-    }
-  }
-  else {
-    if(checkResult.duration < 300) {
-      li.className = 'good';
-    }
-    else if (checkResult.duration >= 300 && checkResult.duration <= 1000) {
-      li.className = 'average';
-    }
-    else {
-      li.className = 'bad';
+      catch(error) {
+      }
     }
   }
   if(lastPlayedItem?.url === li.dataset['url']) {
@@ -1322,7 +1326,7 @@ function playVideo(source, isUserAction = true) {
   }
 
   videoPlayer.muted = true;
-  if (Hls.isSupported()) {
+  if (Hls.isSupported() && source.url.startsWith(UNSAFE_HTTP) === false) {
     try {
       const hls = new Hls();
       hls.loadSource(source.url);
@@ -1354,7 +1358,7 @@ function playVideo(source, isUserAction = true) {
 async function checkVideoPlayability(url) {
   const timestamp = new Date().getTime();
   return new Promise((resolve) => {
-    if (Hls.isSupported()) {
+    if (Hls.isSupported() && url.startsWith(UNSAFE_HTTP) === false) {
       try {
         const hls = new Hls();
         let timeoutId;
