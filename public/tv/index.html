@@ -208,7 +208,7 @@ select:focus-visible {
     border-left: 3px solid red;
   }
   #playlistItems li.proxy {
-    border-left: 3px solid rgb(166, 0, 255);
+    /* border-left: 3px solid rgb(166, 0, 255); */
   }
   #playlistItems li.active {
     font-weight: bold;
@@ -1214,7 +1214,6 @@ function performSearch() {
 // 刷新当前页面
 async function refreshCurrentPage() {
   const lastPlayedItem = getCurrentVideoItem();
-  const playlistItems = document.getElementById('playlistItems');
   const items = playlistItems.children;
 
   for (let i = 0; i < items.length; i++) {
