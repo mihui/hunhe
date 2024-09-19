@@ -872,9 +872,9 @@ function playLastVideo(isUserAction = true) {
   if (lastPlayedItem) {
     const lastPlayedTime = videoTimestamp[lastPlayedItem.url];
     playVideo(lastPlayedItem, isUserAction);
-    if (!isNaN(lastPlayedTime)) {
-      videoPlayer.currentTime = lastPlayedTime;
-    }
+    // if (!isNaN(lastPlayedTime)) {
+      // videoPlayer.currentTime = lastPlayedTime;
+    // }
   }
 }
 
@@ -1285,6 +1285,7 @@ async function onPlay(playingItem) {
 
   window.localStorage.setItem('lastPlayedItem', JSON.stringify(playingItem));
 }
+
 function onPlaying() {
   playVideoButton.textContent = '停止';
   fullscreenButton.disabled = false;
@@ -1294,6 +1295,7 @@ function onPlaying() {
   videoPlayer.className = '';
   rewindButton.disabled = forwardButton.disabled = false;
 }
+
 function onStopped() {
   // 显示播放
   showPlayButton(true);
@@ -1596,7 +1598,6 @@ playVideoButton.addEventListener('click', () => {
   if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
     videoPlayer.src = stopURL;
     videoPlayer.pause();
-    videoPlayer.currentTime = 0;
     showPlayButton(false);
   }
   else {
