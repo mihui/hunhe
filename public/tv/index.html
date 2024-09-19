@@ -1111,11 +1111,13 @@ function displayPlaylistPage(page) {
     div.className = 'label';
     div.textContent = item.group === currentCategory ? item.title : `[${item.group}] ${item.title}`;
     if(item.url.startsWith(UNSAFE_HTTP)) {
-      item.url = `${window.location.origin}/api/fetch?url=${item.url}`;
       li.dataset['proxy'] = true;
       li.classList.add('proxy');
+      li.dataset['url'] = '';
     }
-    li.dataset['url'] = item.url;
+    else {
+      li.dataset['url'] = item.url;
+    }
 
     li.dataset['group'] = item.group;
 
@@ -1160,22 +1162,6 @@ async function updateListItemStyle(li, checkResult, lastPlayedItem) {
   else {
     li.classList.add('broken');
     li.title = `此视频源可能无法播放`;
-    const url = li.dataset['url'];
-    if(url.startsWith(UNSAFE_HTTP)) {
-      try {
-        const response = await fetch(`${window.location.origin}/api/fetch`, { method: 'POST', headers: {
-          'Content-Type': 'application/json',
-        }, body: JSON.stringify({ url }) });
-        if(response.status === 200) {
-          const { url } = await response.json();
-          li.classList.remove('broken');
-          li.dataset['proxy'] = url.startsWith(UNSAFE_HTTP);
-          li.dataset['url'] = url;
-        }
-      }
-      catch(error) {
-      }
-    }
   }
   if(lastPlayedItem?.url === li.dataset['url']) {
     li.classList.add('active');
@@ -1239,12 +1225,16 @@ async function refreshCurrentPage() {
 
   for (let i = 0; i < items.length; i++) {
     const li = items[i];
-    const itemUrl = li.getAttribute('data-url');
+    const itemUrl = li.dataset['url'];
     if (itemUrl) {
       const id = database.encodeString(itemUrl);
       const result = await checkVideoPlayability(itemUrl);
       await database.updateData({ id, result }, STA_STORE);
       updateListItemStyle(li, result, lastPlayedItem);
+    }
+    else {
+      li.title = '';
+      li.classList.add('broken');
     }
   }
 
