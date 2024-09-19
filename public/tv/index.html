@@ -236,7 +236,10 @@ button {
   background-color: darkgreen;
 }
 
-#pagination button:disabled, #clearButton:disabled, #loadM3uButton:disabled, #favoriteButton:disabled, #refreshPage:disabled {
+#pagination button:disabled,
+#clearButton:disabled, #loadM3uButton:disabled,
+#favoriteButton:disabled, #refreshPage:disabled,
+#fullscreenButton:disabled {
   background-color: #bdc3c7;
 }
 
@@ -272,10 +275,6 @@ button {
   cursor: pointer;
 }
 
-#closeVideoButton {
-  background-color: #e74c3c;
-}
-
 #reloadM3uButton {
   background-color: #2ecc71;
 }
@@ -293,6 +292,12 @@ button {
 }
 #playVideoButton {
   background-color: blueviolet;
+}
+#playVideoButton.playing {
+  background-color: darkmagenta;
+}
+#playVideoButton.played {
+  background-color: #e74c3c;
 }
 
 #m3uList {
@@ -461,9 +466,8 @@ button {
         <div class="video-wrapper"><video id="videoPlayer" playsinline></video></div>
         <div class="video-control">
           <div class="controls">
-            <button id="closeVideoButton" class="hidden">停止</button>
-            <button id="playVideoButton" class="hidden">播放</button>
-            <button id="fullscreenButton">全屏</button>
+            <button id="playVideoButton" class="stopped">播放</button>
+            <button id="fullscreenButton" disabled>全屏</button>
             <button id="rewindButton">后退</button>
             <button id="forwardButton">前进</button>
           </div>
@@ -660,7 +664,7 @@ const reloadM3uButton = document.getElementById('reloadM3uButton');
 const m3uInputContainer = document.getElementById('m3uInputContainer');
 const playlistContent = document.getElementById('playlistContent');
 const playlistContainer = document.getElementById("playlistContainer");
-const closeVideoButton = document.getElementById("closeVideoButton");
+/** @type {HTMLButtonElement} **/
 const playVideoButton = document.getElementById("playVideoButton");
 const m3uList = document.getElementById('m3uList');
 const searchContainer = document.getElementById('searchContainer');
@@ -797,7 +801,6 @@ function playLastVideo(isUserAction = true) {
     if (!isNaN(lastPlayedTime)) {
       videoPlayer.currentTime = lastPlayedTime;
     }
-    playVideoButton.className = '';
   }
 }
 
@@ -1224,7 +1227,23 @@ async function onPlay(playingItem) {
   favoriteButton.dataset['group'] = playingItem.group;
   favoriteButton.dataset['title'] = playingItem.title;
 
+  // playVideoButton.className = 'played';
   refreshFavoriteButton(data ? true : false);
+}
+function onPlaying() {
+  playVideoButton.textContent = '停止';
+  fullscreenButton.disabled = false;
+  playVideoButton.className = 'played';
+  videoPlayer.controls = true;
+  errorMessage.textContent = '';
+  videoPlayer.className = '';
+  rewindButton.disabled = forwardButton.disabled = false;
+}
+function onStopped() {
+  // 显示播放
+  showPlayButton(true);
+  document.title = SITE_TITLE;
+  rewindButton.disabled = forwardButton.disabled = false;
 }
 
 favoriteButton.addEventListener('click', async (evt) => {
@@ -1263,17 +1282,22 @@ function playVideo(source, isUserAction = true) {
 
   videoPlayer.muted = true;
   if (Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(source);
-    hls.attachMedia(videoPlayer);
-    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-      videoPlayer.play().catch(error => {
-        errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
-      }).then(() => {
-        onPlay(playingItem);
+    try {
+      const hls = new Hls();
+      hls.loadSource(source);
+      hls.attachMedia(videoPlayer);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        videoPlayer.play().catch(error => {
+          errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
+        }).then(() => {
+          onPlay(playingItem);
+        });
       });
-    });
-    hls.on(Hls.Events.ERROR, function (error) {});
+      hls.on(Hls.Events.ERROR, function (error) {});
+    }
+    catch(error) {
+      console.log('hls error 1');
+    }
   } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
     nativePlay(playingItem);
   } else {
@@ -1292,31 +1316,36 @@ async function checkVideoPlayability(url) {
   const timestamp = new Date().getTime();
   return new Promise((resolve) => {
     if (Hls.isSupported()) {
-      const hls = new Hls();
-      let timeoutId;
+      try {
+        const hls = new Hls();
+        let timeoutId;
 
-      const cleanup = () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        hls.destroy();
-      };
+        const cleanup = () => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          hls.destroy();
+        };
 
-      hls.loadSource(url);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        cleanup();
-        resolve({ ok: true, duration: new Date().getTime() - timestamp });
-      });
+        hls.loadSource(url);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          cleanup();
+          resolve({ ok: true, duration: new Date().getTime() - timestamp });
+        });
 
-      hls.on(Hls.Events.ERROR, () => {
-        cleanup();
-        resolve({ ok: false, duration: new Date().getTime() - timestamp });
-      });
+        hls.on(Hls.Events.ERROR, () => {
+          cleanup();
+          resolve({ ok: false, duration: new Date().getTime() - timestamp });
+        });
 
-      timeoutId = setTimeout(() => {
-        cleanup();
-        resolve({ ok: false, duration: new Date().getTime() - timestamp });
-      }, 5000);
+        timeoutId = setTimeout(() => {
+          cleanup();
+          resolve({ ok: false, duration: new Date().getTime() - timestamp });
+        }, 5000);
+      }
+      catch(error) {
+        console.log('hls error 2');
+      }
     } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
       const video = document.createElement('video');
       video.src = url;
@@ -1455,8 +1484,9 @@ videoPlayer.addEventListener('error', (e) => {
 });
 
 function showPlayButton(showControls = false) {
-  closeVideoButton.className = 'hidden';
-  playVideoButton.className = '';
+  playVideoButton.textContent = '播放';
+  fullscreenButton.disabled = true;
+  playVideoButton.className = 'stopped';
   videoPlayer.controls = showControls;
   videoPlayer.className = 'paused';
 }
@@ -1468,28 +1498,40 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
   localStorage.setItem('lastPlayedTime', videoPlayer.currentTime);
 });
 
-videoPlayer.addEventListener('pause', () => {
-  showPlayButton(true);
-  document.title = SITE_TITLE;
-  rewindButton.disabled = forwardButton.disabled = false;
+videoPlayer.addEventListener('pause', (evt) => {
+  onStopped();
 });
 
-videoPlayer.addEventListener('play', () => {
-  closeVideoButton.className = '';
-  playVideoButton.className = 'hidden';
-  videoPlayer.controls = true;
-  errorMessage.textContent = '';
-  videoPlayer.className = '';
-  rewindButton.disabled = forwardButton.disabled = false;
+videoPlayer.addEventListener('play', (evt) => {
+  onPlaying();
 });
-closeVideoButton.addEventListener('click', () => {
-  videoPlayer.src = stopURL;
-  videoPlayer.pause();
-  videoPlayer.currentTime = 0;
-  showPlayButton(false);
+
+videoPlayer.addEventListener('waiting', (evt) => {
+  playVideoButton.className = 'playing';
+  playVideoButton.textContent = '取消';
 });
+
+videoPlayer.addEventListener('canplaythrough', (evt) => {
+  onPlaying();
+});
+
+videoPlayer.addEventListener('error', (evt) => {
+  onStopped();
+});
+videoPlayer.addEventListener('end', (evt) => {
+  onStopped();
+});
+
 playVideoButton.addEventListener('click', () => {
-  playLastVideo();
+  if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
+    videoPlayer.src = stopURL;
+    videoPlayer.pause();
+    videoPlayer.currentTime = 0;
+    showPlayButton(false);
+  }
+  else {
+    playLastVideo();
+  }
 });
 fullscreenButton.addEventListener('click', (evt) => {
   evt.preventDefault();
