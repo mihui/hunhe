@@ -1162,6 +1162,9 @@ async function updateListItemStyle(li, checkResult, lastPlayedItem) {
   else {
     li.classList.add('broken');
     li.title = `此视频源可能无法播放`;
+    li.dataset['proxy'] = true;
+    li.classList.add('proxy');
+    li.dataset['url'] = '';
   }
   if(lastPlayedItem?.url === li.dataset['url']) {
     li.classList.add('active');
