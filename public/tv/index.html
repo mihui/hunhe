@@ -38,7 +38,7 @@ body {
     position: relative;
   }
   .container .video-container {
-    flex: 1;
+    flex: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -101,6 +101,9 @@ body {
       display: flex;
       /* position: absolute; */
       z-index: 10;
+    }
+    .container #playlistContainer.settings {
+      flex: 3;
     }
 
 textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uInput, #loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey {
@@ -748,6 +751,7 @@ async function listStore(source) {
       }
       gotoPage(1);
       processM3uData(data.type || TYPES.M3U, data.m3u);
+      refreshPage.disabled = false;
     };
     divItem.append(aItem);
     if(isCurrent) {
@@ -758,6 +762,7 @@ async function listStore(source) {
     }
     m3uList.append(divItem);
   }
+
 }
 
 async function loadPlayabilityCache() {
@@ -811,7 +816,6 @@ function showPlaylistContent() {
 
 // 显示 M3U 输入界面
 async function showM3uInput() {
-  playlistContainer.className = '';
   errorControl.classList.remove('hidden');
   window.localStorage.setItem('playListVisible', 'true');
 
@@ -819,12 +823,14 @@ async function showM3uInput() {
     m3uInputContainer.style.display = 'none';
     playlistContent.style.display = 'flex';
     refreshPage.disabled = false;
+    playlistContainer.className = '';
   }
   else {
     m3uInputContainer.style.display = 'block';
     playlistContent.style.display = 'none';
     refreshPage.disabled = true;
     await listStore('showM3uInput');
+    playlistContainer.className = 'settings';
   }
 }
 
@@ -1218,7 +1224,6 @@ async function onPlay(playingItem) {
   favoriteButton.dataset['title'] = playingItem.title;
 
   refreshFavoriteButton(data ? true : false);
-
 }
 
 favoriteButton.addEventListener('click', async (evt) => {
@@ -1370,9 +1375,19 @@ function gotoPrevPage(evt) {
 }
 prevButton.addEventListener('click', gotoPrevPage);
 prevButton.addEventListener('dblclick', gotoPrevPage);
-paginationGroup.addEventListener('dblclick', (evt) => {
-  evt.preventDefault();
-  evt.stopPropagation();
+document.addEventListener('dblclick', (evt) => {
+  /** @type {HTMLElement} **/
+  const node = evt.target;
+  switch(node.tagName) {
+    case 'input':
+      break;
+    case 'video':
+      videoPlayer.requestFullscreen();
+      break;
+    default:
+      evt.preventDefault();
+      evt.stopPropagation();
+  }
 });
 
 function gotoNextPage(evt) {
