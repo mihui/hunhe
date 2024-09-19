@@ -1515,9 +1515,6 @@ videoPlayer.addEventListener('canplaythrough', (evt) => {
   onPlaying();
 });
 
-videoPlayer.addEventListener('error', (evt) => {
-  onStopped();
-});
 videoPlayer.addEventListener('end', (evt) => {
   onStopped();
 });
