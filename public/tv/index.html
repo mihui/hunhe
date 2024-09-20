@@ -245,7 +245,7 @@ button {
 #pagination button {
   font-size: 16px;
   flex: 0;
-  background-color: darkgreen;
+  background-color: lightslategrey;
 }
 
 #pagination button:disabled,
@@ -253,6 +253,7 @@ button {
 #favoriteButton:disabled, #refreshPage:disabled,
 #fullscreenButton:disabled, #rewindButton:disabled, #forwardButton:disabled {
   background-color: #bdc3c7;
+  color: #eee;
 }
 
 #pageInfo {
@@ -288,10 +289,10 @@ button {
 }
 
 #reloadM3uButton {
-  background-color: #2ecc71;
+  background-color: #606060;
 }
 #favoriteButton {
-  background-color: #952ecc;
+  background-color: darkslategrey;
 }
   #favoriteButton.remove {
     background-color: #cc2e68;
@@ -300,7 +301,7 @@ button {
   background-color: #2e6bcc;
 }
 #fullscreenButton {
-  background-color: darkblue;
+  background-color: darkslateblue;
 }
 #refreshPage {
   background-color: orange;
@@ -411,7 +412,7 @@ button {
   width: 25px;
   height: 25px;
   border-radius: 50%; 
-  background: darkgreen;
+  background: #4682b4;
   cursor: pointer;
 }
 
@@ -433,22 +434,33 @@ button {
 .page-information {
   flex: 1;
 }
+
+/* iPhone Portrait */
+@media only screen and (max-device-width: 812px) and (orientation: portrait)
+{
+  .container #playlistContainer {
+    position: absolute;
+    z-index: 10;
+    top: 0px;
+    left: 0px;
+  }
+}
 </style>
 </head>
 
 <body>
-  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <svg xmlns="http://www.w3.org/2000/svg" class="hidden">
     <!-- PLAY -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="play" viewBox="0 0 16 16">
       <path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
     </symbol>
     <!-- STOP -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="stop" viewBox="0 0 16 16">
-      <path d="M3.5 5A1.5 1.5 0 0 1 5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11zM5 4.5a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5z"/>
+      <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5"/>
     </symbol>
     <!-- CANCEL -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="cancel" viewBox="0 0 16 16">
-      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
     </symbol>
     <!-- FULLSCREEN -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="fullscreen" viewBox="0 0 16 16">
@@ -492,7 +504,7 @@ button {
   <div class="container" id="pageContainer">
     <div id="playlistContainer" class="hidden">
       <div class="box">
-        <div id="m3uInputContainer" style="display: none;">
+        <div id="m3uInputContainer" class="hidden">
           <input type="url" id="m3uInput" placeholder="输入 M3U 文件 URL">
           <div class="m3u-controls">
             <button id="loadM3uButton">加载播放列表</button>
@@ -538,20 +550,20 @@ button {
           </div>
 
           <div class="controls">
-            <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
-            <button id="fullscreenButton" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
-            <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
-            <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
-          </div>
-
-          <div class="controls">
             <button id="reloadM3uButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
             <button id="refreshPage"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
             <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
             <button id="sideButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
+
+          <div class="controls">
+            <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
+            <button id="fullscreenButton" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
+            <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
+            <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
+          </div>
         </div>
-        
+
       </div>
     </div>
   </div>
@@ -717,62 +729,44 @@ const database = {
 const allChannels = '所有频道';
 const originalChannels = '原始所有频道';
 const favoriteChannels = '收藏频道';
-/** @type {HTMLVideoElement} **/
-const videoPlayer = document.getElementById('videoPlayer');
-/** @type {HTMLDivElement} **/
-const errorMessage = document.getElementById('errorMessage');
-/** @type {HTMLDivElement} **/
-const errorControl = document.getElementById('errorControl');
-const m3uInput = document.getElementById('m3uInput');
-/** @type {HTMLButtonElement} **/
-const closeM3uButton = document.getElementById('closeM3uButton');
-/** @type {HTMLButtonElement} **/
-const loadM3uButton = document.getElementById('loadM3uButton');
-const reloadM3uButton = document.getElementById('reloadM3uButton');
-const m3uInputContainer = document.getElementById('m3uInputContainer');
-const playlistContent = document.getElementById('playlistContent');
-const playlistContainer = document.getElementById("playlistContainer");
-/** @type {HTMLButtonElement} **/
-const playVideoButton = document.getElementById("playVideoButton");
-const m3uList = document.getElementById('m3uList');
-const searchContainer = document.getElementById('searchContainer');
-/** @type {HTMLButtonElement} **/
-const favoriteButton = document.getElementById('favoriteButton');
-/** @type {HTMLButtonElement} **/
-const sideButton  = document.getElementById('sideButton');
 
-/** @type {HTMLButtonElement} **/
-const rewindButton = document.getElementById('rewindButton');
-/** @type {HTMLButtonElement} **/
-const forwardButton = document.getElementById('forwardButton');
+function getElementById(idList = []) {
+  const domList = [];
+  for(const id of idList) {
+    domList.push(document.getElementById(id));
+  }
+  return domList;
+}
 
-/** @type {HTMLInputElement} **/
-const searchInput = document.getElementById('searchInput');
-const fullscreenButton = document.getElementById('fullscreenButton');
-
-const prevButton = document.getElementById('prevPage');
-const nextButton = document.getElementById('nextPage');
-const pageInfo = document.getElementById('pageInfo');
-
-/** @type {HTMLInputElement} **/
-const pageControl = document.getElementById('pageControl');
-
-/** @type {HTMLButtonElement} **/
-const clearButton = document.getElementById('clearButton');
-/** @type {HTMLButtonElement} **/
-const closeButton = document.getElementById('closeButton');
-/** @type {HTMLTextAreaElement} **/
-const m3uContent = document.getElementById('m3uContent');
-/** @type {HTMLInputElement} **/
-const m3uContentKey = document.getElementById('m3uContentKey');
-const loadContentuButton = document.getElementById('loadContentuButton');
-/** @type {HTMLSelectElement} **/
-const categorySelect = document.getElementById('categorySelect');
-/** @type {HTMLUListElement} **/
-const playlistItems = document.getElementById('playlistItems');
-/** @type {HTMLDivElement} **/
-const paginationGroup = document.getElementById('pagination');
-const pageContainer = document.getElementById('pageContainer');
+/** @type {[
+ * HTMLVideoElement, HTMLDivElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
+ * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement,
+ * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement,
+ * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
+ * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLButtonElement,
+ * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLTextAreaElement, HTMLInputElement,
+ * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement,
+ * HTMLDivElement, 
+ * ]} **/
+const [
+  videoPlayer, errorMessage, errorControl, m3uInput, closeM3uButton,
+  loadM3uButton, reloadM3uButton, m3uInputContainer, playlistContent,
+  playlistContainer, playVideoButton, m3uList, searchContainer,
+  favoriteButton, sideButton, rewindButton, forwardButton, searchInput,
+  fullscreenButton, prevButton, nextButton, pageInfo, refreshPage,
+  pageControl, clearButton, closeButton, m3uContent, m3uContentKey,
+  loadContentuButton, categorySelect, playlistItems, paginationGroup,
+  pageContainer,
+ ] = getElementById([
+  'videoPlayer', 'errorMessage', 'errorControl', 'm3uInput', 'closeM3uButton',
+  'loadM3uButton', 'reloadM3uButton', 'm3uInputContainer', 'playlistContent',
+  'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer',
+  'favoriteButton', 'sideButton', 'rewindButton', 'forwardButton', 'searchInput',
+  'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'refreshPage',
+  'pageControl', 'clearButton', 'closeButton', 'm3uContent', 'm3uContentKey',
+  'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination',
+  'pageContainer',
+]);
 
 let itemsPerPage = 15;
 /** @type {Array<{ title: string, url: string, group: string }>} **/
@@ -897,28 +891,6 @@ function initSideMenu() {
   }
 }
 
-// 加载缓存的数据
-async function startup() {
-  const cachedM3uUrl = window.localStorage.getItem('cachedM3uUrl') || '';
-  if (cachedM3uUrl) {
-    m3uInput.value = cachedM3uUrl;
-    await loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
-  }
-  else {
-    await showM3uInput();
-  }
-
-  loadLocalCache();
-
-  gotoPage(currentPage);
-
-  playLastVideo(false);
-
-  listStore('startup');
-
-  initSideMenu();
-}
-
 /**
  * Get last played video data
  * @returns {{ url: string, group: string, title: string }?} Returns Play item
@@ -978,6 +950,7 @@ function onStopped() {
 }
 
 function setVideoTimestamp(timestamp) {
+  const lastPlayedItem = getLastVideoItem();
   videoTimestamp[lastPlayedItem.url] = timestamp;
 }
 
@@ -999,7 +972,7 @@ function saveDataToCache() {
 
 // 显示播放列表内容
 function showPlaylistContent() {
-  m3uInputContainer.style.display = 'none';
+  m3uInputContainer.classList.add('hidden');
   playlistContent.style.display = 'flex';
   playlistContainer.className = '';
 }
@@ -1009,18 +982,18 @@ async function showM3uInput() {
   errorControl.classList.remove('hidden');
   window.localStorage.setItem('playListVisible', 'true');
 
-  if(m3uInputContainer.style.display === 'block') {
-    m3uInputContainer.style.display = 'none';
-    playlistContent.style.display = 'flex';
-    refreshPage.disabled = false;
-    playlistContainer.className = '';
-  }
-  else {
-    m3uInputContainer.style.display = 'block';
+  if(m3uInputContainer.classList.contains('hidden')) {
+    m3uInputContainer.classList.remove('hidden');
     playlistContent.style.display = 'none';
     refreshPage.disabled = true;
     await listStore('showM3uInput');
     playlistContainer.className = 'settings';
+  }
+  else {
+    m3uInputContainer.classList.add('hidden');
+    playlistContent.style.display = 'flex';
+    refreshPage.disabled = false;
+    playlistContainer.className = '';
   }
 }
 
@@ -1222,9 +1195,11 @@ function displayPlaylistPage(page) {
     const div = document.createElement('div');
     div.className = 'label';
     div.textContent = item.group === currentCategory ? item.title : `[${item.group}] ${item.title}`;
+
     if(item.url.startsWith(UNSAFE_HTTP)) {
       li.dataset['proxy'] = true;
       li.classList.add('proxy');
+      li.classList.add('broken');
     }
 
     li.dataset['url'] = item.url;
@@ -1324,6 +1299,7 @@ function performSearch() {
 
 // 刷新当前页面
 async function refreshCurrentPage() {
+  refreshPage.disabled = true;
   const lastPlayedItem = getLastVideoItem();
   const items = playlistItems.children;
 
@@ -1348,7 +1324,7 @@ async function refreshCurrentPage() {
       li.classList.add('broken');
     }
   }
-
+  refreshPage.disabled = false;
   saveDataToCache();
 }
 
@@ -1429,7 +1405,7 @@ function playVideo(source, isUserAction = true) {
       const hls = new Hls();
       hls.loadSource(source.url);
       hls.attachMedia(videoPlayer);
-      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
         videoPlayer.play().catch(error => {
           errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
         }).then(() => {
@@ -1532,6 +1508,23 @@ function gotoPage(p) {
 async function fetchFavorites() {
   categories[favoriteChannels] = await database.listData(FAV_STORE);
   return categories[favoriteChannels];
+}
+
+// 加载缓存的数据
+async function startup() {
+  const cachedM3uUrl = window.localStorage.getItem('cachedM3uUrl') || '';
+  if (cachedM3uUrl) {
+    m3uInput.value = cachedM3uUrl;
+    await loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
+  }
+  else {
+    await showM3uInput();
+  }
+  loadLocalCache();
+  gotoPage(currentPage);
+  playLastVideo(false);
+  listStore('startup');
+  initSideMenu();
 }
 
 // 事件监听器
@@ -1653,9 +1646,8 @@ refreshPage.addEventListener('click', (evt) => {
 });
 
 videoPlayer.addEventListener('timeupdate', (evt) => {
-  if(videoPlayer.src === stopURL) {
-    return;
-  }
+  if(videoPlayer.src === stopURL) { return; }
+
   const lastPlayedItem = getLastVideoItem();
   if(lastPlayedItem) {
     /** @type {HTMLVideoElement} **/
@@ -1706,6 +1698,7 @@ playVideoButton.addEventListener('click', () => {
     playLastVideo();
   }
 });
+
 fullscreenButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
