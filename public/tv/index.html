@@ -68,7 +68,7 @@ body {
       align-items: flex-start;
       display: flex;
       column-gap: 1rem;
-      justify-content: space-between;
+      justify-content: flex-end;
       width: 100%;
       flex-flow: column;
       row-gap: 0.5rem;
@@ -106,7 +106,8 @@ body {
       flex: 3;
     }
 
-textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uInput, #loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey {
+textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uInput,
+#loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey {
   width: 100%;
   padding: 12px;
   margin-bottom: 15px;
@@ -233,6 +234,9 @@ button {
   cursor: pointer;
   font-size: 16px;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #pagination button, .controls button {
@@ -240,7 +244,6 @@ button {
 }
 #pagination button {
   font-size: 16px;
-  border-radius: 4px;
   flex: 0;
   background-color: darkgreen;
 }
@@ -248,7 +251,7 @@ button {
 #pagination button:disabled,
 #clearButton:disabled, #loadM3uButton:disabled,
 #favoriteButton:disabled, #refreshPage:disabled,
-#fullscreenButton:disabled {
+#fullscreenButton:disabled, #rewindButton:disabled, #forwardButton:disabled {
   background-color: #bdc3c7;
 }
 
@@ -290,6 +293,9 @@ button {
 #favoriteButton {
   background-color: #952ecc;
 }
+  #favoriteButton.remove {
+    background-color: #cc2e68;
+  }
 #sideButton {
   background-color: #2e6bcc;
 }
@@ -431,6 +437,58 @@ button {
 </head>
 
 <body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <!-- PLAY -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="play" viewBox="0 0 16 16">
+      <path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
+    </symbol>
+    <!-- STOP -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="stop" viewBox="0 0 16 16">
+      <path d="M3.5 5A1.5 1.5 0 0 1 5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11zM5 4.5a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5z"/>
+    </symbol>
+    <!-- CANCEL -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="cancel" viewBox="0 0 16 16">
+      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+    </symbol>
+    <!-- FULLSCREEN -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="fullscreen" viewBox="0 0 16 16">
+      <path d="M5.5 0a.5.5 0 0 1 .5.5v4A1.5 1.5 0 0 1 4.5 6h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5m5 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 10 4.5v-4a.5.5 0 0 1 .5-.5M0 10.5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 6 11.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5m10 1a1.5 1.5 0 0 1 1.5-1.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0z"/>
+    </symbol>
+    <!-- REWIND -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="rewind" viewBox="0 0 16 16">
+      <path d="M9.196 8 15 4.633v6.734zm-.792-.696a.802.802 0 0 0 0 1.392l6.363 3.692c.52.302 1.233-.043 1.233-.696V4.308c0-.653-.713-.998-1.233-.696z"/>
+      <path d="M1.196 8 7 4.633v6.734zm-.792-.696a.802.802 0 0 0 0 1.392l6.363 3.692c.52.302 1.233-.043 1.233-.696V4.308c0-.653-.713-.998-1.233-.696z"/>
+    </symbol>
+    <!-- FORWARD -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="forward" viewBox="0 0 16 16">
+      <path d="M6.804 8 1 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
+      <path d="M14.804 8 9 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C8.713 12.69 8 12.345 8 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
+    </symbol>
+    <!-- SETTINGS - GEAR -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="gear" viewBox="0 0 16 16">
+      <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
+      <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"/>
+    </symbol>
+    <!-- LIST CHECK -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="list-check" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/>
+    </symbol>
+    <!-- FAVORITE -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="favorite" viewBox="0 0 16 16">
+      <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
+    </symbol>
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="unfavorite" viewBox="0 0 16 16">
+      <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+    </symbol>
+    <!-- LIST CHECK -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="list" viewBox="0 0 16 16">
+        <path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2"/>
+        <path fill-rule="evenodd" d="M12 3v10h-1V3z"/>
+        <path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1z"/>
+        <path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5"/>
+    </symbol>
+  </svg>
+
   <div class="container" id="pageContainer">
     <div id="playlistContainer" class="hidden">
       <div class="box">
@@ -474,22 +532,23 @@ button {
       <div class="box">
         <div class="video-wrapper"><video id="videoPlayer" playsinline poster="background.jpeg"></video></div>
         <div class="video-control">
-          <div class="controls">
-            <button id="playVideoButton" class="stopped">播放</button>
-            <button id="fullscreenButton" disabled>全屏</button>
-            <button id="rewindButton">后退</button>
-            <button id="forwardButton">前进</button>
-          </div>
 
           <div class="controls" id="errorControl">
             <div id="errorMessage"></div>
           </div>
 
           <div class="controls">
-            <button id="reloadM3uButton">设置</button>
-            <button id="refreshPage">检测</button>
-            <button id="favoriteButton" disabled>收藏</button>
-            <button id="sideButton">列表</button>
+            <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
+            <button id="fullscreenButton" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
+            <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
+            <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
+          </div>
+
+          <div class="controls">
+            <button id="reloadM3uButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
+            <button id="refreshPage"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
+            <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
+            <button id="sideButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
         </div>
         
@@ -730,8 +789,15 @@ let videoTimestamp = {};
 const stopURL = URL.createObjectURL(new Blob());
 
 const uniqueUrls = new Set();
+
 const VARS = {
-  CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: ''
+  CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '',
+  ICON_PLAY: '<svg width="20" height="20"><use xlink:href="#play"/></svg>',
+  ICON_STOP: '<svg width="20" height="20"><use xlink:href="#stop"/></svg>',
+  ICON_CANCEL: '<svg width="20" height="20"><use xlink:href="#cancel"/></svg>',
+  ICON_FULLSCREEN: '<svg width="20" height="20"><use xlink:href="#fullscreen"/></svg>',
+  ICON_UNFAVORITE: '<svg width="20" height="20"><use xlink:href="#unfavorite"/></svg>',
+  ICON_FAVORITE: '<svg width="20" height="20"><use xlink:href="#favorite"/></svg>',
 };
 
 async function listStore(source) {
@@ -807,11 +873,8 @@ function saveCurrentChannel() {
 }
 
 function loadLocalCache() {
-  const videoTimestampData = window.localStorage.getItem('videoTimestamp');
-  videoTimestamp = videoTimestampData ? JSON.parse(videoTimestampData) : {};
-
+  loadVideoTimestamp();
   const currentPageNumber = localStorage.getItem('currentPage');
-
   if(currentPageNumber) {
     currentPage = parseInt(currentPageNumber) || 1;
   }
@@ -857,9 +920,10 @@ async function startup() {
 }
 
 /**
+ * Get last played video data
  * @returns {{ url: string, group: string, title: string }?} Returns Play item
  */
-function getCurrentVideoItem() {
+function getLastVideoItem() {
   const data = window.localStorage.getItem('lastPlayedItem');
   if(data) {
     return JSON.parse(data);
@@ -867,14 +931,62 @@ function getCurrentVideoItem() {
   return  null;
 }
 
+function saveVideoTimestamp() {
+  window.localStorage.setItem('videoTimestamp', JSON.stringify(videoTimestamp));
+}
+
+function loadVideoTimestamp() {
+  const videoTimestampData = window.localStorage.getItem('videoTimestamp');
+  videoTimestamp = videoTimestampData ? JSON.parse(videoTimestampData) : {};
+  return videoTimestamp;
+}
+
 function playLastVideo(isUserAction = true) {
-  const lastPlayedItem = getCurrentVideoItem();
+  const lastPlayedItem = getLastVideoItem();
   if (lastPlayedItem) {
+    loadVideoTimestamp();
     const lastPlayedTime = videoTimestamp[lastPlayedItem.url];
     playVideo(lastPlayedItem, isUserAction);
-    // if (!isNaN(lastPlayedTime)) {
-      // videoPlayer.currentTime = lastPlayedTime;
-    // }
+    if (!isNaN(lastPlayedTime)) {
+      videoPlayer.currentTime = lastPlayedTime;
+    }
+  }
+}
+
+function stopVideo() {
+  videoPlayer.src = stopURL;
+  videoPlayer.pause();
+  document.title = SITE_TITLE;
+  showPlayButton(false);
+  rewindButton.disabled = forwardButton.disabled = true;
+  saveVideoTimestamp();
+}
+
+function showPlayButton(showControls = false) {
+  playVideoButton.innerHTML = VARS.ICON_PLAY;
+  fullscreenButton.disabled = true;
+  playVideoButton.className = 'stopped';
+  videoPlayer.controls = showControls;
+  videoPlayer.className = 'paused';
+}
+
+function onStopped() {
+  showPlayButton(true);
+  document.title = SITE_TITLE;
+  rewindButton.disabled = forwardButton.disabled = true;
+  saveVideoTimestamp();
+}
+
+function setVideoTimestamp(timestamp) {
+  videoTimestamp[lastPlayedItem.url] = timestamp;
+}
+
+function resetVideoTimestamp() {
+  const lastPlayedItem = getLastVideoItem();
+  if (lastPlayedItem) {
+    loadVideoTimestamp();
+    setVideoTimestamp(0);
+    saveVideoTimestamp();
   }
 }
 
@@ -1101,7 +1213,7 @@ function displayPlaylistPage(page) {
   const startIndex = (page - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const pageItems = itemsToDisplay.slice(startIndex, endIndex);
-  const lastPlayedItem = getCurrentVideoItem();
+  const lastPlayedItem = getLastVideoItem();
   let hasCacheUpdates = false;
 
   pageItems.forEach(async item => {
@@ -1113,12 +1225,9 @@ function displayPlaylistPage(page) {
     if(item.url.startsWith(UNSAFE_HTTP)) {
       li.dataset['proxy'] = true;
       li.classList.add('proxy');
-      li.dataset['url'] = '';
-    }
-    else {
-      li.dataset['url'] = item.url;
     }
 
+    li.dataset['url'] = item.url;
     li.dataset['group'] = item.group;
 
     li.title = item.title;
@@ -1164,7 +1273,6 @@ async function updateListItemStyle(li, checkResult, lastPlayedItem) {
     li.title = `此视频源可能无法播放`;
     li.dataset['proxy'] = true;
     li.classList.add('proxy');
-    li.dataset['url'] = '';
   }
   if(lastPlayedItem?.url === li.dataset['url']) {
     li.classList.add('active');
@@ -1216,7 +1324,7 @@ function performSearch() {
 
 // 刷新当前页面
 async function refreshCurrentPage() {
-  const lastPlayedItem = getCurrentVideoItem();
+  const lastPlayedItem = getLastVideoItem();
   const items = playlistItems.children;
 
   for (let i = 0; i < items.length; i++) {
@@ -1228,6 +1336,7 @@ async function refreshCurrentPage() {
   for (let i = 0; i < items.length; i++) {
     const li = items[i];
     const itemUrl = li.dataset['url'];
+
     if (itemUrl) {
       const id = database.encodeString(itemUrl);
       const result = await checkVideoPlayability(itemUrl);
@@ -1256,12 +1365,14 @@ function nativePlay(source) {
 
 function refreshFavoriteButton(hasFavorite) {
   if(hasFavorite) {
-    favoriteButton.textContent = '移除';
+    favoriteButton.innerHTML = VARS.ICON_UNFAVORITE;
     favoriteButton.dataset['action'] = 'remove';
+    favoriteButton.classList.add('remove');
   }
   else {
-    favoriteButton.textContent = '收藏';
+    favoriteButton.innerHTML = VARS.ICON_FAVORITE;
     favoriteButton.dataset['action'] = 'add';
+    favoriteButton.classList.remove('remove');
   }
 }
 
@@ -1287,19 +1398,12 @@ async function onPlay(playingItem) {
 }
 
 function onPlaying() {
-  playVideoButton.textContent = '停止';
+  playVideoButton.innerHTML = VARS.ICON_STOP;;
   fullscreenButton.disabled = false;
   playVideoButton.className = 'played';
   videoPlayer.controls = true;
   errorMessage.textContent = '';
   videoPlayer.className = '';
-  rewindButton.disabled = forwardButton.disabled = false;
-}
-
-function onStopped() {
-  // 显示播放
-  showPlayButton(true);
-  document.title = SITE_TITLE;
   rewindButton.disabled = forwardButton.disabled = false;
 }
 
@@ -1383,7 +1487,8 @@ async function checkVideoPlayability(url) {
       catch(error) {
         console.log('HLS ERROR 2');
       }
-    } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+    }
+    else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
       const video = document.createElement('video');
       video.src = url;
 
@@ -1543,25 +1648,24 @@ closeButton.addEventListener('click', (evt) => {
   sideButton.dispatchEvent(new Event('click'));
 });
 
-document.getElementById('refreshPage').addEventListener('click', (evt) => {
+refreshPage.addEventListener('click', (evt) => {
   refreshCurrentPage();
 });
-
-function showPlayButton(showControls = false) {
-  playVideoButton.textContent = '播放';
-  fullscreenButton.disabled = true;
-  playVideoButton.className = 'stopped';
-  videoPlayer.controls = showControls;
-  videoPlayer.className = 'paused';
-}
 
 videoPlayer.addEventListener('timeupdate', (evt) => {
   if(videoPlayer.src === stopURL) {
     return;
   }
-  const lastPlayedItem = getCurrentVideoItem();
+  const lastPlayedItem = getLastVideoItem();
   if(lastPlayedItem) {
-    videoTimestamp[lastPlayedItem.url] = evt.target.currentTime;
+    /** @type {HTMLVideoElement} **/
+    const player = evt.target;
+    if(player.duration - player.currentTime < 10) {
+      resetVideoTimestamp();
+    }
+    else {
+      setVideoTimestamp(player.currentTime);
+    }
   }
 });
 
@@ -1575,7 +1679,7 @@ videoPlayer.addEventListener('play', (evt) => {
 
 videoPlayer.addEventListener('waiting', (evt) => {
   playVideoButton.className = 'playing';
-  playVideoButton.textContent = '取消';
+  playVideoButton.innerHTML = VARS.ICON_CANCEL;
 });
 
 videoPlayer.addEventListener('canplaythrough', (evt) => {
@@ -1583,7 +1687,7 @@ videoPlayer.addEventListener('canplaythrough', (evt) => {
 });
 
 videoPlayer.addEventListener('end', (evt) => {
-  onStopped();
+  onStopped(true);
 });
 
 videoPlayer.addEventListener('error', (evt) => {
@@ -1596,9 +1700,7 @@ videoPlayer.addEventListener('error', (evt) => {
 
 playVideoButton.addEventListener('click', () => {
   if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
-    videoPlayer.src = stopURL;
-    videoPlayer.pause();
-    showPlayButton(false);
+    stopVideo();
   }
   else {
     playLastVideo();
@@ -1612,16 +1714,17 @@ fullscreenButton.addEventListener('click', (evt) => {
 
 rewindButton.addEventListener('click', (evt) => {
   videoPlayer.currentTime -= 30;
-  const lastPlayedItem = getCurrentVideoItem();
+  const lastPlayedItem = getLastVideoItem();
   if(lastPlayedItem) {
-    videoTimestamp[lastPlayedItem.url] = videoPlayer.currentTime;
+    setVideoTimestamp(videoPlayer.currentTime);
   }
 });
+
 forwardButton.addEventListener('click', (evt) => {
   videoPlayer.currentTime += 30;
-  const lastPlayedItem = getCurrentVideoItem();
+  const lastPlayedItem = getLastVideoItem();
   if(lastPlayedItem) {
-    videoTimestamp[lastPlayedItem.url] = videoPlayer.currentTime;
+    setVideoTimestamp(videoPlayer.currentTime);
   }
 });
 
@@ -1662,7 +1765,7 @@ document.addEventListener('keydown', function (event) {
 });
 
 window.addEventListener('beforeunload', (evt) => {
-  window.localStorage.setItem('videoTimestamp', JSON.stringify(videoTimestamp));
+  saveVideoTimestamp();
 });
 
 // 初始化
