@@ -923,7 +923,6 @@ function playLastVideo(isUserAction = true) {
 }
 
 function stopVideo() {
-  window.localStorage.removeItem('lastPlayedItem');
   videoPlayer.src = stopURL;
   videoPlayer.pause();
   document.title = SITE_TITLE;
