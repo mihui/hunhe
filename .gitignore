@@ -97,3 +97,5 @@ next-env.d.ts
 
 **/**secret.yaml
 .env*
+
+public/tv/out

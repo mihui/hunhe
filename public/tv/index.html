@@ -2,9 +2,11 @@
 <html lang="en-US">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+  <script src="hls.js"></script>
   <title>Hunhe TV</title>
 <style>
 html {
@@ -513,9 +515,9 @@ button {
 
           <div id="m3uList"></div>
 
-          <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
+          <!-- <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
           <textarea id="m3uContent"></textarea>
-          <button id="loadContentuButton">读取内容</button>
+          <button id="loadContentuButton">读取内容</button> -->
         </div>
         <div id="playlistContent">
           <form id="searchContainer">
@@ -828,11 +830,12 @@ async function listStore(source) {
       if(element.textContent === cachedM3uUrl) {
         return;
       }
-      if(data.source === SOURCES.CONTENT) {
-        m3uInput.value = '';
-        m3uContent.value = data.m3u;
-      }
-      else if(data.source === SOURCES.URL) {
+      // if(data.source === SOURCES.CONTENT) {
+      //   m3uInput.value = '';
+      //   m3uContent.value = data.m3u;
+      // }
+      // else 
+      if(data.source === SOURCES.URL) {
         m3uInput.value = database.decodeString(m3uItem.id);
       }
       gotoPage(1);
@@ -916,7 +919,6 @@ function loadVideoTimestamp() {
 
 function playLastVideo(isUserAction = true) {
   const lastPlayedItem = getLastVideoItem();
-  console.log('lastPlayedItem--->', lastPlayedItem);
   if (lastPlayedItem) {
     loadVideoTimestamp();
     playVideo(lastPlayedItem, isUserAction);
@@ -1056,20 +1058,20 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
   }
 }
 
-async function loadM3uContent() {
-  if(m3uContent.value.includes('#EXTINF:')) {
-    const id = database.encodeString(m3uContentKey.value);
-    const payload = await database.readData(id);
-    const data = { id, m3u: m3uContent.value, source: SOURCES.CONTENT, type: TYPES.M3U }; // m3u only
-    if(payload) {
-      await database.updateData(data);
-    }
-    else {
-      await database.addData(data);
-    }
-    processM3uData(TYPES.M3U, data.m3u, true);
-  }
-}
+// async function loadM3uContent() {
+//   if(m3uContent.value.includes('#EXTINF:')) {
+//     const id = database.encodeString(m3uContentKey.value);
+//     const payload = await database.readData(id);
+//     const data = { id, m3u: m3uContent.value, source: SOURCES.CONTENT, type: TYPES.M3U }; // m3u only
+//     if(payload) {
+//       await database.updateData(data);
+//     }
+//     else {
+//       await database.addData(data);
+//     }
+//     processM3uData(TYPES.M3U, data.m3u, true);
+//   }
+// }
 
 /**
  * 处理 M3U 文件单行
@@ -1561,7 +1563,7 @@ categorySelect.addEventListener('change', async (evt) => {
   gotoPage(1);
 });
 loadM3uButton.addEventListener('click', () => loadM3uFile(false));
-loadContentuButton.addEventListener('click', () => loadM3uContent());
+// loadContentuButton.addEventListener('click', () => loadM3uContent());
 closeM3uButton.addEventListener('click', (evt) => {
   showM3uInput();
 });
