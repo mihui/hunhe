@@ -913,19 +913,17 @@ function loadVideoTimestamp() {
   return videoTimestamp;
 }
 
+
 function playLastVideo(isUserAction = true) {
   const lastPlayedItem = getLastVideoItem();
   if (lastPlayedItem) {
     loadVideoTimestamp();
-    const lastPlayedTime = videoTimestamp[lastPlayedItem.url];
     playVideo(lastPlayedItem, isUserAction);
-    if (!isNaN(lastPlayedTime)) {
-      videoPlayer.currentTime = lastPlayedTime;
-    }
   }
 }
 
 function stopVideo() {
+  window.localStorage.removeItem('lastPlayedItem');
   videoPlayer.src = stopURL;
   videoPlayer.pause();
   document.title = SITE_TITLE;
@@ -944,8 +942,7 @@ function showPlayButton(showControls = false) {
 
 function onStopped() {
   showPlayButton(true);
-  document.title = SITE_TITLE;
-  rewindButton.disabled = forwardButton.disabled = true;
+  document.title = SITE_TITLE;;
   saveVideoTimestamp();
 }
 
@@ -1369,7 +1366,10 @@ async function onPlay(playingItem) {
   favoriteButton.dataset['title'] = playingItem.title;
 
   refreshFavoriteButton(data ? true : false);
-
+  const lastPlayedTime = videoTimestamp[playingItem.url];
+  if (!isNaN(lastPlayedTime)) {
+    videoPlayer.currentTime = lastPlayedTime;
+  }
   window.localStorage.setItem('lastPlayedItem', JSON.stringify(playingItem));
 }
 
@@ -1388,6 +1388,7 @@ function onPlaying() {
  * @param {boolean} isUserAction If it is controled by user
  */
 function playVideo(source, isUserAction = true) {
+  window.localStorage.removeItem('lastPlayedItem');
   favoriteButton.disabled = true;
   if (source) {
     document.title = source.title;
