@@ -916,6 +916,7 @@ function loadVideoTimestamp() {
 
 function playLastVideo(isUserAction = true) {
   const lastPlayedItem = getLastVideoItem();
+  console.log('lastPlayedItem--->', lastPlayedItem);
   if (lastPlayedItem) {
     loadVideoTimestamp();
     playVideo(lastPlayedItem, isUserAction);
@@ -1387,7 +1388,6 @@ function onPlaying() {
  * @param {boolean} isUserAction If it is controled by user
  */
 function playVideo(source, isUserAction = true) {
-  window.localStorage.removeItem('lastPlayedItem');
   favoriteButton.disabled = true;
   if (source) {
     document.title = source.title;
@@ -1398,6 +1398,8 @@ function playVideo(source, isUserAction = true) {
   if(isUserAction === false) {
     return;
   }
+
+  window.localStorage.removeItem('lastPlayedItem');
 
   videoPlayer.muted = true;
   if (Hls.isSupported() && source.url.startsWith(UNSAFE_HTTP) === false) {
@@ -1690,7 +1692,7 @@ videoPlayer.addEventListener('error', (evt) => {
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
 });
 
-playVideoButton.addEventListener('click', () => {
+playVideoButton.addEventListener('click', (evt) => {
   if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
     stopVideo();
   }
