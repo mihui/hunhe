@@ -109,10 +109,9 @@ body {
     }
 
 textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uInput,
-#loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey {
+#loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey, #settingsButton {
   width: 100%;
   padding: 12px;
-  margin-bottom: 15px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
@@ -120,9 +119,37 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
   box-sizing: border-box;
 }
 
+#searchContainer, #categorySelect, #m3uInput, .m3u-controls {
+  margin-bottom: 10px;
+}
+
 #searchContainer {
   display: flex;
 }
+  #searchContainer .search {
+    position: relative;
+    flex: 1;
+    display: flex;
+  }
+  #searchContainer #clearButton {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    background-color: transparent;
+    width: auto;
+    color: #999;
+    flex: 1;
+    padding: 0px 0.5rem;
+    height: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 0px solid transparent;
+    z-index: 10;
+    border-radius: 0px;
+  }
+  #searchContainer #clearButton svg {
+    background-color: white;
+  }
 
 #searchInput {
   flex-grow: 1;
@@ -141,7 +168,7 @@ select:focus-visible {
   border-radius: 0px;
 }
 
-#searchButton, #clearButton, #closeButton {
+#searchButton, #closeButton, #settingsButton {
   width: auto;
   background-color: #3498db;
   color: white;
@@ -150,10 +177,11 @@ select:focus-visible {
   white-space: nowrap;
 }
 
-#clearButton {
+#settingsButton {
   border-radius: 0px;
   background-color: #39db34;
 }
+
 #closeButton {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -252,7 +280,7 @@ button {
 
 #pagination button:disabled,
 #clearButton:disabled, #loadM3uButton:disabled,
-#favoriteButton:disabled, #refreshPage:disabled,
+#favoriteButton:disabled, #listCheckButton:disabled,
 #fullscreenButton:disabled, #rewindButton:disabled, #forwardButton:disabled {
   background-color: #bdc3c7;
   color: #eee;
@@ -290,7 +318,7 @@ button {
   cursor: pointer;
 }
 
-#reloadM3uButton {
+#settingsButton {
   background-color: #606060;
 }
 #favoriteButton {
@@ -299,13 +327,14 @@ button {
   #favoriteButton.remove {
     background-color: #cc2e68;
   }
-#sideButton {
+
+#playListButton {
   background-color: #2e6bcc;
 }
 #fullscreenButton {
   background-color: darkslateblue;
 }
-#refreshPage {
+#listCheckButton {
   background-color: orange;
 }
 #playVideoButton {
@@ -367,7 +396,6 @@ button {
 #playlistContent {
   display: flex;
   flex-flow: column;
-  display: none;
   height: 100%;
 }
 
@@ -425,14 +453,22 @@ button {
   background: #04AA6D;
   cursor: pointer;
 }
+
 .m3u-controls {
   display: flex;
-  column-gap: 1rem;
+  column-gap: 0.5rem;
   flex-flow: row;
+  align-items: center;
+  justify-content: flex-end;
 }
   .m3u-controls #closeM3uButton {
     background-color: #db6634;
   }
+  .m3u-controls #loadM3uButton,
+  .m3u-controls #closeM3uButton {
+    width: auto;
+  }
+
 .page-information {
   flex: 1;
 }
@@ -501,16 +537,27 @@ button {
         <path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1z"/>
         <path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5"/>
     </symbol>
+    <!-- CLOSE -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="close" viewBox="0 0 16 16">
+      <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+    </symbol>
+    <!-- SEARCH -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="search" viewBox="0 0 16 16">
+      <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+    </symbol>
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="reset" viewBox="0 0 16 16">
+      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+    </symbol>
   </svg>
 
   <div class="container" id="pageContainer">
     <div id="playlistContainer" class="hidden">
       <div class="box">
-        <div id="m3uInputContainer" class="hidden">
+        <div id="m3uInputContainer">
           <input type="url" id="m3uInput" placeholder="输入 M3U 文件 URL">
           <div class="m3u-controls">
             <button id="loadM3uButton">加载播放列表</button>
-            <button id="closeM3uButton">关闭</button>
+            <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
           </div>
 
           <div id="m3uList"></div>
@@ -521,10 +568,13 @@ button {
         </div>
         <div id="playlistContent">
           <form id="searchContainer">
-            <input type="text" id="searchInput" placeholder="搜索...">
-            <button type="submit" id="searchButton">搜索</button>
-            <button type="reset" id="clearButton" disabled>重置</button>
-            <button type="button" id="closeButton">关闭</button>
+            <div class="search">
+              <input type="text" id="searchInput" placeholder="搜索...">
+              <button type="reset" id="clearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
+            </div>
+            <button type="submit" id="searchButton"><svg width="20" height="20"><use xlink:href="#search"/></svg></button>
+            <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
+            <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
           </form>
           <select id="categorySelect"></select>
           <ul id="playlistItems"></ul>
@@ -552,10 +602,9 @@ button {
           </div>
 
           <div class="controls">
-            <button id="reloadM3uButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
-            <button id="refreshPage"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
+            <button id="listCheckButton"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
             <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
-            <button id="sideButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
+            <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
 
           <div class="controls">
@@ -752,19 +801,19 @@ function getElementById(idList = []) {
  * ]} **/
 const [
   videoPlayer, errorMessage, errorControl, m3uInput, closeM3uButton,
-  loadM3uButton, reloadM3uButton, m3uInputContainer, playlistContent,
+  loadM3uButton, settingsButton, m3uInputContainer, playlistContent,
   playlistContainer, playVideoButton, m3uList, searchContainer,
-  favoriteButton, sideButton, rewindButton, forwardButton, searchInput,
-  fullscreenButton, prevButton, nextButton, pageInfo, refreshPage,
+  favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
+  fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
   pageControl, clearButton, closeButton, m3uContent, m3uContentKey,
   loadContentuButton, categorySelect, playlistItems, paginationGroup,
   pageContainer,
  ] = getElementById([
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uInput', 'closeM3uButton',
-  'loadM3uButton', 'reloadM3uButton', 'm3uInputContainer', 'playlistContent',
+  'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent',
   'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer',
-  'favoriteButton', 'sideButton', 'rewindButton', 'forwardButton', 'searchInput',
-  'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'refreshPage',
+  'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
+  'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
   'pageControl', 'clearButton', 'closeButton', 'm3uContent', 'm3uContentKey',
   'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination',
   'pageContainer',
@@ -840,7 +889,7 @@ async function listStore(source) {
       }
       gotoPage(1);
       processM3uData(data.type || TYPES.M3U, data.m3u);
-      refreshPage.disabled = false;
+      listCheckButton.disabled = false;
     };
     divItem.append(aItem);
     if(isCurrent) {
@@ -851,7 +900,6 @@ async function listStore(source) {
     }
     m3uList.append(divItem);
   }
-
 }
 
 function loadCurrentChannel(isBooting = false, source = '') {
@@ -885,12 +933,12 @@ function initSideMenu() {
   if(playListVisible === 'false') {
     playlistContainer.className = 'hidden';
     errorControl.classList.add('hidden');
-    refreshPage.disabled = true;
+    listCheckButton.disabled = true;
   }
   else {
-    playlistContainer.className = '';
+    playlistContainer.className = 'play-list';
     errorControl.classList.remove('hidden');
-    refreshPage.disabled = false;
+    listCheckButton.disabled = false;
   }
 }
 
@@ -972,8 +1020,8 @@ function saveDataToCache() {
 // 显示播放列表内容
 function showPlaylistContent() {
   m3uInputContainer.classList.add('hidden');
-  playlistContent.style.display = 'flex';
-  playlistContainer.className = '';
+  playlistContent.classList.remove('hidden');
+  playlistContainer.className = 'play-list';
 }
 
 // 显示 M3U 输入界面
@@ -983,16 +1031,14 @@ async function showM3uInput() {
 
   if(m3uInputContainer.classList.contains('hidden')) {
     m3uInputContainer.classList.remove('hidden');
-    playlistContent.style.display = 'none';
-    refreshPage.disabled = true;
+    playlistContent.classList.add('hidden');
+    listCheckButton.disabled = true;
     await listStore('showM3uInput');
     playlistContainer.className = 'settings';
   }
   else {
-    m3uInputContainer.classList.add('hidden');
-    playlistContent.style.display = 'flex';
-    refreshPage.disabled = false;
-    playlistContainer.className = '';
+    showPlaylistContent();
+    listCheckButton.disabled = false;
   }
 }
 
@@ -1298,7 +1344,7 @@ function performSearch() {
 
 // 刷新当前页面
 async function refreshCurrentPage() {
-  refreshPage.disabled = true;
+  listCheckButton.disabled = true;
   const lastPlayedItem = getLastVideoItem();
   const items = playlistItems.children;
 
@@ -1323,7 +1369,7 @@ async function refreshCurrentPage() {
       li.classList.add('broken');
     }
   }
-  refreshPage.disabled = false;
+  listCheckButton.disabled = false;
   saveDataToCache();
 }
 
@@ -1568,7 +1614,7 @@ closeM3uButton.addEventListener('click', (evt) => {
   showM3uInput();
 });
 
-reloadM3uButton.addEventListener('click', showM3uInput);
+settingsButton.addEventListener('click', showM3uInput);
 
 function gotoPrevPage(evt) {
   evt.preventDefault();
@@ -1621,7 +1667,12 @@ searchContainer.addEventListener('submit', (evt) => {
 });
 
 searchInput.addEventListener('keyup', (evt) => {
-  clearButton.disabled = evt.target.value === '';
+  if(evt.target.value === '') {
+    clearButton.classList.add('hidden');
+  }
+  else {
+    clearButton.classList.remove('hidden');
+  }
 });
 
 searchInput.addEventListener('input', function() {
@@ -1642,10 +1693,10 @@ clearButton.addEventListener('click', (evt) => {
 });
 
 closeButton.addEventListener('click', (evt) => {
-  sideButton.dispatchEvent(new Event('click'));
+  playListButton.dispatchEvent(new Event('click'));
 });
 
-refreshPage.addEventListener('click', (evt) => {
+listCheckButton.addEventListener('click', (evt) => {
   refreshCurrentPage();
 });
 
@@ -1725,19 +1776,21 @@ forwardButton.addEventListener('click', (evt) => {
   }
 });
 
-sideButton.addEventListener('click', (evt) => {
+playListButton.addEventListener('click', (evt) => {
   let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
+  // Hide playlist
   if(playListVisible === 'true') {
     playlistContainer.className = 'hidden';
     errorControl.classList.add('hidden');
     playListVisible = 'false';
-    refreshPage.disabled = true;
+    listCheckButton.disabled = true;
   }
+  // Show playlist
   else {
-    playlistContainer.className = '';
-    errorControl.classList.remove('hidden');
+    showPlaylistContent();
+    listCheckButton.disabled = true;
     playListVisible = 'true';
-    refreshPage.disabled = false;
+    errorControl.classList.remove('hidden');
   }
   window.localStorage.setItem('playListVisible', playListVisible);
 });
