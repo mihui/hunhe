@@ -201,6 +201,7 @@ select:focus-visible {
 
 #playlistItems li {
   cursor: pointer;
+  background-position: -100px center;
   background-color: #f1f1f1;
   border-radius: 8px;
   padding: 0.5rem 0.9rem;
@@ -217,6 +218,7 @@ select:focus-visible {
   border-left: 3px solid gray;
   user-select: none;
   transition: 1s all;
+  column-gap: 0.5rem;
 }
   #playlistItems li:nth-of-type(even) {
     background-color: transparent;
@@ -247,6 +249,10 @@ select:focus-visible {
     font-style: italic;
     color: #888;
     font-size: small;
+    text-indent: 1rem;
+  }
+  #playlistItems li.frame {
+    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23666%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
     text-indent: 1rem;
   }
   #playlistItems li div {
@@ -409,7 +415,7 @@ button {
   row-gap: 0.6rem;
 }
 
-#pageControl {
+.range {
   -webkit-appearance: none;
   width: 100%;
   height: 15px;
@@ -422,12 +428,12 @@ button {
 }
 
 /* Mouse-over effects */
-#pageControl:hover {
+.range:hover {
   opacity: 1; /* Fully shown on mouse-over */
 }
 
 /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
-#pageControl::-webkit-slider-thumb {
+.range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 25px;
@@ -437,7 +443,7 @@ button {
   cursor: pointer;
 }
 
-#pageControl::-moz-range-thumb {
+.range::-moz-range-thumb {
   width: 25px;
   height: 25px;
   border-radius: 50%;
@@ -470,8 +476,6 @@ button {
   align-items: flex-start;
   justify-content: center;
   flex-flow: column;
-  
-  row-gap: 0.5rem;
 }
 
   .tools #databaseSize {
@@ -490,7 +494,9 @@ button {
     background-color: darkred;
     font-size: 0.9rem;
   }
-
+.usage {
+  row-gap: 0.5rem;
+}
 button:disabled {
   background-color: #bdc3c7 !important;
   color: #eee;
@@ -502,6 +508,18 @@ button:disabled {
   justify-content: space-between;
   width: 100%;
   padding: 0.5rem 0px;
+  column-gap: 1rem;
+  border-bottom: 1px solid #777;
+  margin-top: -1px;
+  border-top: 1px solid #777;
+}
+.settings-row .label {
+  width: 100%;
+  flex: 1;
+  white-space: nowrap;
+  align-items: center;
+  display: flex;
+  height: 34px;
 }
 /* The switch - the box around the slider */
 .switch {
@@ -660,15 +678,23 @@ input:checked + .slider:before {
           <button id="loadContentuButton">读取内容</button> -->
           <div class="tools">
             <div class="settings-row">
-              <label>检查缩略图</label>
+              <label class="label">检查缩略图</label>
               <label class="switch">
                 <input type="checkbox" id="storeFrameCheckbox">
                 <span class="slider"></span>
               </label>
             </div>
+            <div class="settings-row">
+              <label class="label">检查超时 (<span id="checkTimeoutDisplay">0</span>ms)</label>
+              <input type="range" id="checkTimeout" class="range" min="5" max="60" step="1" required />
+            </div>
+            <div class="settings-row">
+              <label class="label">数据使用情况</label>
+              <div id="databaseSize"></div>
+            </div>
           </div>
-          <div class="tools">
-            <button id="databaseSize" disabled>数据使用情况</button>
+
+          <div class="tools usage">
             <div id="databaseCategories"></div>
           </div>
 
@@ -689,7 +715,7 @@ input:checked + .slider:before {
             <div id="pagination">
               <button id="prevPage" disabled>上一页</button>
               <div class="page-information">
-                <input id="pageControl" min="1" type="range" />
+                <input id="pageControl" class="range" min="1" type="range" />
                 <div id="pageInfo"></div>
               </div>
               <button id="nextPage" disabled>下一页</button>
@@ -956,7 +982,8 @@ function getElementById(idList = []) {
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLButtonElement,
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLTextAreaElement, HTMLInputElement,
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement,
- * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement
+ * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
+ * HTMLInputElement, HTMLSpanElement
  * ]} **/
 const [
   videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
@@ -966,7 +993,8 @@ const [
   fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
   pageControl, clearButton, closeButton, m3uContent, m3uContentKey,
   loadContentuButton, categorySelect, playlistItems, paginationGroup,
-  pageContainer, databaseSize, databaseCategories, storeFrameCheckbox
+  pageContainer, databaseSize, databaseCategories, storeFrameCheckbox,
+  checkTimeout, checkTimeoutDisplay
  ] = getElementById([
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent',
@@ -975,7 +1003,8 @@ const [
   'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
   'pageControl', 'clearButton', 'closeButton', 'm3uContent', 'm3uContentKey',
   'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination',
-  'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox'
+  'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox',
+  'checkTimeout', 'checkTimeoutDisplay'
 ]);
 
 let itemsPerPage = 15;
@@ -1003,7 +1032,8 @@ const VARS = {
   ICON_FULLSCREEN: '<svg width="20" height="20"><use xlink:href="#fullscreen"/></svg>',
   ICON_UNFAVORITE: '<svg width="20" height="20"><use xlink:href="#unfavorite"/></svg>',
   ICON_FAVORITE: '<svg width="20" height="20"><use xlink:href="#favorite"/></svg>',
-  POSTER: 'background.jpeg'
+  POSTER: 'background.jpeg',
+  PING_TIMEOUT: 0
 };
 
 async function listStore(source) {
@@ -1080,15 +1110,13 @@ function saveCurrentChannel() {
 
 function loadLocalCache() {
   loadVideoTimestamp();
-  const currentPageNumber = localStorage.getItem('currentPage');
-  if(currentPageNumber) {
-    currentPage = parseInt(currentPageNumber) || 1;
-  }
-  else {
-    currentPage = 1;
-  }
+  currentPage = parseInt(localStorage.getItem('currentPage')) || 1;
   storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
   storeFrameCheckbox.checked = storeFrame === 'true';
+
+  VARS.PING_TIMEOUT = parseInt(window.localStorage.getItem('PING_TIMEOUT')) || 10000;
+  checkTimeout.value = Math.round(VARS.PING_TIMEOUT / 1000);
+  checkTimeoutDisplay.textContent = checkTimeout.value;
 }
 
 function initSideMenu() {
@@ -1210,7 +1238,7 @@ async function showM3uInput() {
   }
   const { totalSize, storeSize } = await database.totalSize();
   const size = getMegaBytes(totalSize);
-  databaseSize.textContent = `数据使用情况: ${size} MB`;
+  databaseSize.textContent = `${size} MB`;
   databaseCategories.innerHTML = '';
   for(const item in storeSize) {
     const button = document.createElement('button');
@@ -1405,6 +1433,16 @@ function resetListStyle() {
     node.classList.remove('active');
   }
 }
+/**
+ * @param {HTMLLIElement} li List item
+ * @param {{ title: string, url: string, group: string }} item Play item
+ */
+function playNow (li, item) {
+  if(li.dataset['proxy']) return;
+  resetListStyle();
+  li.classList.add('active');
+  playVideo(item);
+}
 
 // 显示播放列表页面
 function displayPlaylistPage(page) {
@@ -1415,11 +1453,13 @@ function displayPlaylistPage(page) {
   const endIndex = startIndex + itemsPerPage;
   const pageItems = itemsToDisplay.slice(startIndex, endIndex);
   const lastPlayedItem = getLastVideoItem();
-  let hasCacheUpdates = false;
 
-  pageItems.forEach(async item => {
+  listCheckButton.disabled = true;
+  // Loop list items
+  pageItems.forEach(async (item, index) => {
     /** @type {HTMLLIElement} **/
     const li = document.createElement('li');
+    /** @type {HTMLDivElement} **/
     const div = document.createElement('div');
     div.className = 'label';
     div.textContent = item.group === currentCategory ? item.title : `[${item.group}] ${item.title}`;
@@ -1434,25 +1474,19 @@ function displayPlaylistPage(page) {
     li.dataset['group'] = item.group;
 
     li.title = item.title;
-    const playNow = () => {
-      if(li.dataset['proxy']) return;
-      resetListStyle();
-      li.classList.add('active');
-      playVideo(item);
-    };
 
     li.onclick = () => {
       if(li.dataset['proxy']) return;
       const frame = li.dataset['frame'] ? li.dataset['frame'] : VARS.POSTER;
       if(videoPlayer.poster === frame || frame === VARS.POSTER) {
-        playNow();
+        playNow(li, item);
       }
       else {
         stopVideo(frame);
       }
     };
     li.ondblclick = () => {
-      playNow();
+      playNow(li, item);
     };
     li.append(div);
     playlistItems.appendChild(li);
@@ -1461,15 +1495,17 @@ function displayPlaylistPage(page) {
     const playCache = await database.readData(id, STA_STORE);
     if (playCache) {
       updateListItemStyle(li, playCache.result, lastPlayedItem);
-    } else {
+    }
+    else {
+      // No cache or cleaned
       const result = await checkVideoPlayability(item.url);
       await database.addData({ id, result }, STA_STORE);
       updateListItemStyle(li, result, lastPlayedItem);
-      hasCacheUpdates = true;
+    }
+    if(index === pageItems.length - 1) {
+      listCheckButton.disabled = false;
     }
   });
-  // Save
-  if(hasCacheUpdates) saveDataToCache();
 }
 
 /**
@@ -1477,7 +1513,7 @@ function displayPlaylistPage(page) {
  * @param {{ ok: boolean, duration: number, frame: string, timeout: boolean }} checkResult List item
  * @param {{ url: string, group: string, title: string }} lastPlayedItem Last played data
  */
-async function updateListItemStyle(li, checkResult, lastPlayedItem) {
+function updateListItemStyle(li, checkResult, lastPlayedItem) {
   if (checkResult.ok) {
     if(checkResult.duration < 300) {
       li.classList.add('good');
@@ -1490,6 +1526,7 @@ async function updateListItemStyle(li, checkResult, lastPlayedItem) {
     }
     if(checkResult.frame) {
       li.dataset['frame'] = URL.createObjectURL(checkResult.frame);
+      li.classList.add('frame');
     }
   }
   else {
@@ -1685,6 +1722,7 @@ function playVideo(source, isUserAction = true) {
 /** @param {HTMLVideoElement} video **/
 async function captureFrame(url, hls = false) {
   if(storeFrame === 'true') {
+    let timer = 0;
     const frame = await new Promise((resolve) => {
       const offscreenCanvas = new OffscreenCanvas(0, 0);
       const offscreenCanvasContext = offscreenCanvas.getContext('2d');
@@ -1700,12 +1738,19 @@ async function captureFrame(url, hls = false) {
         offscreenCanvas.height = video.videoHeight;
       });
       video.currentTime = 360;
-      video.addEventListener('seeked', () => {
+      const onSeeked =  (evt) => {
         offscreenCanvasContext.drawImage(video, 0, 0);
         offscreenCanvas.convertToBlob().then((blob) => {
+          clearTimeout(timer);
           resolve(blob);
         });
-      });
+      };
+      video.addEventListener('seeked', onSeeked);
+      timer = setTimeout(() => {
+        console.log('request frame timeout');
+        video.removeEventListener('seeked', onSeeked);
+        resolve(null);
+      }, VARS.PING_TIMEOUT - 1000);
     });
     return frame;
   }
@@ -1747,7 +1792,7 @@ async function checkVideoPlayability(url) {
         timeoutId = setTimeout(() => {
           cleanup();
           resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: true });
-        }, 10000);
+        }, VARS.PING_TIMEOUT);
       }
       catch(error) {
         console.log('HLS ERROR 2');
@@ -1781,7 +1826,7 @@ async function checkVideoPlayability(url) {
       timeoutId = setTimeout(() => {
         cleanup();
         resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: true });
-      }, 10000);
+      }, VARS.PING_TIMEOUT);
     } else {
       resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: false });
     }
@@ -2040,6 +2085,12 @@ playListButton.addEventListener('click', (evt) => {
 storeFrameCheckbox.addEventListener('change', (evt) => {
   storeFrame = evt.target.checked ? 'true' : 'false';
   window.localStorage.setItem('storeFrame', storeFrame);
+});
+
+checkTimeout.addEventListener('input', (evt) => {
+  VARS.PING_TIMEOUT = parseInt(evt.target.value) * 1000;
+  checkTimeoutDisplay.textContent = evt.target.value;
+  window.localStorage.setItem('PING_TIMEOUT', VARS.PING_TIMEOUT);
 });
 
 let muted = true, isHidden = false;
