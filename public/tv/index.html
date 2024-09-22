@@ -1747,7 +1747,6 @@ async function captureFrame(url, hls = false) {
       };
       video.addEventListener('seeked', onSeeked);
       timer = setTimeout(() => {
-        console.log('request frame timeout');
         video.removeEventListener('seeked', onSeeked);
         resolve(null);
       }, VARS.PING_TIMEOUT - 1000);
