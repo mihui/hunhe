@@ -4,7 +4,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
   <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
   <script src="hls.js"></script>
   <title>Hunhe TV</title>
@@ -108,7 +107,7 @@ body {
       flex: 3;
     }
 
-textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uInput,
+textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
 #loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey, #settingsButton {
   width: 100%;
   padding: 12px;
@@ -119,7 +118,7 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
   box-sizing: border-box;
 }
 
-#searchContainer, #categorySelect, #m3uInput, .m3u-controls {
+#searchContainer, #categorySelect, #m3uUrlInput, .m3u-controls {
   margin-bottom: 10px;
 }
 
@@ -276,14 +275,6 @@ button {
   font-size: 16px;
   flex: 0;
   background-color: lightslategrey;
-}
-
-#pagination button:disabled,
-#clearButton:disabled, #loadM3uButton:disabled,
-#favoriteButton:disabled, #listCheckButton:disabled,
-#fullscreenButton:disabled, #rewindButton:disabled, #forwardButton:disabled {
-  background-color: #bdc3c7;
-  color: #eee;
 }
 
 #pageInfo {
@@ -473,6 +464,108 @@ button {
   flex: 1;
 }
 
+.tools {
+  display: flex;
+  padding: 0.5rem 0.8rem;
+  align-items: flex-start;
+  justify-content: center;
+  flex-flow: column;
+  
+  row-gap: 0.5rem;
+}
+
+  .tools #databaseSize {
+    border-radius: 4px;
+  }
+  .tools #databaseCategories {
+    display: flex;
+    column-gap: 0.5rem;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+    flex: 1;
+  }
+  .tools #databaseCategories button {
+    flex: 1;
+    background-color: darkred;
+    font-size: 0.9rem;
+  }
+
+button:disabled {
+  background-color: #bdc3c7 !important;
+  color: #eee;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem 0px;
+}
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
 /* iPhone Portrait */
 @media only screen and (max-device-width: 812px) and (orientation: portrait)
 {
@@ -554,7 +647,7 @@ button {
     <div id="playlistContainer" class="hidden">
       <div class="box">
         <div id="m3uInputContainer">
-          <input type="url" id="m3uInput" placeholder="输入 M3U 文件 URL">
+          <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
           <div class="m3u-controls">
             <button id="loadM3uButton">加载播放列表</button>
             <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
@@ -565,11 +658,25 @@ button {
           <!-- <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
           <textarea id="m3uContent"></textarea>
           <button id="loadContentuButton">读取内容</button> -->
+          <div class="tools">
+            <div class="settings-row">
+              <label>检查缩略图</label>
+              <label class="switch">
+                <input type="checkbox" id="storeFrameCheckbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="tools">
+            <button id="databaseSize" disabled>数据使用情况</button>
+            <div id="databaseCategories"></div>
+          </div>
+
         </div>
         <div id="playlistContent">
           <form id="searchContainer">
             <div class="search">
-              <input type="text" id="searchInput" placeholder="搜索...">
+              <input type="text" id="searchInput" required placeholder="搜索...">
               <button type="reset" id="clearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
             </div>
             <button type="submit" id="searchButton"><svg width="20" height="20"><use xlink:href="#search"/></svg></button>
@@ -767,6 +874,58 @@ const database = {
       };
     });
   },
+  purgeData: async (storeName = FAV_STORE) => {
+    const db = await database.openDB();
+    const transaction = db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
+    const request = store.clear();
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  },
+  /** @returns {{ totalSize: number, storeSize: Object.<string, number> }} Returns total size **/
+  totalSize: async () => {
+    let totalSize = 0;
+    let storeSize = {};
+    const db = await database.openDB();
+    const transaction = db.transaction(db.objectStoreNames, "readonly");
+    return await new Promise((resolve) => {
+    
+      for (const objectStoreName of db.objectStoreNames) {
+        const objectStore = transaction.objectStore(objectStoreName);
+        storeSize[objectStoreName] = 0;
+
+        // Retrieve all objects in the object store
+        const getAllRequest = objectStore.getAll();
+
+        getAllRequest.onsuccess = (event) => {
+          const items = event.target.result;
+
+          // Calculate the size of each object and add it to the total
+          for (const item of items) {
+            const size = new Blob([JSON.stringify(item)]).size;
+            totalSize += size;
+            storeSize[objectStoreName] += size;
+          }
+
+          // If all object stores have been processed, return the total size
+          if (objectStoreName === db.objectStoreNames[db.objectStoreNames.length - 1]) {
+            resolve({ totalSize, storeSize });
+          }
+        };
+
+        getAllRequest.onerror = (event) => {
+          resolve({ totalSize, storeSize });
+        };
+      }
+    })
+  },
   encodeString: (plainText) => {
     const base64Encoded = btoa(unescape(encodeURIComponent(plainText)));
     return base64Encoded;
@@ -792,31 +951,31 @@ function getElementById(idList = []) {
 /** @type {[
  * HTMLVideoElement, HTMLDivElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement,
- * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement,
+ * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLFormElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLButtonElement,
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLTextAreaElement, HTMLInputElement,
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement,
- * HTMLDivElement, 
+ * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement
  * ]} **/
 const [
-  videoPlayer, errorMessage, errorControl, m3uInput, closeM3uButton,
+  videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
   loadM3uButton, settingsButton, m3uInputContainer, playlistContent,
   playlistContainer, playVideoButton, m3uList, searchContainer,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
   fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
   pageControl, clearButton, closeButton, m3uContent, m3uContentKey,
   loadContentuButton, categorySelect, playlistItems, paginationGroup,
-  pageContainer,
+  pageContainer, databaseSize, databaseCategories, storeFrameCheckbox
  ] = getElementById([
-  'videoPlayer', 'errorMessage', 'errorControl', 'm3uInput', 'closeM3uButton',
+  'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent',
   'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
   'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
   'pageControl', 'clearButton', 'closeButton', 'm3uContent', 'm3uContentKey',
   'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination',
-  'pageContainer',
+  'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox'
 ]);
 
 let itemsPerPage = 15;
@@ -830,6 +989,7 @@ let currentCategory = allChannels;
 let filteredPlaylistData = [];
 /** @type {Object.<string, number>} **/
 let videoTimestamp = {};
+let storeFrame = 'false';
 
 const stopURL = URL.createObjectURL(new Blob());
 
@@ -843,6 +1003,7 @@ const VARS = {
   ICON_FULLSCREEN: '<svg width="20" height="20"><use xlink:href="#fullscreen"/></svg>',
   ICON_UNFAVORITE: '<svg width="20" height="20"><use xlink:href="#unfavorite"/></svg>',
   ICON_FAVORITE: '<svg width="20" height="20"><use xlink:href="#favorite"/></svg>',
+  POSTER: 'background.jpeg'
 };
 
 async function listStore(source) {
@@ -880,12 +1041,12 @@ async function listStore(source) {
         return;
       }
       // if(data.source === SOURCES.CONTENT) {
-      //   m3uInput.value = '';
+      //   m3uUrlInput.value = '';
       //   m3uContent.value = data.m3u;
       // }
       // else 
       if(data.source === SOURCES.URL) {
-        m3uInput.value = database.decodeString(m3uItem.id);
+        m3uUrlInput.value = database.decodeString(m3uItem.id);
       }
       gotoPage(1);
       processM3uData(data.type || TYPES.M3U, data.m3u);
@@ -926,6 +1087,8 @@ function loadLocalCache() {
   else {
     currentPage = 1;
   }
+  storeFrame = window.localStorage.getItem('storeFrame') || 'false';
+  storeFrameCheckbox.checked = storeFrame === 'true';
 }
 
 function initSideMenu() {
@@ -973,13 +1136,14 @@ function playLastVideo(isUserAction = true) {
   }
 }
 
-function stopVideo() {
+function stopVideo(poster = VARS.POSTER) {
   videoPlayer.src = stopURL;
   videoPlayer.pause();
   document.title = SITE_TITLE;
   showPlayButton(false);
   rewindButton.disabled = forwardButton.disabled = true;
   saveVideoTimestamp();
+  videoPlayer.poster = poster;
 }
 
 function showPlayButton(showControls = false) {
@@ -1012,7 +1176,7 @@ function resetVideoTimestamp() {
 
 // 保存数据到缓存
 function saveDataToCache() {
-  window.localStorage.setItem('cachedM3uUrl', m3uInput.value);
+  window.localStorage.setItem('cachedM3uUrl', m3uUrlInput.value);
   window.localStorage.setItem('currentPage', currentPage);
   saveCurrentChannel();
 }
@@ -1022,6 +1186,10 @@ function showPlaylistContent() {
   m3uInputContainer.classList.add('hidden');
   playlistContent.classList.remove('hidden');
   playlistContainer.className = 'play-list';
+}
+
+function getMegaBytes(val) {
+  return (val/1024/1024).toFixed(2);
 }
 
 // 显示 M3U 输入界面
@@ -1040,6 +1208,20 @@ async function showM3uInput() {
     showPlaylistContent();
     listCheckButton.disabled = false;
   }
+  const { totalSize, storeSize } = await database.totalSize();
+  const size = getMegaBytes(totalSize);
+  databaseSize.textContent = `数据使用情况: ${size} MB`;
+  databaseCategories.innerHTML = '';
+  for(const item in storeSize) {
+    const button = document.createElement('button');
+    const labels = { [FAV_STORE]: '收藏', [M3U_STORE]: '频道', [STA_STORE]: '缓存' };
+    button.textContent = `${labels[item]}: ${getMegaBytes(storeSize[item])} MB`;
+    button.ondblclick = async () => {
+      await database.purgeData(item);
+      window.location.reload();
+    };
+    databaseCategories.append(button);
+  }
 }
 
 function processM3uData (type, data, fromCache = false, isBooting = false) {
@@ -1055,11 +1237,12 @@ function processM3uData (type, data, fromCache = false, isBooting = false) {
 
 // 加载 M3U 文件
 async function loadM3uFile(fromCache = false, isBooting = false) {
+
   /** @type {string} **/
-  const m3uUrl = m3uInput.value.trim();
+  const m3uUrl = m3uUrlInput.value.trim();
   const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
 
-  if (type) {
+  if (type && m3uUrlInput.checkValidity()) {
     const id = database.encodeString(m3uUrl);
     const payload = await database.readData(id);
     if(payload && payload.m3u && fromCache) {
@@ -1251,11 +1434,25 @@ function displayPlaylistPage(page) {
     li.dataset['group'] = item.group;
 
     li.title = item.title;
-    li.onclick = () => {
+    const playNow = () => {
       if(li.dataset['proxy']) return;
       resetListStyle();
       li.classList.add('active');
       playVideo(item);
+    };
+
+    li.onclick = () => {
+      if(li.dataset['proxy']) return;
+      const frame = li.dataset['frame'] ? li.dataset['frame'] : VARS.POSTER;
+      if(videoPlayer.poster === frame || frame === VARS.POSTER) {
+        playNow();
+      }
+      else {
+        stopVideo(frame);
+      }
+    };
+    li.ondblclick = () => {
+      playNow();
     };
     li.append(div);
     playlistItems.appendChild(li);
@@ -1275,7 +1472,11 @@ function displayPlaylistPage(page) {
   if(hasCacheUpdates) saveDataToCache();
 }
 
-// 更新列表项样式
+/**
+ * @param {HTMLLIElement} li List item
+ * @param {{ ok: boolean, duration: number, frame: string, timeout: boolean }} checkResult List item
+ * @param {{ url: string, group: string, title: string }} lastPlayedItem Last played data
+ */
 async function updateListItemStyle(li, checkResult, lastPlayedItem) {
   if (checkResult.ok) {
     if(checkResult.duration < 300) {
@@ -1287,12 +1488,17 @@ async function updateListItemStyle(li, checkResult, lastPlayedItem) {
     else {
       li.classList.add('bad');
     }
+    if(checkResult.frame) {
+      li.dataset['frame'] = URL.createObjectURL(checkResult.frame);
+    }
   }
   else {
-    li.classList.add('broken');
+    if(checkResult.timeout === false) {
+      li.classList.add('broken');
+      li.dataset['proxy'] = true;
+      li.classList.add('proxy');
+    }
     li.title = `此视频源可能无法播放`;
-    li.dataset['proxy'] = true;
-    li.classList.add('proxy');
   }
   if(lastPlayedItem?.url === li.dataset['url']) {
     li.classList.add('active');
@@ -1351,7 +1557,9 @@ async function refreshCurrentPage() {
   for (let i = 0; i < items.length; i++) {
     const li = items[i];
     li.title = '';
-    li.classList.remove('broken');
+    for(const className of li.classList) {
+      li.classList.remove(className);
+    }
   }
 
   for (let i = 0; i < items.length; i++) {
@@ -1474,10 +1682,40 @@ function playVideo(source, isUserAction = true) {
   }
 }
 
+/** @param {HTMLVideoElement} video **/
+async function captureFrame(url, hls = false) {
+  if(storeFrame === 'true') {
+    const frame = await new Promise((resolve) => {
+      const offscreenCanvas = new OffscreenCanvas(0, 0);
+      const offscreenCanvasContext = offscreenCanvas.getContext('2d');
+      const video = document.createElement('video');
+      if(hls) {
+        hls.attachMedia(video);
+      }
+      else {
+        video.src = url;
+      }
+      video.addEventListener('loadedmetadata', () => {
+        offscreenCanvas.width = video.videoWidth;
+        offscreenCanvas.height = video.videoHeight;
+      });
+      video.currentTime = 360;
+      video.addEventListener('seeked', () => {
+        offscreenCanvasContext.drawImage(video, 0, 0);
+        offscreenCanvas.convertToBlob().then((blob) => {
+          resolve(blob);
+        });
+      });
+    });
+    return frame;
+  }
+  return null;
+}
+
 /**
  * 检查视频可播放性
  * @param {string} url URL
- * @returns {{ ok: boolean, duration: number }}
+ * @returns {{ ok: boolean, duration: number, frame: string, timeout: boolean }}
  **/
 async function checkVideoPlayability(url) {
   const timestamp = new Date().getTime();
@@ -1486,7 +1724,6 @@ async function checkVideoPlayability(url) {
       try {
         const hls = new Hls();
         let timeoutId;
-
         const cleanup = () => {
           if (timeoutId) {
             clearTimeout(timeoutId);
@@ -1495,20 +1732,22 @@ async function checkVideoPlayability(url) {
         };
 
         hls.loadSource(url);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        hls.on(Hls.Events.MANIFEST_PARSED, async () => {
+          const duration = new Date().getTime() - timestamp;
+          const frame = await captureFrame(url, hls);
           cleanup();
-          resolve({ ok: true, duration: new Date().getTime() - timestamp });
+          resolve({ ok: true, duration, frame, timeout: false });
         });
 
         hls.on(Hls.Events.ERROR, () => {
           cleanup();
-          resolve({ ok: false, duration: new Date().getTime() - timestamp });
+          resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: false });
         });
 
         timeoutId = setTimeout(() => {
           cleanup();
-          resolve({ ok: false, duration: new Date().getTime() - timestamp });
-        }, 5000);
+          resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: true });
+        }, 10000);
       }
       catch(error) {
         console.log('HLS ERROR 2');
@@ -1527,22 +1766,24 @@ async function checkVideoPlayability(url) {
         video.remove();
       };
 
-      video.onloadedmetadata = () => {
+      video.onloadedmetadata = async () => {
+        const duration = new Date().getTime() - timestamp;
+        const frame = await captureFrame(url);
         cleanup();
-        resolve({ ok: true, duration: new Date().getTime() - timestamp });
+        resolve({ ok: true, duration, frame, timeout: false });
       };
 
       video.onerror = () => {
         cleanup();
-        resolve({ ok: false, duration: new Date().getTime() - timestamp });
+        resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: false });
       };
 
       timeoutId = setTimeout(() => {
         cleanup();
-        resolve({ ok: false, duration: new Date().getTime() - timestamp });
-      }, 5000);
+        resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: true });
+      }, 10000);
     } else {
-      resolve({ ok: false, duration: new Date().getTime() - timestamp });
+      resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: false });
     }
   });
 }
@@ -1564,7 +1805,7 @@ async function fetchFavorites() {
 async function startup() {
   const cachedM3uUrl = window.localStorage.getItem('cachedM3uUrl') || '';
   if (cachedM3uUrl) {
-    m3uInput.value = cachedM3uUrl;
+    m3uUrlInput.value = cachedM3uUrl;
     await loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
   }
   else {
@@ -1608,7 +1849,7 @@ categorySelect.addEventListener('change', async (evt) => {
   }
   gotoPage(1);
 });
-loadM3uButton.addEventListener('click', () => loadM3uFile(false));
+loadM3uButton.addEventListener('click', (evt) => loadM3uFile(false));
 // loadContentuButton.addEventListener('click', () => loadM3uContent());
 closeM3uButton.addEventListener('click', (evt) => {
   showM3uInput();
@@ -1663,7 +1904,8 @@ pageControl.addEventListener('input', (evt) => {
 searchContainer.addEventListener('submit', (evt) => {
   evt.preventDefault();
   evt.stopImmediatePropagation();
-  performSearch();
+  if(searchContainer.checkValidity())
+    performSearch();
 });
 
 searchInput.addEventListener('keyup', (evt) => {
@@ -1788,11 +2030,16 @@ playListButton.addEventListener('click', (evt) => {
   // Show playlist
   else {
     showPlaylistContent();
-    listCheckButton.disabled = true;
+    listCheckButton.disabled = false;
     playListVisible = 'true';
     errorControl.classList.remove('hidden');
   }
   window.localStorage.setItem('playListVisible', playListVisible);
+});
+
+storeFrameCheckbox.addEventListener('change', (evt) => {
+  storeFrame = evt.target.checked.toString();
+  window.localStorage.setItem('storeFrame', storeFrame);
 });
 
 let muted = true, isHidden = false;
