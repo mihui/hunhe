@@ -1087,7 +1087,7 @@ function loadLocalCache() {
   else {
     currentPage = 1;
   }
-  storeFrame = window.localStorage.getItem('storeFrame') || 'false';
+  storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
   storeFrameCheckbox.checked = storeFrame === 'true';
 }
 
@@ -2038,7 +2038,7 @@ playListButton.addEventListener('click', (evt) => {
 });
 
 storeFrameCheckbox.addEventListener('change', (evt) => {
-  storeFrame = evt.target.checked.toString();
+  storeFrame = evt.target.checked ? 'true' : 'false';
   window.localStorage.setItem('storeFrame', storeFrame);
 });
 
