@@ -1773,6 +1773,7 @@ async function captureFrame(url, hls = false) {
         canvasContext.drawImage(frameVideo, 0, 0);
         canvas.toBlob((blob) => {
           clearTimeout(timer);
+          printLog('onSeeked()');
           resolve(blob);
         });
       };
