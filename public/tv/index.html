@@ -1060,8 +1060,17 @@ let filteredPlaylistData = [];
 /** @type {Object.<string, number>} **/
 let videoTimestamp = {};
 let storeFrame = 'false';
+let stopURL = null;
 
-const stopURL = URL.createObjectURL(new Blob());
+function generateBlankFrame() {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'darkblue';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  canvas.toBlob(blob => {
+    stopURL = URL.createObjectURL(blob);
+  }, 'video/mp4');
+}
 
 const uniqueUrls = new Set();
 
@@ -1121,7 +1130,6 @@ async function listStore(source) {
       }
       gotoPage(1);
       processM3uData(data.type || TYPES.M3U, data.m3u);
-      listCheckButton.disabled = false;
     };
     divItem.append(aItem);
     if(isCurrent) {
@@ -1151,7 +1159,7 @@ function saveCurrentChannel() {
 
 function loadLocalCache() {
   loadVideoTimestamp();
-  currentPage = parseInt(localStorage.getItem('currentPage')) || 1;
+  currentPage = parseInt(window.localStorage.getItem('currentPage')) || 1;
   storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
   storeFrameCheckbox.checked = storeFrame === 'true';
 
@@ -1165,12 +1173,10 @@ function initSideMenu() {
   if(playListVisible === 'false') {
     playlistContainer.className = 'hidden';
     errorControl.classList.add('hidden');
-    listCheckButton.disabled = true;
   }
   else {
     playlistContainer.className = 'play-list';
     errorControl.classList.remove('hidden');
-    listCheckButton.disabled = false;
   }
 }
 
@@ -1183,7 +1189,7 @@ function getLastVideoItem() {
   if(data) {
     return JSON.parse(data);
   }
-  return  null;
+  return null;
 }
 
 function saveVideoTimestamp() {
@@ -1212,7 +1218,6 @@ function stopVideo(poster = VARS.POSTER) {
   showPlayButton(false);
   rewindButton.disabled = forwardButton.disabled = true;
   saveVideoTimestamp();
-
   videoPlayer.poster = poster;
   pageBody.style.background = `transparent url("${poster}") center center / cover no-repeat`;
 }
@@ -1271,13 +1276,11 @@ async function showM3uInput() {
   if(m3uInputContainer.classList.contains('hidden')) {
     m3uInputContainer.classList.remove('hidden');
     playlistContent.classList.add('hidden');
-    listCheckButton.disabled = true;
     await listStore('showM3uInput');
     playlistContainer.className = 'settings';
   }
   else {
     showPlaylistContent();
-    listCheckButton.disabled = false;
   }
   const { totalSize, storeSize } = await database.totalSize();
   const size = getMegaBytes(totalSize);
@@ -1515,20 +1518,22 @@ async function displayPlaylistPage(page) {
 
     li.dataset['url'] = item.url;
     li.dataset['group'] = item.group;
-
     li.title = item.title;
 
-    li.onclick = () => {
-      if(li.dataset['proxy']) return;
-      const frame = li.dataset['frame'] ? li.dataset['frame'] : VARS.POSTER;
+    li.onclick = (evt) => {
+      evt.preventDefault();
+      const { currentTarget } = evt;
+      if(currentTarget.dataset['proxy']) return;
+      const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : VARS.POSTER;
       if(videoPlayer.poster === frame || frame === VARS.POSTER) {
-        // playNow(li, item);
-        videoPlayer.poster = VARS.POSTER;
+        // playNow(currentTarget, item);
+        stopVideo(VARS.POSTER);
       }
       else {
         stopVideo(frame);
       }
     };
+
     li.ondblclick = () => {
       playNow(li, item);
     };
@@ -1661,15 +1666,35 @@ async function refreshCurrentPage() {
   saveDataToCache();
 }
 
+function playVideSource(source) {
+  videoPlayer.play().catch(error => {
+    errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
+  }).then(() => {
+    onPlay(source);
+  });
+}
+
+function hlsPlay(source) {
+  try {
+    const hls = new Hls();
+    hls.loadSource(source.url);
+    hls.attachMedia(videoPlayer);
+    hls.on(Hls.Events.MANIFEST_PARSED, (evt) => {
+      playVideSource(source);
+    });
+    hls.on(Hls.Events.ERROR, (error) => {
+      hls.destroy();
+    });
+  }
+  catch(error) {
+    console.log('HLS ERROR 1');
+  }
+  saveLastPlayedVideo(source);
+}
+
 function nativePlay(source) {
   videoPlayer.src = source.url;
-  videoPlayer.addEventListener('loadedmetadata', function () {
-    videoPlayer.play().catch(error => {
-      errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
-    }).then(() => {
-      onPlay(source);
-    });
-  });
+  saveLastPlayedVideo(source);
 }
 
 function refreshFavoriteButton(hasFavorite) {
@@ -1683,6 +1708,10 @@ function refreshFavoriteButton(hasFavorite) {
     favoriteButton.dataset['action'] = 'add';
     favoriteButton.classList.remove('remove');
   }
+}
+
+function saveLastPlayedVideo(playingItem) {
+  window.localStorage.setItem('lastPlayedItem', JSON.stringify(playingItem));
 }
 
 /**
@@ -1706,7 +1735,6 @@ async function onPlay(playingItem) {
   if (!isNaN(lastPlayedTime)) {
     videoPlayer.currentTime = lastPlayedTime;
   }
-  window.localStorage.setItem('lastPlayedItem', JSON.stringify(playingItem));
 }
 
 function onPlaying() {
@@ -1730,34 +1758,16 @@ function playVideo(source, isUserAction = true) {
   } else {
     document.title = SITE_TITLE;
   }
-
-  if(isUserAction === false) {
-    return;
-  }
-
+  if(isUserAction === false) { return; }
   window.localStorage.removeItem('lastPlayedItem');
-
   videoPlayer.muted = true;
   if (Hls.isSupported() && source.url.startsWith(UNSAFE_HTTP) === false) {
-    try {
-      const hls = new Hls();
-      hls.loadSource(source.url);
-      hls.attachMedia(videoPlayer);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        videoPlayer.play().catch(error => {
-          errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
-        }).then(() => {
-          onPlay(source);
-        });
-      });
-      hls.on(Hls.Events.ERROR, function (error) {});
-    }
-    catch(error) {
-      console.log('HLS ERROR 1');
-    }
-  } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+    hlsPlay(source);
+  }
+  else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
     nativePlay(source);
-  } else {
+  }
+  else {
     errorMessage.textContent = '您的浏览器不支持 HLS 视频流。';
   }
 }
@@ -1926,6 +1936,7 @@ async function startup() {
   playLastVideo(false);
   listStore('startup');
   initSideMenu();
+  generateBlankFrame();
 }
 
 // 事件监听器
@@ -2097,6 +2108,13 @@ videoPlayer.addEventListener('error', (evt) => {
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
 });
 
+videoPlayer.addEventListener('loadedmetadata', (evt) => {
+  const lastPlayedItem = getLastVideoItem();
+  if(lastPlayedItem) {
+    playVideSource(lastPlayedItem);
+  }
+});
+
 playVideoButton.addEventListener('click', (evt) => {
   if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
     stopVideo();
@@ -2135,12 +2153,10 @@ playListButton.addEventListener('click', (evt) => {
     playlistContainer.className = 'hidden';
     errorControl.classList.add('hidden');
     playListVisible = 'false';
-    listCheckButton.disabled = true;
   }
   // Show playlist
   else {
     showPlaylistContent();
-    listCheckButton.disabled = false;
     playListVisible = 'true';
     errorControl.classList.remove('hidden');
   }
