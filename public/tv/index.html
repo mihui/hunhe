@@ -71,7 +71,6 @@ body {
         height: auto;
         position: absolute;
         z-index: -1;
-        visibility: hidden;
       }
     .container .video-container .video-control {
       flex: 1;
@@ -1782,8 +1781,7 @@ async function captureFrame(url, hls = false) {
         canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
         canvas.toBlob((blob) => {
           clearTimeout(timer);
-          printLog('onSeeked()');
-          printLog(blob);
+          printLog('onSeeked().toBlob');
           resolve(blob);
         });
       };
