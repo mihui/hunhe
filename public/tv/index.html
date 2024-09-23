@@ -9,8 +9,7 @@
   <title>Hunhe TV</title>
 <style>
 html {
-  background: url(background.jpeg) no-repeat center center;
-  background-size: cover;
+  
 }
 html, body {
   width: 100%;
@@ -22,12 +21,12 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 0;
-  background: transparent;
   color: #333;
   margin: 0;
   position: relative;
   overflow: hidden;
   align-items: center;
+  background: url(background.jpeg) center center / cover no-repeat;
 }
   .container {
     width: 100%;
@@ -118,7 +117,7 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
   box-sizing: border-box;
 }
 
-#searchContainer, #categorySelect, #m3uUrlInput, .m3u-controls {
+#searchContainer, #m3uUrlInput, .m3u-controls, #playlistContent .category {
   margin-bottom: 10px;
 }
 
@@ -150,7 +149,7 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
     background-color: white;
   }
 
-#searchInput {
+#searchInput, #categorySelect {
   flex-grow: 1;
   border-right: none;
   border-top-right-radius: 0;
@@ -181,7 +180,7 @@ select:focus-visible {
   background-color: #39db34;
 }
 
-#closeButton {
+#closeButton, #playlistContent .category #listCheckButton {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   background-color: #db6634;
@@ -207,7 +206,6 @@ select:focus-visible {
   padding: 0.5rem 0.9rem;
   height: 100%;
   min-height: 1rem;
-  transition: background-color 0.2s;
   white-space: nowrap;
   overflow: auto;
   overflow-y: hidden;
@@ -217,8 +215,9 @@ select:focus-visible {
   scrollbar-width: none;
   border-left: 3px solid gray;
   user-select: none;
-  transition: 1s all;
+  transition: 0.5s all;
   column-gap: 0.5rem;
+  border-bottom: 1px solid #eee;
 }
   #playlistItems li:nth-of-type(even) {
     background-color: transparent;
@@ -331,9 +330,7 @@ button {
 #fullscreenButton {
   background-color: darkslateblue;
 }
-#listCheckButton {
-  background-color: orange;
-}
+
 #playVideoButton {
   background-color: blueviolet;
 }
@@ -394,6 +391,13 @@ button {
   display: flex;
   flex-flow: column;
   height: 100%;
+}
+#playlistContent .category {
+  display: flex;
+}
+
+#playlistContent .category #listCheckButton {
+  background-color: #3471db;
 }
 
 .hidden {
@@ -609,7 +613,7 @@ input:checked + .slider:before {
 </style>
 </head>
 
-<body>
+<body id="pageBody">
   <svg xmlns="http://www.w3.org/2000/svg" class="hidden">
     <!-- PLAY -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="play" viewBox="0 0 16 16">
@@ -644,7 +648,8 @@ input:checked + .slider:before {
     </symbol>
     <!-- LIST CHECK -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="list-check" viewBox="0 0 16 16">
-      <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/>
+      <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+      <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
     </symbol>
     <!-- FAVORITE -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="favorite" viewBox="0 0 16 16">
@@ -727,7 +732,10 @@ input:checked + .slider:before {
             <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
             <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
           </form>
-          <select id="categorySelect"></select>
+          <div class="category">
+            <select id="categorySelect"></select>
+            <button id="listCheckButton"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
+          </div>
           <ul id="playlistItems"></ul>
           <div class="controls">
             <div id="pagination">
@@ -753,7 +761,6 @@ input:checked + .slider:before {
           </div>
 
           <div class="controls">
-            <button id="listCheckButton"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
             <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
             <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
@@ -993,6 +1000,7 @@ function getElementById(idList = []) {
 }
 
 /** @type {[
+ * HTMLBodyElement,
  * HTMLVideoElement, HTMLDivElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLFormElement,
@@ -1004,6 +1012,7 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement, HTMLVideoElement
  * ]} **/
 const [
+  pageBody,
   videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
   loadM3uButton, settingsButton, m3uInputContainer, playlistContent,
   playlistContainer, playVideoButton, m3uList, searchContainer,
@@ -1014,6 +1023,7 @@ const [
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo
  ] = getElementById([
+  'pageBody',
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent',
   'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer',
@@ -1189,7 +1199,9 @@ function stopVideo(poster = VARS.POSTER) {
   showPlayButton(false);
   rewindButton.disabled = forwardButton.disabled = true;
   saveVideoTimestamp();
+
   videoPlayer.poster = poster;
+  pageBody.style.background = `transparent url("${poster}") center center / cover no-repeat`;
 }
 
 function showPlayButton(showControls = false) {
@@ -1781,7 +1793,7 @@ async function captureFrame(url, hls = false) {
         }, VARS.PING_TIMEOUT - 1000);
       }).catch(error => {
         clearTimeout(timer);
-        printLog('frameVideo.catch().error');
+        printLog('frameVideo.catch().error', error.message);
         resolve(null);
       });
 
