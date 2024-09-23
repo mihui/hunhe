@@ -1770,7 +1770,10 @@ async function captureFrame(url, hls = false) {
       }
 
       const onSeeked = (evt) => {
-        canvasContext.drawImage(frameVideo, 0, 0);
+        canvas.width = frameVideo.videoWidth;
+        canvas.height = frameVideo.videoHeight;
+
+        canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
         canvas.toBlob((blob) => {
           clearTimeout(timer);
           printLog('onSeeked()');
@@ -1786,7 +1789,6 @@ async function captureFrame(url, hls = false) {
           printLog('frameVideo.play().then()');
           frameVideo.addEventListener('seeked', onSeeked);
           frameVideo.currentTime = 360;
-
         }).catch(error => {
           clearTimeout(timer);
           printLog('frameVideo.catch().error', error.message);
