@@ -1786,11 +1786,7 @@ async function captureFrame(url, hls = false) {
           printLog('frameVideo.play().then()');
           frameVideo.addEventListener('seeked', onSeeked);
           frameVideo.currentTime = 360;
-          timer = setTimeout(() => {
-            frameVideo.removeEventListener('seeked', onSeeked);
-            resolve(null);
-            printLog('frameVideo.play().timeout');
-          }, VARS.PING_TIMEOUT - 1000);
+
         }).catch(error => {
           clearTimeout(timer);
           printLog('frameVideo.catch().error', error.message);
@@ -1798,10 +1794,11 @@ async function captureFrame(url, hls = false) {
         });
       });
 
-      frameVideo.addEventListener('error', (evt) => {
-        clearTimeout(timer);
+      timer = setTimeout(() => {
+        frameVideo.removeEventListener('seeked', onSeeked);
         resolve(null);
-      });
+        printLog('frameVideo.play().timeout');
+      }, VARS.PING_TIMEOUT - 1000);
     });
     return frame;
   }
