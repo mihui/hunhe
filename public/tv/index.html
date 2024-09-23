@@ -8,9 +8,6 @@
   <script src="hls.js"></script>
   <title>Hunhe TV</title>
 <style>
-html {
-  
-}
 html, body {
   width: 100%;
   height: 100%;
@@ -108,7 +105,6 @@ body {
       flex: 1;
       height: 100%;
       display: flex;
-      /* position: absolute; */
       z-index: 10;
     }
     .container #playlistContainer.settings {
@@ -249,9 +245,6 @@ select:focus-visible {
   }
   #playlistItems li.bad:hover {
     border-bottom: 1px solid red;
-  }
-  #playlistItems li.proxy {
-    /* border-left: 3px solid rgb(166, 0, 255); */
   }
   #playlistItems li.active {
     font-weight: bold;
@@ -795,6 +788,7 @@ input:checked + .slider:before {
       </div>
     </div>
   </div>
+
 <script>
 const DB_VERSION = 4;
 const SITE_TITLE = 'Hunhe IPTV';
@@ -1528,7 +1522,8 @@ async function displayPlaylistPage(page) {
       if(li.dataset['proxy']) return;
       const frame = li.dataset['frame'] ? li.dataset['frame'] : VARS.POSTER;
       if(videoPlayer.poster === frame || frame === VARS.POSTER) {
-        playNow(li, item);
+        // playNow(li, item);
+        videoPlayer.poster = VARS.POSTER;
       }
       else {
         stopVideo(frame);
@@ -1789,36 +1784,37 @@ async function captureFrame(url, hls = false) {
         frameVideo.src = url;
       }
 
-      const onSeeked = (evt) => {
-        canvas.width = frameVideo.videoWidth;
-        canvas.height = frameVideo.videoHeight;
-
-        canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-          clearTimeout(timer);
-          printLog('onSeeked().toBlob');
-          resolve(blob);
-        });
-      };
-
-      frameVideo.addEventListener('loadedmetadata', () => {
+      const onLoadedMetaData = (evt) => {
         canvas.width = frameVideo.videoWidth;
         canvas.height = frameVideo.videoHeight;
         frameVideo.play().then(() => {
-          printLog('frameVideo.play().then()');
-          frameVideo.addEventListener('seeked', onSeeked);
           frameVideo.currentTime = 360;
         }).catch(error => {
           clearTimeout(timer);
-          printLog('frameVideo.catch().error', error.message);
-          resolve(null);
+          cleanupEvents(null);
         });
-      });
+      },
+      onSeeked = (evt) => {
+        canvas.width = frameVideo.videoWidth;
+        canvas.height = frameVideo.videoHeight;
+        canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          clearTimeout(timer);
+          cleanupEvents(blob);
+        });
+      };
+
+      const cleanupEvents = (data) => {
+        frameVideo.removeEventListener('seeked', onSeeked);
+        frameVideo.removeEventListener('loadedmetadata', onLoadedMetaData);
+        resolve(data);
+      };
+
+      frameVideo.addEventListener('seeked', onSeeked);
+      frameVideo.addEventListener('loadedmetadata', onLoadedMetaData);
 
       timer = setTimeout(() => {
-        frameVideo.removeEventListener('seeked', onSeeked);
-        resolve(null);
-        printLog('frameVideo.play().timeout');
+        cleanupEvents(null);
       }, VARS.PING_TIMEOUT - 1000);
     });
     return frame;
