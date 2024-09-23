@@ -1774,6 +1774,7 @@ async function captureFrame(url, hls = false) {
         canvas.toBlob((blob) => {
           clearTimeout(timer);
           printLog('onSeeked()');
+          printLog(blob);
           resolve(blob);
         });
       };
