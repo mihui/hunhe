@@ -586,10 +586,16 @@ input:checked + .slider:before {
 .debug {
   height: 100%;
 }
-#debugLogs {
-  resize: vertical;
-  flex: 1;
-}
+  .debug #debugLogs {
+    resize: vertical;
+    flex: 1;
+  }
+  .debug #frameVideo {
+    width: 100%;
+    margin: 0.5rem 0px;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+  }
 /* iPhone Portrait */
 @media only screen and (max-device-width: 812px) and (orientation: portrait)
 {
@@ -707,6 +713,7 @@ input:checked + .slider:before {
 
           <div class="tools debug">
             <textarea id="debugLogs"></textarea>
+            <video id="frameVideo" playsinline disablepictureinpicture muted></video>
           </div>
 
         </div>
@@ -994,7 +1001,7 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLTextAreaElement, HTMLInputElement,
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
- * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement
+ * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement, HTMLVideoElement
  * ]} **/
 const [
   videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
@@ -1005,7 +1012,7 @@ const [
   pageControl, clearButton, closeButton, m3uContent, m3uContentKey,
   loadContentuButton, categorySelect, playlistItems, paginationGroup,
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox,
-  checkTimeout, checkTimeoutDisplay, debugLogs
+  checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo
  ] = getElementById([
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent',
@@ -1015,7 +1022,7 @@ const [
   'pageControl', 'clearButton', 'closeButton', 'm3uContent', 'm3uContentKey',
   'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination',
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox',
-  'checkTimeout', 'checkTimeoutDisplay', 'debugLogs'
+  'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo'
 ]);
 
 let itemsPerPage = 15;
@@ -1737,51 +1744,47 @@ function printLog(...args) {
 
 /** @param {HTMLVideoElement} video **/
 async function captureFrame(url, hls = false) {
-  printLog('url->', url, 'hls->', hls, 'storeFrame->', storeFrame);
   if(storeFrame === 'true') {
     let timer = 0;
     const frame = await new Promise((resolve) => {
       const canvas = document.createElement('canvas');
       const canvasContext = canvas.getContext('2d');
-      const video = document.createElement('video');
-      video.playsInline = true;
 
       if(hls) {
-        hls.attachMedia(video);
+        hls.attachMedia(frameVideo);
       }
       else {
-        video.src = url;
+        frameVideo.src = url;
       }
 
-      video.addEventListener('loadedmetadata', () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-      });
-
-      video.play().then(() => {
-        video.currentTime = 360;
-        printLog('video.play().then');
-      }).catch(error => {
-        printLog('video.play().catch');
-        printLog(error);
-        resolve(null);
-      });
-
       const onSeeked = (evt) => {
-        canvasContext.drawImage(video, 0, 0);
+        canvasContext.drawImage(frameVideo, 0, 0);
         canvas.toBlob((blob) => {
           clearTimeout(timer);
-          printLog('blob');
           resolve(blob);
         });
       };
 
-      video.addEventListener('seeked', onSeeked);
-      timer = setTimeout(() => {
-        video.removeEventListener('seeked', onSeeked);
+      frameVideo.addEventListener('loadedmetadata', () => {
+        canvas.width = frameVideo.videoWidth;
+        canvas.height = frameVideo.videoHeight;
+      });
+
+      frameVideo.play().then(() => {
+        printLog('frameVideo.play().then()');
+        frameVideo.addEventListener('seeked', onSeeked);
+        frameVideo.currentTime = 360;
+        timer = setTimeout(() => {
+          frameVideo.removeEventListener('seeked', onSeeked);
+          resolve(null);
+          printLog('frameVideo.play().timeout');
+        }, VARS.PING_TIMEOUT - 1000);
+      }).catch(error => {
+        clearTimeout(timer);
+        printLog('frameVideo.catch().error');
         resolve(null);
-        printLog('timeout');
-      }, VARS.PING_TIMEOUT - 1000);
+      });
+
     });
     return frame;
   }
