@@ -57,12 +57,22 @@ body {
       min-width: 300px;
       height: auto;
       background-color: #333;
+      position: relative;
     }
-    .container .video-container #videoPlayer {
-      width: 100%;
-      max-height: 100%;
-      height: auto;
-    }
+      .container .video-container .video-wrapper #videoPlayer {
+        width: 100%;
+        max-height: 100%;
+        height: auto;
+        z-index: 10;
+      }
+      .container .video-container .video-wrapper #frameVideo {
+        width: 100%;
+        max-height: 100%;
+        height: auto;
+        position: absolute;
+        z-index: -1;
+        visibility: hidden;
+      }
     .container .video-container .video-control {
       flex: 1;
       align-items: flex-start;
@@ -594,12 +604,6 @@ input:checked + .slider:before {
     resize: vertical;
     flex: 1;
   }
-  .debug #frameVideo {
-    width: 100%;
-    margin: 0.5rem 0px;
-    border: 1px solid #aaa;
-    border-radius: 6px;
-  }
 /* iPhone Portrait */
 @media only screen and (max-device-width: 812px) and (orientation: portrait)
 {
@@ -718,7 +722,6 @@ input:checked + .slider:before {
 
           <div class="tools debug">
             <textarea id="debugLogs"></textarea>
-            <video id="frameVideo" playsinline disablepictureinpicture muted></video>
           </div>
 
         </div>
@@ -753,7 +756,10 @@ input:checked + .slider:before {
 
     <div class="video-container">
       <div class="box">
-        <div class="video-wrapper"><video id="videoPlayer" playsinline poster="background.jpeg"></video></div>
+        <div class="video-wrapper">
+          <video id="videoPlayer" playsinline poster="background.jpeg"></video>
+          <video id="frameVideo" playsinline disablepictureinpicture muted></video>
+        </div>
         <div class="video-control">
 
           <div class="controls" id="errorControl">
