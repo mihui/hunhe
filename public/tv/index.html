@@ -1594,9 +1594,7 @@ async function refreshCurrentPage() {
   for (let i = 0; i < items.length; i++) {
     const li = items[i];
     li.title = '';
-    for(const className of li.classList) {
-      li.classList.remove(className);
-    }
+    li.className = '';
   }
 
   for (let i = 0; i < items.length; i++) {
@@ -1724,9 +1722,11 @@ async function captureFrame(url, hls = false) {
   if(storeFrame === 'true') {
     let timer = 0;
     const frame = await new Promise((resolve) => {
-      const offscreenCanvas = new OffscreenCanvas(0, 0);
-      const offscreenCanvasContext = offscreenCanvas.getContext('2d');
+      const canvas = document.createElement('canvas');
+      const canvasContext = canvas.getContext('2d');
       const video = document.createElement('video');
+      video.playsInline = true;
+
       if(hls) {
         hls.attachMedia(video);
       }
@@ -1734,17 +1734,24 @@ async function captureFrame(url, hls = false) {
         video.src = url;
       }
       video.addEventListener('loadedmetadata', () => {
-        offscreenCanvas.width = video.videoWidth;
-        offscreenCanvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
       });
-      video.currentTime = 360;
-      const onSeeked =  (evt) => {
-        offscreenCanvasContext.drawImage(video, 0, 0);
-        offscreenCanvas.convertToBlob().then((blob) => {
+
+      video.play().then(() => {
+        video.currentTime = 360;
+      }).catch(error => {
+        resolve(null);
+      });
+
+      const onSeeked = (evt) => {
+        canvasContext.drawImage(video, 0, 0);
+        canvas.toBlob((blob) => {
           clearTimeout(timer);
           resolve(blob);
         });
       };
+
       video.addEventListener('seeked', onSeeked);
       timer = setTimeout(() => {
         video.removeEventListener('seeked', onSeeked);
