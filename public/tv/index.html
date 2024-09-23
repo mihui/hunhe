@@ -583,7 +583,13 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
-
+.debug {
+  height: 100%;
+}
+#debugLogs {
+  resize: vertical;
+  flex: 1;
+}
 /* iPhone Portrait */
 @media only screen and (max-device-width: 812px) and (orientation: portrait)
 {
@@ -676,6 +682,7 @@ input:checked + .slider:before {
           <!-- <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
           <textarea id="m3uContent"></textarea>
           <button id="loadContentuButton">读取内容</button> -->
+
           <div class="tools">
             <div class="settings-row">
               <label class="label">检查缩略图</label>
@@ -696,6 +703,10 @@ input:checked + .slider:before {
 
           <div class="tools usage">
             <div id="databaseCategories"></div>
+          </div>
+
+          <div class="tools debug">
+            <textarea id="debugLogs"></textarea>
           </div>
 
         </div>
@@ -983,7 +994,7 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLTextAreaElement, HTMLInputElement,
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
- * HTMLInputElement, HTMLSpanElement
+ * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement
  * ]} **/
 const [
   videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
@@ -994,7 +1005,7 @@ const [
   pageControl, clearButton, closeButton, m3uContent, m3uContentKey,
   loadContentuButton, categorySelect, playlistItems, paginationGroup,
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox,
-  checkTimeout, checkTimeoutDisplay
+  checkTimeout, checkTimeoutDisplay, debugLogs
  ] = getElementById([
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent',
@@ -1004,7 +1015,7 @@ const [
   'pageControl', 'clearButton', 'closeButton', 'm3uContent', 'm3uContentKey',
   'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination',
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox',
-  'checkTimeout', 'checkTimeoutDisplay'
+  'checkTimeout', 'checkTimeoutDisplay', 'debugLogs'
 ]);
 
 let itemsPerPage = 15;
@@ -1717,8 +1728,16 @@ function playVideo(source, isUserAction = true) {
   }
 }
 
+/**
+ * @param {Array<any>} args
+ */
+function printLog(...args) {
+  debugLogs.innerHTML += args.join('\n');
+}
+
 /** @param {HTMLVideoElement} video **/
 async function captureFrame(url, hls = false) {
+  printLog('url->', url, 'hls->', hls, 'storeFrame->', storeFrame);
   if(storeFrame === 'true') {
     let timer = 0;
     const frame = await new Promise((resolve) => {
@@ -1733,6 +1752,7 @@ async function captureFrame(url, hls = false) {
       else {
         video.src = url;
       }
+
       video.addEventListener('loadedmetadata', () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -1740,7 +1760,9 @@ async function captureFrame(url, hls = false) {
 
       video.play().then(() => {
         video.currentTime = 360;
+        printLog('video.play().then');
       }).catch(error => {
+        printLog('video.play().catch');
         resolve(null);
       });
 
@@ -1748,6 +1770,7 @@ async function captureFrame(url, hls = false) {
         canvasContext.drawImage(video, 0, 0);
         canvas.toBlob((blob) => {
           clearTimeout(timer);
+          printLog('blob');
           resolve(blob);
         });
       };
@@ -1756,6 +1779,7 @@ async function captureFrame(url, hls = false) {
       timer = setTimeout(() => {
         video.removeEventListener('seeked', onSeeked);
         resolve(null);
+        printLog('timeout');
       }, VARS.PING_TIMEOUT - 1000);
     });
     return frame;
