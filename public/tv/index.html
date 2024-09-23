@@ -1732,7 +1732,7 @@ function playVideo(source, isUserAction = true) {
  * @param {Array<any>} args
  */
 function printLog(...args) {
-  debugLogs.innerHTML += args.join('\n');
+  debugLogs.innerHTML += `$ ${args.join(' ')}\n`;
 }
 
 /** @param {HTMLVideoElement} video **/
