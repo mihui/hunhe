@@ -1798,8 +1798,10 @@ async function captureFrame(url, hls = false) {
         });
       });
 
-
-
+      frameVideo.addEventListener('error', (evt) => {
+        clearTimeout(timer);
+        resolve(null);
+      });
     });
     return frame;
   }
