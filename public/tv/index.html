@@ -343,6 +343,7 @@ button {
   font-size: 0.8rem;
   color: gray;
   font-style: italic;
+  user-select: none;
 }
 
 @media (min-width: 768px) {
@@ -546,6 +547,20 @@ button {
     background-color: darkred;
     font-size: 0.9rem;
   }
+  .tools .debug {
+    border: 1px solid #ccc;
+    flex: 1;
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.5rem;
+  }
+  .tools .debug #debugLogs {
+    width: 100%;
+    resize: vertical;
+    flex: 1;
+    white-space: pre-wrap;
+  }
 .usage {
   row-gap: 0.5rem;
 }
@@ -635,13 +650,7 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
-.debug #debugLogs {
-  border: 1px solid #ccc;
-  width: 100%;
-  resize: vertical;
-  flex: 1;
-  white-space: pre-wrap;
-}
+
 /* iPhone Portrait */
 @media only screen and (max-device-width: 812px) and (orientation: portrait)
 {
@@ -758,8 +767,10 @@ input:checked + .slider:before {
             <div id="databaseCategories"></div>
           </div>
 
-          <div class="tools debug">
-            <div id="debugLogs"></div>
+          <div class="tools">
+            <div class="debug">
+              <div id="debugLogs"></div>
+            </div>
           </div>
 
         </div>
@@ -1147,7 +1158,8 @@ const VARS = {
 };
 
 async function listStore(source) {
-
+  printLog('listStore', source);
+  settingsButton.disabled = true;
   const cachedM3uSource = localStorage.getItem('cachedM3uSource') || SOURCES.URL;
   const cachedM3uUrl = localStorage.getItem('cachedM3uUrl') || '';
 
@@ -1201,6 +1213,8 @@ async function listStore(source) {
     }
     m3uList.append(divItem);
   }
+  settingsButton.disabled = false;
+  //
 }
 
 function loadCurrentChannel(isBooting = false, source = '') {
@@ -1335,12 +1349,11 @@ function getMegaBytes(val) {
 // 显示 M3U 输入界面
 async function showM3uInput() {
   window.localStorage.setItem('playListVisible', 'true');
-
   if(m3uInputContainer.classList.contains('hidden')) {
-    m3uInputContainer.classList.remove('hidden');
-    playlistContent.classList.add('hidden');
     await listStore('showM3uInput');
     playlistContainer.className = 'settings';
+    m3uInputContainer.classList.remove('hidden');
+    playlistContent.classList.add('hidden');
   }
   else {
     showPlaylistContent();
@@ -1872,7 +1885,9 @@ function playVideo(source, isUserAction = true) {
 function printLog(...args) {
   debugLogs.innerHTML = `$ ${args.join(' ')}\n`.concat(debugLogs.innerHTML);
 }
-
+debugLogs.addEventListener('dblclick', (evt) => {
+  debugLogs.innerHTML = '';
+});
 /** @param {HTMLVideoElement} video **/
 async function captureFrame(url, hls = false) {
   if(storeFrame === 'true') {
