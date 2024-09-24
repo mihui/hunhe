@@ -2040,6 +2040,13 @@ function gotoNextPage(evt) {
   }
 }
 
+function resetPoster(evt) {
+  evt.preventDefault();
+  if(evt.target.poster !== VARS.POSTER) {
+    changePoster(VARS.POSTER);
+  }
+}
+
 nextButton.addEventListener('click', gotoNextPage);
 nextButton.addEventListener('dblclick', gotoNextPage);
 
@@ -2150,18 +2157,8 @@ videoPlayer.addEventListener('error', (evt) => {
   }
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
 });
-videoPlayer.addEventListener('click', (evt) => {
-  evt.preventDefault();
-  if(evt.target.poster !== VARS.POSTER) {
-    changePoster(VARS.POSTER);
-  }
-});
-errorControl.addEventListener('click', (evt) => {
-  evt.preventDefault();
-  if(evt.target.poster !== VARS.POSTER) {
-    changePoster(VARS.POSTER);
-  }
-});
+videoPlayer.addEventListener('click', resetPoster);
+errorControl.addEventListener('click', resetPoster);
 playVideoButton.addEventListener('click', (evt) => {
   if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
     stopVideo();
