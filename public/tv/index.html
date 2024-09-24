@@ -603,13 +603,13 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
-.debug {
-  height: 100%;
+.debug #debugLogs {
+  border: 1px solid #ccc;
+  width: 100%;
+  resize: vertical;
+  flex: 1;
+  white-space: pre-wrap;
 }
-  .debug #debugLogs {
-    resize: vertical;
-    flex: 1;
-  }
 /* iPhone Portrait */
 @media only screen and (max-device-width: 812px) and (orientation: portrait)
 {
@@ -727,7 +727,7 @@ input:checked + .slider:before {
           </div>
 
           <div class="tools debug">
-            <textarea id="debugLogs"></textarea>
+            <div id="debugLogs"></div>
           </div>
 
         </div>
@@ -1160,6 +1160,7 @@ function saveCurrentChannel() {
 function loadLocalCache() {
   loadVideoTimestamp();
   currentPage = parseInt(window.localStorage.getItem('currentPage')) || 1;
+
   storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
   storeFrameCheckbox.checked = storeFrame === 'true';
 
@@ -1298,7 +1299,7 @@ async function showM3uInput() {
   }
 }
 
-function processM3uData (type, data, fromCache = false, isBooting = false) {
+function processM3uData(type, data, fromCache = false, isBooting = false) {
   initPlayData(type, data);
   initializeCategories(isBooting);
   initializePlaylist();
@@ -1607,6 +1608,7 @@ function updatePaginationControls() {
     pageInfo.textContent = '';
     pageControl.min = 0;
   }
+  pageControl.value = currentPage;
   prevButton.disabled = (currentPage === 1 || hasData === false);
   nextButton.disabled = (currentPage === totalPages || hasData === false);
 }
@@ -1689,18 +1691,18 @@ function hlsPlay(source) {
   catch(error) {
     console.log('HLS ERROR 1');
   }
-  
 }
 
 function nativePlay(source) {
   videoPlayer.src = source.url;
-  const handleLoadedMetadata = (evt) => {
+  const onLoadedMetadata = (evt) => {
+    printLog('videoPlayer.loadedmetadata');
     if (source) {
       playVideSource(source);
     }
   }
-  videoPlayer.removeEventListener('loadedmetadata', handleLoadedMetadata);
-  videoPlayer.addEventListener('loadedmetadata', handleLoadedMetadata);
+  videoPlayer.removeEventListener('loadedmetadata', onLoadedMetadata);
+  videoPlayer.addEventListener('loadedmetadata', onLoadedMetadata);
 }
 
 function refreshFavoriteButton(hasFavorite) {
@@ -1783,7 +1785,7 @@ function playVideo(source, isUserAction = true) {
  * @param {Array<any>} args
  */
 function printLog(...args) {
-  debugLogs.innerHTML += `$ ${args.join(' ')}\n`;
+  debugLogs.innerHTML = `$ ${args.join(' ')}\n`.concat(debugLogs.innerHTML);
 }
 
 /** @param {HTMLVideoElement} video **/
@@ -1917,7 +1919,6 @@ async function checkVideoPlayability(url) {
 
 function gotoPage(p) {
   currentPage = p;
-  pageControl.value = p;
   displayPlaylistPage(currentPage);
   updatePaginationControls();
   saveDataToCache();
@@ -2087,27 +2088,37 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
 });
 
 videoPlayer.addEventListener('pause', (evt) => {
+  printLog('videoPlayer.pause');
   onStopped();
 });
 
+videoPlayer.addEventListener('seeked', (evt) => {
+  printLog('videoPlayer.seeked', evt.target.src);
+});
+
 videoPlayer.addEventListener('play', (evt) => {
+  printLog('videoPlayer.play');
   onPlaying();
 });
 
 videoPlayer.addEventListener('waiting', (evt) => {
+  printLog('videoPlayer.waiting');
   playVideoButton.className = 'playing';
   playVideoButton.innerHTML = VARS.ICON_CANCEL;
 });
 
 videoPlayer.addEventListener('canplaythrough', (evt) => {
+  printLog('videoPlayer.canplaythrough');
   onPlaying();
 });
 
 videoPlayer.addEventListener('end', (evt) => {
+  printLog('videoPlayer.end');
   onStopped(true);
 });
 
 videoPlayer.addEventListener('error', (evt) => {
+  printLog('videoPlayer.error');
   if(videoPlayer.src === stopURL) {
     showPlayButton();
     return;
