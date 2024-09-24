@@ -750,12 +750,12 @@ input:checked + .slider:before {
           <ul id="playlistItems"></ul>
           <div class="controls">
             <div id="pagination">
-              <button id="prevPage" disabled>上一页</button>
+              <button id="prevPage" disabled>上页</button>
               <div class="page-information">
                 <input id="pageControl" class="range" min="1" type="range" />
                 <div id="pageInfo"></div>
               </div>
-              <button id="nextPage" disabled>下一页</button>
+              <button id="nextPage" disabled>下页</button>
             </div>
           </div>
         </div>
@@ -1214,6 +1214,11 @@ function playLastVideo(isUserAction = true) {
   }
 }
 
+function changePoster(poster) {
+  videoPlayer.poster = poster;
+  pageBody.style.background = `transparent url("${poster}") center center / cover no-repeat`;
+}
+
 function stopVideo(poster = VARS.POSTER) {
   videoPlayer.src = stopURL;
   videoPlayer.pause();
@@ -1221,8 +1226,7 @@ function stopVideo(poster = VARS.POSTER) {
   showPlayButton(false);
   rewindButton.disabled = forwardButton.disabled = true;
   saveVideoTimestamp();
-  videoPlayer.poster = poster;
-  pageBody.style.background = `transparent url("${poster}") center center / cover no-repeat`;
+  changePoster(poster);
 }
 
 function showPlayButton(showControls = false) {
@@ -2150,7 +2154,7 @@ videoPlayer.addEventListener('error', (evt) => {
 videoPlayer.addEventListener('click', (evt) => {
   evt.preventDefault();
   if(evt.target.poster !== VARS.POSTER) {
-    evt.target.poster = VARS.POSTER;
+    changePoster(VARS.POSTER);
   }
 });
 
