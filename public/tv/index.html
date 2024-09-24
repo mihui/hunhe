@@ -79,7 +79,9 @@ body {
       flex-flow: column;
       row-gap: 0.5rem;
     }
-
+    .container .video-container .video-control #errorControl {
+      flex: 1;
+    }
     .container .video-container .video-control .controls {
       width: 100%;
       display: flex;
@@ -1175,11 +1177,9 @@ function initSideMenu() {
   const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
   if(playListVisible === 'false') {
     playlistContainer.className = 'hidden';
-    errorControl.classList.add('hidden');
   }
   else {
     playlistContainer.className = 'play-list';
-    errorControl.classList.remove('hidden');
   }
 }
 
@@ -1277,7 +1277,6 @@ function getMegaBytes(val) {
 
 // 显示 M3U 输入界面
 async function showM3uInput() {
-  errorControl.classList.remove('hidden');
   window.localStorage.setItem('playListVisible', 'true');
 
   if(m3uInputContainer.classList.contains('hidden')) {
@@ -2157,7 +2156,12 @@ videoPlayer.addEventListener('click', (evt) => {
     changePoster(VARS.POSTER);
   }
 });
-
+errorControl.addEventListener('click', (evt) => {
+  evt.preventDefault();
+  if(evt.target.poster !== VARS.POSTER) {
+    changePoster(VARS.POSTER);
+  }
+});
 playVideoButton.addEventListener('click', (evt) => {
   if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
     stopVideo();
@@ -2194,14 +2198,12 @@ playListButton.addEventListener('click', (evt) => {
   // Hide playlist
   if(playListVisible === 'true') {
     playlistContainer.className = 'hidden';
-    errorControl.classList.add('hidden');
     playListVisible = 'false';
   }
   // Show playlist
   else {
     showPlaylistContent();
     playListVisible = 'true';
-    errorControl.classList.remove('hidden');
   }
   window.localStorage.setItem('playListVisible', playListVisible);
 });
