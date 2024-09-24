@@ -1529,17 +1529,17 @@ async function displayPlaylistPage(page) {
       if(currentTarget.dataset['proxy']) return;
       const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : VARS.POSTER;
       if(videoPlayer.poster === frame || frame === VARS.POSTER) {
-        // playNow(currentTarget, item);
-        stopVideo(VARS.POSTER);
+        playNow(currentTarget, item);
+        // stopVideo(VARS.POSTER);
       }
       else {
         stopVideo(frame);
       }
     };
 
-    li.ondblclick = () => {
-      playNow(li, item);
-    };
+    // li.onclick = () => {
+    //   playNow(li, item);
+    // };
     li.append(div);
     playlistItems.appendChild(li);
   });
@@ -1686,11 +1686,13 @@ function playVideSource(source) {
 }
 
 function hlsPlay(source) {
+  printLog('hlsPlay');
   try {
     const hls = new Hls();
     hls.loadSource(source.url);
     hls.attachMedia(videoPlayer);
     hls.on(Hls.Events.MANIFEST_PARSED, (evt) => {
+      printLog('Hls.Events.MANIFEST_PARSED');
       playVideSource(source);
     });
     hls.on(Hls.Events.ERROR, (error) => {
@@ -1703,6 +1705,7 @@ function hlsPlay(source) {
 }
 
 function nativePlay(source) {
+  printLog('nativePlay');
   videoPlayer.src = source.url;
   const onLoadedMetadata = (evt) => {
     printLog('videoPlayer.loadedmetadata');
@@ -2087,6 +2090,7 @@ listCheckButton.addEventListener('click', (evt) => {
 });
 
 videoPlayer.addEventListener('timeupdate', (evt) => {
+  console.log(evt.target);
   if(videoPlayer.src === stopURL) { return; }
 
   const lastPlayedItem = getLastVideoItem();
@@ -2106,7 +2110,6 @@ videoPlayer.addEventListener('pause', (evt) => {
   printLog('videoPlayer.pause');
   onStopped();
 });
-
 videoPlayer.addEventListener('seeked', (evt) => {
   printLog('videoPlayer.seeked', evt.target.src);
 });
@@ -2128,7 +2131,6 @@ videoPlayer.addEventListener('waiting', (evt) => {
   playVideoButton.className = 'playing';
   playVideoButton.innerHTML = VARS.ICON_CANCEL;
 });
-
 videoPlayer.addEventListener('canplaythrough', (evt) => {
   printLog('videoPlayer.canplaythrough');
   onPlaying();
@@ -2137,10 +2139,6 @@ videoPlayer.addEventListener('ended', (evt) => {
   printLog('videoPlayer.ended');
   onStopped(true);
 });
-videoPlayer.addEventListener('emptied', (evt) => {
-  printLog('videoPlayer.emptied');
-});
-
 videoPlayer.addEventListener('error', (evt) => {
   printLog('videoPlayer.error');
   if(videoPlayer.src === stopURL) {
@@ -2148,6 +2146,12 @@ videoPlayer.addEventListener('error', (evt) => {
     return;
   }
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
+});
+videoPlayer.addEventListener('click', (evt) => {
+  evt.preventDefault();
+  if(evt.target.poster !== VARS.POSTER) {
+    evt.target.poster = VARS.POSTER;
+  }
 });
 
 playVideoButton.addEventListener('click', (evt) => {
