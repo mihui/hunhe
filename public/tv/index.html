@@ -1689,12 +1689,17 @@ function hlsPlay(source) {
   catch(error) {
     console.log('HLS ERROR 1');
   }
-  saveLastPlayedVideo(source);
+  
 }
 
 function nativePlay(source) {
   videoPlayer.src = source.url;
-  saveLastPlayedVideo(source);
+  videoPlayer.addEventListener('loadedmetadata', (evt) => {
+  const lastPlayedItem = getLastVideoItem();
+  if(lastPlayedItem) {
+    playVideSource(lastPlayedItem);
+  }
+});
 }
 
 function refreshFavoriteButton(hasFavorite) {
@@ -1735,6 +1740,7 @@ async function onPlay(playingItem) {
   if (!isNaN(lastPlayedTime)) {
     videoPlayer.currentTime = lastPlayedTime;
   }
+  saveLastPlayedVideo(playingItem);
 }
 
 function onPlaying() {
@@ -2106,13 +2112,6 @@ videoPlayer.addEventListener('error', (evt) => {
     return;
   }
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
-});
-
-videoPlayer.addEventListener('loadedmetadata', (evt) => {
-  const lastPlayedItem = getLastVideoItem();
-  if(lastPlayedItem) {
-    playVideSource(lastPlayedItem);
-  }
 });
 
 playVideoButton.addEventListener('click', (evt) => {
