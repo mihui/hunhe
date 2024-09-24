@@ -108,6 +108,8 @@ body {
       height: 100%;
       display: flex;
       z-index: 10;
+      background: #ffffff99;
+      box-shadow: 2px 0px 6px 1px #ccc;
     }
     .container #playlistContainer.settings {
       flex: 3;
@@ -226,9 +228,12 @@ select:focus-visible {
   column-gap: 0.5rem;
   border-bottom: 1px solid #eee;
 }
-
   #playlistItems li::-webkit-scrollbar { 
     display: none;
+  }
+  #playlistItems li.checking {
+    color: darkred;
+    border-left-color: darkred;
   }
   #playlistItems li.good {
     border-left: 3px solid green;
@@ -1653,13 +1658,15 @@ function performSearch() {
 async function refreshCurrentPage() {
   listCheckButton.disabled = true;
   const lastPlayedItem = getLastVideoItem();
-  const items = playlistItems.children;
+
+  const items = playlistItems.childNodes;
+  items.forEach(node => {
+    node.className = '';
+  });
 
   for (let i = 0; i < items.length; i++) {
     const li = items[i];
-    li.title = '';
     li.className = 'checking';
-
     const itemUrl = li.dataset['url'];
 
     if (itemUrl) {
@@ -1670,7 +1677,6 @@ async function refreshCurrentPage() {
       updateListItemStyle(li, result, lastPlayedItem, isFav);
     }
     else {
-      li.title = '';
       li.classList.add('broken');
     }
   }
@@ -2040,8 +2046,10 @@ function gotoNextPage(evt) {
 
 function resetPoster(evt) {
   evt.preventDefault();
-  if(evt.target.poster !== VARS.POSTER) {
-    changePoster(VARS.POSTER);
+  /** @type {HTMLVideoElement} */
+  const player = evt.target;
+  if(player.poster !== VARS.POSTER) {
+    stopVideo(player.poster);
   }
 }
 
@@ -2155,8 +2163,8 @@ videoPlayer.addEventListener('error', (evt) => {
   }
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
 });
-videoPlayer.addEventListener('click', resetPoster);
-errorControl.addEventListener('click', resetPoster);
+videoPlayer.addEventListener('dblclick', resetPoster);
+errorControl.addEventListener('dblclick', resetPoster);
 playVideoButton.addEventListener('click', (evt) => {
   if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
     stopVideo();
