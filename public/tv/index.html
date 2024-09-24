@@ -246,6 +246,9 @@ select:focus-visible {
   #playlistItems li.bad:hover {
     border-bottom: 1px solid red;
   }
+  #playlistItems li.favorite {
+    box-shadow: inset -2px 0 1px 0px gray;
+  }
   #playlistItems li.active {
     font-weight: bold;
   }
@@ -269,7 +272,6 @@ select:focus-visible {
   #playlistItems li:hover {
     background-color: #e9ecef5c;
   }
-
   #playlistItems li div {
     width: 100%;
   }
@@ -1542,18 +1544,20 @@ async function displayPlaylistPage(page) {
     playlistItems.appendChild(li);
   });
 
+  // Update styles
   for (const li of playlistItems.childNodes) {
     const videoUrl = li.dataset['url'];
     const id = database.encodeString(videoUrl);
+    const isFav = await isFavorite(id);
     const playCache = await database.readData(id, STA_STORE);
     if (playCache) {
-      updateListItemStyle(li, playCache.result, lastPlayedItem);
+      updateListItemStyle(li, playCache.result, lastPlayedItem, isFav);
     }
     else {
       // No cache or cleaned
       const result = await checkVideoPlayability(videoUrl);
       await database.addData({ id, result }, STA_STORE);
-      updateListItemStyle(li, result, lastPlayedItem);
+      updateListItemStyle(li, result, lastPlayedItem, isFav);
     }
   }
   listCheckButton.disabled = false;
@@ -1563,8 +1567,9 @@ async function displayPlaylistPage(page) {
  * @param {HTMLLIElement} li List item
  * @param {{ ok: boolean, duration: number, frame: string, timeout: boolean }} checkResult List item
  * @param {{ url: string, group: string, title: string }} lastPlayedItem Last played data
+ * @param {boolean} isFav If it is favorite
  */
-function updateListItemStyle(li, checkResult, lastPlayedItem) {
+function updateListItemStyle(li, checkResult, lastPlayedItem, isFav) {
   if (checkResult.ok) {
     if(checkResult.duration < 300) {
       li.classList.add('good');
@@ -1590,6 +1595,9 @@ function updateListItemStyle(li, checkResult, lastPlayedItem) {
   }
   if(lastPlayedItem?.url === li.dataset['url']) {
     li.classList.add('active');
+  }
+  if(isFav && currentCategory !== favoriteChannels) {
+    li.classList.add('favorite');
   }
 }
 
@@ -1656,8 +1664,9 @@ async function refreshCurrentPage() {
     if (itemUrl) {
       const id = database.encodeString(itemUrl);
       const result = await checkVideoPlayability(itemUrl);
+      const isFav = await isFavorite(id);
       await database.updateData({ id, result }, STA_STORE);
-      updateListItemStyle(li, result, lastPlayedItem);
+      updateListItemStyle(li, result, lastPlayedItem, isFav);
     }
     else {
       li.title = '';
@@ -1723,6 +1732,16 @@ function saveLastPlayedVideo(playingItem) {
 }
 
 /**
+ * If the URL is favorite
+ * @param {string} id ID
+ * @returns {Promise<boolean>} Returns true or false
+ */
+async function isFavorite(id) {
+  const data = await database.readData(id, FAV_STORE);
+  return data ? true : false;
+}
+
+/**
  * @param {{ title: string, url: string, group: string }} playingItem Play item
  **/
 async function onPlay(playingItem) {
@@ -1731,14 +1750,13 @@ async function onPlay(playingItem) {
   favoriteButton.disabled = false;
 
   const id = database.encodeString(playingItem.url);
-  const data = await database.readData(id, FAV_STORE);
 
   favoriteButton.dataset['id'] = id;
   favoriteButton.dataset['url'] = playingItem.url;
   favoriteButton.dataset['group'] = playingItem.group;
   favoriteButton.dataset['title'] = playingItem.title;
 
-  refreshFavoriteButton(data ? true : false);
+  refreshFavoriteButton(await isFavorite(id));
   const lastPlayedTime = videoTimestamp[playingItem.url];
   if (!isNaN(lastPlayedTime)) {
     videoPlayer.currentTime = lastPlayedTime;
@@ -1849,10 +1867,10 @@ async function captureFrame(url, hls = false) {
 async function checkVideoPlayability(url) {
   const timestamp = new Date().getTime();
   return new Promise((resolve) => {
+    let timeoutId = 0;
     if (Hls.isSupported() && url.startsWith(UNSAFE_HTTP) === false) {
       try {
         const hls = new Hls();
-        let timeoutId;
         const cleanup = () => {
           if (timeoutId) {
             clearTimeout(timeoutId);
@@ -1885,9 +1903,6 @@ async function checkVideoPlayability(url) {
     else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
       const video = document.createElement('video');
       video.src = url;
-
-      let timeoutId;
-
       const cleanup = () => {
         if (timeoutId) {
           clearTimeout(timeoutId);
@@ -2095,12 +2110,19 @@ videoPlayer.addEventListener('pause', (evt) => {
 videoPlayer.addEventListener('seeked', (evt) => {
   printLog('videoPlayer.seeked', evt.target.src);
 });
-
+videoPlayer.addEventListener('canplay', (evt) => {
+  printLog('videoPlayer.canplay');
+});
 videoPlayer.addEventListener('play', (evt) => {
   printLog('videoPlayer.play');
   onPlaying();
 });
-
+videoPlayer.addEventListener('loadeddata', (evt) => {
+  printLog('videoPlayer.loadeddata');
+});
+videoPlayer.addEventListener('playing', (evt) => {
+  printLog('videoPlayer.playing');
+});
 videoPlayer.addEventListener('waiting', (evt) => {
   printLog('videoPlayer.waiting');
   playVideoButton.className = 'playing';
@@ -2111,10 +2133,12 @@ videoPlayer.addEventListener('canplaythrough', (evt) => {
   printLog('videoPlayer.canplaythrough');
   onPlaying();
 });
-
-videoPlayer.addEventListener('end', (evt) => {
-  printLog('videoPlayer.end');
+videoPlayer.addEventListener('ended', (evt) => {
+  printLog('videoPlayer.ended');
   onStopped(true);
+});
+videoPlayer.addEventListener('emptied', (evt) => {
+  printLog('videoPlayer.emptied');
 });
 
 videoPlayer.addEventListener('error', (evt) => {
