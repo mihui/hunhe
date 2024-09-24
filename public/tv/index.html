@@ -1545,7 +1545,7 @@ function resetListStyle() {
  * @param {{ title: string, url: string, group: string }} item Play item
  */
 function playNow (li, item) {
-  if(li.dataset['broken'] || li.dataset['timeout']) return;
+  if(li.dataset['broken']) return;
   resetListStyle();
   li.classList.add('active');
   playVideo(item);
@@ -1586,7 +1586,7 @@ async function displayPlaylistPage(page) {
       const { currentTarget } = evt;
       const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : VARS.POSTER;
 
-      const isBroken = (currentTarget.classList.contains('timeout') || currentTarget.classList.contains('broken')) === false;
+      const isBroken = currentTarget.classList.contains('broken') === false;
 
       if((videoPlayer.poster === frame || frame === VARS.POSTER) && isBroken) {
         playNow(currentTarget, item);
@@ -1886,7 +1886,7 @@ async function captureFrame(url, hls = false) {
         canvas.width = frameVideo.videoWidth;
         canvas.height = frameVideo.videoHeight;
         frameVideo.play().then(() => {
-          frameVideo.currentTime = 360;
+          frameVideo.currentTime = 3;
         }).catch(error => {
           clearTimeout(timer);
           cleanupEvents(null);
