@@ -1694,12 +1694,13 @@ function hlsPlay(source) {
 
 function nativePlay(source) {
   videoPlayer.src = source.url;
-  videoPlayer.addEventListener('loadedmetadata', (evt) => {
-  const lastPlayedItem = getLastVideoItem();
-  if(lastPlayedItem) {
-    playVideSource(lastPlayedItem);
+  const handleLoadedMetadata = (evt) => {
+    if (source) {
+      playVideSource(source);
+    }
   }
-});
+  videoPlayer.removeEventListener('loadedmetadata', handleLoadedMetadata);
+  videoPlayer.addEventListener('loadedmetadata', handleLoadedMetadata);
 }
 
 function refreshFavoriteButton(hasFavorite) {
