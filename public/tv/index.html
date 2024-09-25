@@ -2324,10 +2324,10 @@ forwardButton.addEventListener('click', (evt) => {
   }
 });
 
-playListButton.addEventListener('click', (evt) => {
-  let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
+function displaySideMenu(show = false) {
+  let playListVisible = '';
   // Hide playlist
-  if(playListVisible === 'true') {
+  if(show) {
     playlistContainer.className = 'back';
     playListVisible = 'false';
   }
@@ -2336,6 +2336,12 @@ playListButton.addEventListener('click', (evt) => {
     showPlaylistContent();
     playListVisible = 'true';
   }
+  return playListVisible;
+}
+
+playListButton.addEventListener('click', (evt) => {
+  let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
+  playListVisible = displaySideMenu(playListVisible === 'true');
   window.localStorage.setItem('playListVisible', playListVisible);
 });
 
@@ -2352,11 +2358,11 @@ checkTimeout.addEventListener('input', (evt) => {
 
 
 window.swipe(pageBody).on('swipeLeft', (evt) => {
-  console.log('swipe left');
+  displaySideMenu(false);
 });
 
 window.swipe(pageBody).on('swipeRight', (evt) => {
-  console.log('swipe right');
+  displaySideMenu(true);
 });
 
 let muted = true, isHidden = false;
