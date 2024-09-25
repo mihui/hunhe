@@ -111,9 +111,17 @@ body {
       z-index: 10;
       background: #ffffff99;
       box-shadow: 2px 0px 6px 1px #ccc;
+      transition: all 0.3s;
     }
     .container #playlistContainer.settings {
       flex: 3;
+    }
+    .container #playlistContainer.back {
+      width: 0px;
+      flex: 0 0;
+      min-width: 0px;
+      max-width: 0px;
+      overflow: hidden;
     }
 
 textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
@@ -206,6 +214,7 @@ select:focus-visible {
   row-gap: 0.3rem;
   justify-content: space-evenly;
   overflow: auto;
+  scrollbar-width: none;
 }
 
 #playlistItems li {
@@ -466,6 +475,7 @@ button {
   padding: 0.5rem;
   column-gap: 0.6rem;
   row-gap: 0.6rem;
+  scrollbar-width: none;
 }
 
 .range {
@@ -1056,6 +1066,51 @@ function getElementById(idList = []) {
   return domList;
 }
 
+(function() {
+  function SwipeHandler(dom) {
+    this.domElement = dom;
+    this.startX = 0;
+    this.threshold = 100; // Minimum distance to consider a swipe
+
+    this.domElement.addEventListener('touchstart', this.onTouchStart.bind(this));
+    this.domElement.addEventListener('touchmove', this.onTouchMove.bind(this));
+  }
+
+  SwipeHandler.prototype.onTouchStart = function(evt) {
+    this.startX = evt.touches[0].clientX;
+  };
+
+  SwipeHandler.prototype.onTouchMove = function(evt) {
+    const currentX = evt.touches[0].clientX;
+    const diffX = this.startX - currentX;
+
+    if (Math.abs(diffX) >= this.threshold) {
+      if (diffX > 0) {
+        this.trigger('swipeLeft');
+      } else {
+        this.trigger('swipeRight');
+      }
+      this.startX = currentX;
+    }
+  };
+
+  SwipeHandler.prototype.on = function(eventName, callback) {
+    this.domElement.addEventListener(eventName, callback);
+  };
+
+  SwipeHandler.prototype.off = function(eventName, callback) {
+    this.domElement.removeEventListener(eventName, callback);
+  };
+
+  SwipeHandler.prototype.trigger = function(eventName) {
+    const event = new Event(eventName);
+    this.domElement.dispatchEvent(event);
+  };
+
+  window.swipe = function(domElement) {
+    return new SwipeHandler(domElement);
+  };
+})();
 /** @type {[
  * HTMLBodyElement,
  * HTMLVideoElement, HTMLDivElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
@@ -1247,7 +1302,7 @@ function loadLocalCache() {
 function initSideMenu() {
   const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
   if(playListVisible === 'false') {
-    playlistContainer.className = 'hidden';
+    playlistContainer.className = 'back';
   }
   else {
     playlistContainer.className = 'play-list';
@@ -2008,7 +2063,8 @@ async function checkVideoPlayability(url) {
         cleanup();
         resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: true });
       }, VARS.PING_TIMEOUT);
-    } else {
+    }
+    else {
       resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: false });
     }
   });
@@ -2272,7 +2328,7 @@ playListButton.addEventListener('click', (evt) => {
   let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
   // Hide playlist
   if(playListVisible === 'true') {
-    playlistContainer.className = 'hidden';
+    playlistContainer.className = 'back';
     playListVisible = 'false';
   }
   // Show playlist
@@ -2294,8 +2350,16 @@ checkTimeout.addEventListener('input', (evt) => {
   window.localStorage.setItem('PING_TIMEOUT', VARS.PING_TIMEOUT);
 });
 
-let muted = true, isHidden = false;
 
+window.swipe(pageBody).on('swipeLeft', (evt) => {
+  console.log('swipe left');
+});
+
+window.swipe(pageBody).on('swipeRight', (evt) => {
+  console.log('swipe right');
+});
+
+let muted = true, isHidden = false;
 document.addEventListener('keydown', function (event) {
   if (event.key === 'Escape' || event.keyCode === 27) {
     event.preventDefault();
