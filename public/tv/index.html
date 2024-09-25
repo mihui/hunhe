@@ -2328,20 +2328,20 @@ function displaySideMenu(show = false) {
   let playListVisible = '';
   // Hide playlist
   if(show) {
-    playlistContainer.className = 'back';
-    playListVisible = 'false';
+    showPlaylistContent();
+    playListVisible = 'true';
   }
   // Show playlist
   else {
-    showPlaylistContent();
-    playListVisible = 'true';
+    playlistContainer.className = 'back';
+    playListVisible = 'false';
   }
   return playListVisible;
 }
 
 playListButton.addEventListener('click', (evt) => {
   let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
-  playListVisible = displaySideMenu(playListVisible === 'true');
+  playListVisible = displaySideMenu(playListVisible === 'false');
   window.localStorage.setItem('playListVisible', playListVisible);
 });
 
