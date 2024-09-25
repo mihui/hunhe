@@ -119,10 +119,37 @@ body {
       flex: 1;
       width: 100%;
       display: flex;
+      column-gap: 0.3rem;
+      align-items: center;
+      justify-content: space-between;
     }
     .container .video-container #videoContainer #videoControls .progress #progressControl {
       width: 100%;
+      flex: 1;
+      height: 0.7rem;
     }
+    .container .video-container #videoContainer #videoControls .progress #progressControl::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: #eee;
+      cursor: ew-resize;
+    }
+    .container .video-container #videoContainer #videoControls .progress #progressControl::-moz-range-thumb {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: #eee;
+      cursor: ew-resize;
+    }
+    .container .video-container #videoContainer #videoControls .progress .time {
+      color: #eee;
+      text-align: center;
+      user-select: none;
+    }
+
     .container #pagination {
       display: flex;
       justify-content: space-between;
@@ -534,7 +561,7 @@ button {
   appearance: none;
   width: 25px;
   height: 25px;
-  border-radius: 50%; 
+  border-radius: 50%;
   background: #4682b4;
   cursor: pointer;
 }
@@ -872,7 +899,11 @@ input:checked + .slider:before {
             <video id="videoPlayer" playsinline poster="background.jpeg"></video>
             <div id="videoControls" class="controls">
               <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
-              <div class="progress"><input id="progressControl" type="range" value="0" min="0" max="0"></div>
+              <div class="progress">
+                <span id="currentTimeDisplay" class="time">00:00</span>
+                <input id="progressControl" class="range" type="range" value="0" min="0" max="0">
+                <span id="totalTimeDisplay" class="time">00:00</span>
+              </div>
               <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
               <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
               <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
@@ -937,7 +968,7 @@ function getElementById(idList = []) {
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement, HTMLElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
  * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement, HTMLVideoElement, HTMLDivElement,
- * HTMLInputElement
+ * HTMLInputElement, HTMLSpanElement, HTMLSpanElement
  * ]} **/
 const [
   pageBody,
@@ -950,7 +981,7 @@ const [
   loadContentuButton, categorySelect, playlistItems, paginationGroup, videoContainer,
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
-  progressControl
+  progressControl, currentTimeDisplay, totalTimeDisplay
  ] = getElementById([
   'pageBody',
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
@@ -962,7 +993,7 @@ const [
   'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination', 'videoContainer',
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
-  'progressControl'
+  'progressControl', 'currentTimeDisplay', 'totalTimeDisplay'
 ]);
 
 let itemsPerPage = 15;
@@ -1713,6 +1744,7 @@ function hlsPlay(source) {
       }
       else {
         progressControl.classList.remove('hidden');
+        totalTimeDisplay.textContent = getMinutes(data.details.totalduration);
         progressControl.setAttribute('max', data.details.totalduration); 
       }
     });
@@ -1728,6 +1760,24 @@ function hlsPlay(source) {
   }
 }
 
+function getMinutes(duration) {
+  // 类型检查和异常处理
+  if (typeof duration !== 'number' || isNaN(duration)) {
+    return '00:00';
+  }
+
+  const dNumber = parseInt(duration, 10);
+  const minutes = Math.floor(dNumber / 60);
+  const seconds = dNumber % 60;
+
+  // 处理分钟数小于 10 的情况
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
+  const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds.toString();
+
+  // 使用模板字符串拼接结果
+  return `${formattedMinutes}:${formattedSeconds}`;
+}
+
 function nativePlay(source) {
   printLog('nativePlay');
   videoPlayer.src = source.url;
@@ -1737,6 +1787,7 @@ function nativePlay(source) {
       playVideSource(source);
     }
     progressControl.setAttribute('max', evt.target.duration);
+    totalTimeDisplay.textContent = getMinutes(evt.target.duration);
   }
   videoPlayer.removeEventListener('loadedmetadata', onLoadedMetadata);
   videoPlayer.addEventListener('loadedmetadata', onLoadedMetadata);
@@ -2211,8 +2262,11 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
     else {  }
     progressControl.value = player.currentTime;
     setVideoTimestamp(player.currentTime);
-    if (!progressControl.getAttribute('max'))
+    if (!progressControl.getAttribute('max')) {
       progress.setAttribute('max', player.duration);
+      totalTimeDisplay.textContent = getMinutes(player.duration);
+    }
+    currentTimeDisplay.textContent = getMinutes(player.currentTime);
   }
 });
 
