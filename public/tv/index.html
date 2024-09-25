@@ -740,7 +740,7 @@ input:checked + .slider:before {
   </svg>
 
   <div class="container" id="pageContainer">
-    <div id="playlistContainer" class="hidden">
+    <div id="playlistContainer" class="back">
       <div class="box">
         <div id="m3uInputContainer">
           <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
@@ -1780,7 +1780,9 @@ function updatePaginationControls() {
 async function initializePlaylist() {
   await fetchFavorites();
   filteredPlaylistData = categories[currentCategory] || playlistData;
-  displayPlaylistPage(currentPage);
+  displayPlaylistPage(currentPage).catch(error => {
+    printLog(error.message);
+  });
   updatePaginationControls();
 }
 
@@ -2093,7 +2095,11 @@ async function checkVideoPlayability(url) {
 
 function gotoPage(p) {
   currentPage = p;
-  displayPlaylistPage(currentPage);
+
+  displayPlaylistPage(currentPage).catch(error => {
+    printLog(error.message);
+  });
+
   updatePaginationControls();
   saveDataToCache();
 }
@@ -2346,24 +2352,20 @@ forwardButton.addEventListener('click', (evt) => {
 });
 
 function displaySideMenu(show = false) {
-  let playListVisible = '';
   // Hide playlist
   if(show) {
     showPlaylistContent();
-    playListVisible = 'true';
   }
   // Show playlist
   else {
     playlistContainer.className = 'back';
-    playListVisible = 'false';
   }
-  return playListVisible;
+  window.localStorage.setItem('playListVisible', show ? 'true' : 'false');
 }
 
 playListButton.addEventListener('click', (evt) => {
   let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
-  playListVisible = displaySideMenu(playListVisible === 'false');
-  window.localStorage.setItem('playListVisible', playListVisible);
+  displaySideMenu(playListVisible === 'false');
 });
 
 storeFrameCheckbox.addEventListener('change', (evt) => {
