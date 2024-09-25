@@ -1213,7 +1213,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
   const m3uUrl = m3uUrlInput.value.trim();
   const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
 
-  async function fetchDataAndProcess(id) {
+  async function fetchDataAndProcess(id, payload) {
     loadM3uButton.disabled = true;
     const safeUrl = m3uUrl.startsWith(UNSAFE_HTTP) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
     try {
@@ -1252,7 +1252,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
     if (payload && payload.m3u && fromCache) {
       processM3uData(type, payload, true, isBooting, false);
     } else {
-      fetchDataAndProcess(id);
+      fetchDataAndProcess(id, payload);
     }
   } else {
     errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
