@@ -813,16 +813,16 @@ input:checked + .slider:before {
       </div>
     </div>
 
-    <div id="videoContainer" class="video-container">
+    <div class="video-container">
       <div class="box">
         <div class="video-wrapper">
           <video id="videoPlayer" playsinline poster="background.jpeg"></video>
           <video id="frameVideo" playsinline disablepictureinpicture muted></video>
         </div>
-        <div class="video-control">
+        <div id="videoControl" class="video-control">
 
           <div class="controls" id="errorControl">
-            <div id="statisticsMessage">123</div>
+            <div id="statisticsMessage"></div>
             <div id="errorMessage"></div>
           </div>
 
@@ -1147,7 +1147,7 @@ function getElementById(idList = []) {
 const [
   pageBody,
   videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
-  loadM3uButton, settingsButton, m3uInputContainer, playlistContent,
+  loadM3uButton, settingsButton, m3uInputContainer, playlistContent, videoControl,
   playlistContainer, playVideoButton, m3uList, searchContainer,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
   fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
@@ -1158,7 +1158,7 @@ const [
  ] = getElementById([
   'pageBody',
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
-  'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent',
+  'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent', 'videoControl',
   'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
   'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
@@ -2378,11 +2378,11 @@ checkTimeout.addEventListener('input', (evt) => {
 });
 
 
-window.swipe(errorControl).on('swipeLeft', (evt) => {
+window.swipe(videoControl).on('swipeLeft', (evt) => {
   displaySideMenu(false);
 });
 
-window.swipe(errorControl).on('swipeRight', (evt) => {
+window.swipe(videoControl).on('swipeRight', (evt) => {
   displaySideMenu(true);
 });
 
