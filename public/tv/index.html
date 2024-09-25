@@ -2,11 +2,13 @@
 <html lang="en-US">
 
 <head>
+  <title>Hunhe TV</title>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
-  <script src="hls.js"></script>
-  <title>Hunhe TV</title>
+  <script src="js-indexeddb.js"></script>
+  <script src="js-hls.js"></script>
+  <script src="js-swipe.js"></script>
 <style>
 html, body {
   width: 100%;
@@ -844,15 +846,9 @@ input:checked + .slider:before {
   </div>
 
 <script>
-const DB_VERSION = 4;
 const SITE_TITLE = 'Hunhe IPTV';
-// M3U list store
-const M3U_STORE = 'm3u-store';
-// Favorites
-const FAV_STORE = 'fav-store';
-// The status cache of the playlist item
-const STA_STORE = 'sta-store';
 
+const DB_VERSION = 4;
 const UNSAFE_HTTP = 'http://';
 const TYPES = {
   M3U: 'm3u', TXT: 'txt'
@@ -861,198 +857,7 @@ const SOURCES = {
   URL: 'url', CONTENT: 'content'
 };
 
-const database = {
-  openDB: (dbName = 'm3u') => {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(dbName, DB_VERSION);
-      request.onblocked = (event) => {
-        // If some other tab is loaded with the database, then it needs to be closed
-        // before we can proceed.
-      };
-
-      request.onupgradeneeded = (event) => {
-        /** @type {IDBDatabase} **/
-        const db = event.target.result;
-        try {
-          db.createObjectStore(M3U_STORE, { keyPath: "id" });
-        }
-        catch(error) {}
-
-        try {
-          db.createObjectStore(FAV_STORE, { keyPath: "id" });
-        }
-        catch(error) {}
-
-        try {
-          db.createObjectStore(STA_STORE, { keyPath: "id" });
-        }
-        catch(error) {}
-
-        db.onversionchange = (event) => {
-          db.close();
-        };
-      };
-
-      request.onsuccess = (event) => {
-        resolve(event.target.result);
-      };
-
-      request.onerror = (event) => {
-        reject(event.target.error);
-      };
-    });
-  },
-  addData: async (data, storeName = M3U_STORE) => {
-    const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readwrite");
-    const store = transaction.objectStore(storeName);
-    const request = store.add(data);
-
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
-  },
-  readData: async (id, storeName = M3U_STORE) => {
-    const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readonly");
-    const store = transaction.objectStore(storeName);
-    const request = store.get(id);
-
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
-  },
-  updateData: async (data, storeName = M3U_STORE) => {
-    const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readwrite");
-    const store = transaction.objectStore(storeName);
-    const request = store.put(data);
-
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
-  },
-  deleteData: async (id, storeName = M3U_STORE) => {
-    const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readwrite");
-    const store = transaction.objectStore(storeName);
-    const request = store.delete(id);
-
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
-  },
-  listData: async (storeName = M3U_STORE) => {
-    const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readonly");
-    const store = transaction.objectStore(storeName);
-    let request = store.openCursor();
-    const list = [];
-    return new Promise((resolve, reject) => {
-      request.onsuccess = (evt) => {
-        const cursor = evt.target.result;
-        if(cursor) {
-          // const path = database.decodeString(cursor.key);
-          // const pathSegments = path.split('/');
-          // const fileName = pathSegments[pathSegments.length - 1];
-          list.push(cursor.value);
-          cursor.continue();
-        }
-        else {
-          resolve(list);
-        }
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
-  },
-  purgeData: async (storeName = FAV_STORE) => {
-    const db = await database.openDB();
-    const transaction = db.transaction(storeName, "readwrite");
-    const store = transaction.objectStore(storeName);
-    const request = store.clear();
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-    });
-  },
-  /** @returns {{ totalSize: number, storeSize: Object.<string, number> }} Returns total size **/
-  totalSize: async () => {
-    let totalSize = 0;
-    let storeSize = {};
-    const db = await database.openDB();
-    const transaction = db.transaction(db.objectStoreNames, "readonly");
-    return await new Promise((resolve) => {
-    
-      for (const objectStoreName of db.objectStoreNames) {
-        const objectStore = transaction.objectStore(objectStoreName);
-        storeSize[objectStoreName] = 0;
-
-        // Retrieve all objects in the object store
-        const getAllRequest = objectStore.getAll();
-
-        getAllRequest.onsuccess = (event) => {
-          const items = event.target.result;
-
-          // Calculate the size of each object and add it to the total
-          for (const item of items) {
-            const size = new Blob([JSON.stringify(item)]).size;
-            totalSize += size;
-            storeSize[objectStoreName] += size;
-          }
-
-          // If all object stores have been processed, return the total size
-          if (objectStoreName === db.objectStoreNames[db.objectStoreNames.length - 1]) {
-            resolve({ totalSize, storeSize });
-          }
-        };
-
-        getAllRequest.onerror = (event) => {
-          resolve({ totalSize, storeSize });
-        };
-      }
-    })
-  },
-  encodeString: (plainText) => {
-    const base64Encoded = btoa(unescape(encodeURIComponent(plainText)));
-    return base64Encoded;
-  },
-  decodeString: (encodedText) => {
-    const decodedText = decodeURIComponent(escape(atob(encodedText)));
-    return decodedText;
-  }
-};
+const database = new Database(DB_VERSION);
 
 const allChannels = '所有频道';
 const originalChannels = '原始所有频道';
@@ -1065,65 +870,6 @@ function getElementById(idList = []) {
   }
   return domList;
 }
-
-(() => {
-  class SwipeHandler {
-    constructor(dom) {
-      this.domElement = dom;
-      this.startX = 0;
-      this.threshold = 100; // Minimum distance to consider a swipe
-      this.lastMoveTimestamp = 0;
-      this.debounceTime = 16; // Debounce time in ms (60fps)
-      this.domElement.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
-      this.domElement.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: true });
-    }
-
-    onTouchStart(evt) {
-      this.startX = evt.touches[0].clientX;
-    }
-
-    onTouchMove(evt) {
-      const currentTimestamp = window.performance.now();
-
-      if (currentTimestamp - this.lastMoveTimestamp < this.debounceTime) {
-        return;
-      }
-
-      this.lastMoveTimestamp = currentTimestamp;
-
-      const currentX = evt.touches[0].clientX;
-      const diffX = this.startX - currentX;
-
-      if (Math.abs(diffX) >= this.threshold) {
-        requestAnimationFrame(() => {
-          if (diffX > 0) {
-            this.trigger("swipeLeft");
-          } else {
-            this.trigger("swipeRight");
-          }
-          this.startX = currentX;
-        });
-      }
-    }
-
-    on(eventName, callback) {
-      this.domElement.addEventListener(eventName, callback, { once: true });
-    }
-
-    off(eventName, callback) {
-      this.domElement.removeEventListener(eventName, callback);
-    }
-
-    trigger(eventName) {
-      const event = new Event(eventName, { bubbles: true });
-      this.domElement.dispatchEvent(event);
-    }
-  }
-
-  window.swipe = (domElement) => {
-    return new SwipeHandler(domElement);
-  };
-})();
 
 /** @type {[
  * HTMLBodyElement,
@@ -1176,43 +922,18 @@ let storeFrame = 'false';
 let stopURL = null;
 
 function generateBlankFrame() {
+  printLog('generateBlankFrame');
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = 'darkblue';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   canvas.toBlob(blob => {
     stopURL = URL.createObjectURL(blob);
+    printLog('generateBlankFrame.generated', stopURL);
   }, 'video/mp4');
 }
 
-function timeAgo(timestamp) {
-  if(typeof timestamp === 'number') {
-    const now = new Date().getTime();
-    const secondsPast = (now - timestamp) / 1000;
-    if (secondsPast < 5) {
-      return '刚刚';
-    }
-    if (secondsPast < 60) {
-      return parseInt(secondsPast) + ' 秒前';
-    }
-    if (secondsPast < 3600) {
-      return parseInt(secondsPast / 60) + ' 分钟前';
-    }
-    if (secondsPast <= 86400) {
-      return parseInt(secondsPast / 3600) + ' 小时前';
-    }
-    if (secondsPast <= 2592000) {
-      return parseInt(secondsPast / 86400) + ' 天前';
-    }
-    if (secondsPast <= 31536000) {
-      return parseInt(secondsPast / 2592000) + ' 月前';
-    }
-    return parseInt(secondsPast / 31536000) + ' 年前';
-  }
-  return '未知时间';
-}
-
-const uniqueUrls = new Set();
+const UNIQUE_URLS = new Set();
 
 const VARS = {
   CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '',
@@ -1225,6 +946,36 @@ const VARS = {
   POSTER: 'background.jpeg',
   PING_TIMEOUT: 0
 };
+
+function timeAgo(timestamp) {
+  // 检查 timestamp 是否为合法的时间戳
+  if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp < 0) {
+    return '未知时间';
+  }
+
+  const now = new Date().getTime();
+  const secondsPast = Math.floor((now - timestamp) / 1000);
+
+  if (secondsPast < 5) {
+    return '刚刚';
+  }
+  if (secondsPast < 60) {
+    return Math.floor(secondsPast) + ' 秒前';
+  }
+  if (secondsPast < 3600) {
+    return Math.floor(secondsPast / 60) + ' 分钟前';
+  }
+  if (secondsPast < 86400) {
+    return Math.floor(secondsPast / 3600) + ' 小时前';
+  }
+  if (secondsPast < 30 * 86400) { // 30天
+    return Math.floor(secondsPast / 86400) + ' 天前';
+  }
+  if (secondsPast < 365 * 86400) { // 365天
+    return Math.floor(secondsPast / (30 * 86400)) + ' 月前';
+  }
+  return Math.floor(secondsPast / (365 * 86400)) + ' 年前';
+}
 
 async function listStore(source) {
   printLog('listStore', source);
@@ -1360,7 +1111,9 @@ function changePoster(poster) {
 }
 
 function stopVideo(poster = VARS.POSTER) {
-  videoPlayer.src = stopURL;
+  printLog('stopVideo');
+  if(stopURL)
+    videoPlayer.src = stopURL;
   videoPlayer.pause();
   document.title = SITE_TITLE;
   showPlayButton(false);
@@ -1532,8 +1285,8 @@ function processM3uLine(line) {
     VARS.CURRENT_GROUP = groupMatch ? groupMatch[1] : allChannels;
     VARS.CURRENT_TITLE = infoLine.split(',').pop().trim();
   } else if (line && !line.startsWith('#')) {
-    if (!uniqueUrls.has(line)) {
-      uniqueUrls.add(line);
+    if (!UNIQUE_URLS.has(line)) {
+      UNIQUE_URLS.add(line);
 
       const item = { title: VARS.CURRENT_TITLE || line, url: line, group: VARS.CURRENT_GROUP };
       playlistData.push(item);
@@ -1563,8 +1316,8 @@ function processTxtLine(line) {
     VARS.CURRENT_URL = lineArray.pop().trim();
     VARS.CURRENT_TITLE = lineArray.pop().trim();
 
-    if (!uniqueUrls.has(VARS.CURRENT_URL)) {
-      uniqueUrls.add(VARS.CURRENT_URL);
+    if (!UNIQUE_URLS.has(VARS.CURRENT_URL)) {
+      UNIQUE_URLS.add(VARS.CURRENT_URL);
       const group = VARS.CURRENT_GROUP || allChannels;
       const item = { title: VARS.CURRENT_TITLE, url: VARS.CURRENT_URL, group };
       playlistData.push(item);
@@ -1585,7 +1338,7 @@ function initPlayData(type, data) {
   playlistData = [];
   // Data in categories
   categories = { [allChannels]: [], [favoriteChannels]: [] };
-  uniqueUrls.clear();
+  UNIQUE_URLS.clear();
 
   const lines = data.m3u.split('\n');
 
@@ -1957,57 +1710,63 @@ function printLog(...args) {
 debugLogs.addEventListener('dblclick', (evt) => {
   debugLogs.innerHTML = '';
 });
-/** @param {HTMLVideoElement} video **/
-async function captureFrame(url, hls = false) {
-  if(storeFrame === 'true') {
+
+/**
+ * @param {HTMLVideoElement} video Video tag
+ * @param {string} url URL
+ * @param {Hls?} hls Hls instance
+ * @returns {string?} Returns frame URL
+ */
+async function captureFrame(video, url, hls = null) {
+  if(storeFrame === 'false') { return null; }
+
+  const frame = await new Promise((resolve) => {
     let timer = 0;
-    const frame = await new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const canvasContext = canvas.getContext('2d');
+    const canvas = document.createElement('canvas');
+    const canvasContext = canvas.getContext('2d');
 
-      if(hls) {
-        hls.attachMedia(frameVideo);
-      }
-      else {
-        frameVideo.src = url;
-      }
-
-      const onLoadedMetaData = (evt) => {
-        canvas.width = frameVideo.videoWidth;
-        canvas.height = frameVideo.videoHeight;
-        frameVideo.play().then(() => {
-          frameVideo.currentTime = 3;
-        }).catch(error => {
-          clearTimeout(timer);
-          cleanupEvents(null);
-        });
-      },
-      onSeeked = (evt) => {
-        canvas.width = frameVideo.videoWidth;
-        canvas.height = frameVideo.videoHeight;
-        canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-          clearTimeout(timer);
-          cleanupEvents(blob);
-        });
-      };
-
-      const cleanupEvents = (data) => {
-        frameVideo.removeEventListener('seeked', onSeeked);
-        frameVideo.removeEventListener('loadedmetadata', onLoadedMetaData);
-        resolve(data);
-      };
-
-      frameVideo.addEventListener('seeked', onSeeked);
-      frameVideo.addEventListener('loadedmetadata', onLoadedMetaData);
-
-      timer = setTimeout(() => {
+    if(hls) {
+      hls.attachMedia(video);
+    }
+    else if(url) {
+      video.src = url;
+    }
+    else {
+      return resolve(null);
+    }
+    const onLoadedMetaData = (evt) => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      video.play().then(() => {
+        video.currentTime = 3;
+      }).catch(error => {
         cleanupEvents(null);
-      }, VARS.PING_TIMEOUT - 1000);
-    });
-    return frame;
-  }
-  return null;
+      });
+    },
+    onSeeked = (evt) => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        cleanupEvents(blob);
+      });
+    };
+
+    const cleanupEvents = (data) => {
+      video.removeEventListener('seeked', onSeeked);
+      video.removeEventListener('loadedmetadata', onLoadedMetaData);
+      clearTimeout(timer);
+      resolve(data);
+    };
+
+    video.addEventListener('seeked', onSeeked);
+    video.addEventListener('loadedmetadata', onLoadedMetaData);
+
+    timer = setTimeout(() => {
+      cleanupEvents(null);
+    }, VARS.PING_TIMEOUT - 1000);
+  });
+  return frame;
 }
 
 /**
@@ -2032,7 +1791,7 @@ async function checkVideoPlayability(url) {
         hls.loadSource(url);
         hls.on(Hls.Events.MANIFEST_PARSED, async () => {
           const duration = new Date().getTime() - timestamp;
-          const frame = await captureFrame(url, hls);
+          const frame = await captureFrame(frameVideo, url, hls);
           cleanup();
           resolve({ ok: true, duration, frame, timeout: false });
         });
@@ -2063,7 +1822,7 @@ async function checkVideoPlayability(url) {
 
       video.onloadedmetadata = async () => {
         const duration = new Date().getTime() - timestamp;
-        const frame = await captureFrame(url);
+        const frame = await captureFrame(frameVideo, url);
         cleanup();
         resolve({ ok: true, duration, frame, timeout: false });
       };
