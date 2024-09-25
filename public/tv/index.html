@@ -2,10 +2,9 @@
 <html lang="en-US">
 
 <head>
-  <title>Hunhe TV</title>
+  <title>Hunhe IPTV</title>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
   <script src="js-indexeddb.js"></script>
   <script src="js-hls.js"></script>
   <script src="js-swipe.js"></script>
@@ -58,7 +57,14 @@ body {
       background-color: #333;
       position: relative;
     }
-      .container .video-container .video-wrapper #videoPlayer {
+      .container .video-container .video-wrapper #videoContainer {
+        display: flex;
+        width: 100%;
+        flex: 1;
+        margin: 0px;
+        padding: 0px;
+      }
+      .container .video-container .video-wrapper #videoContainer #videoPlayer {
         width: 100%;
         max-height: 100%;
         height: auto;
@@ -85,13 +91,26 @@ body {
       flex: 1;
       flex-flow: column;
     }
-    .container .video-container .video-control .controls {
+    .container .video-container .controls {
       width: 100%;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-flow: row;
       column-gap: 1rem;
+    }
+    .container .video-container #videoContainer #videoControls {
+      position: absolute;
+      bottom: 0px;
+      left: 0px;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 20;
+      padding: 1rem;
+      box-sizing: border-box;
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 0.5s;
     }
 
     .container #pagination {
@@ -390,9 +409,11 @@ button {
 #fullscreenButton {
   background-color: darkslateblue;
 }
-
 #playVideoButton {
   background-color: blueviolet;
+}
+#speakerButton {
+  background-color: rgb(43, 89, 226);
 }
 #playVideoButton.playing {
   background-color: darkmagenta;
@@ -723,10 +744,10 @@ input:checked + .slider:before {
     </symbol>
     <!-- LIST CHECK -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="list" viewBox="0 0 16 16">
-        <path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2"/>
-        <path fill-rule="evenodd" d="M12 3v10h-1V3z"/>
-        <path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1z"/>
-        <path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5"/>
+      <path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2"/>
+      <path fill-rule="evenodd" d="M12 3v10h-1V3z"/>
+      <path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1z"/>
+      <path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5"/>
     </symbol>
     <!-- CLOSE -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="close" viewBox="0 0 16 16">
@@ -736,8 +757,17 @@ input:checked + .slider:before {
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="search" viewBox="0 0 16 16">
       <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
     </symbol>
+    <!-- RESET -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="reset" viewBox="0 0 16 16">
       <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+    </symbol>
+    <!-- MUTE -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="mute" viewBox="0 0 16 16">
+      <path d="M9 4a.5.5 0 0 0-.812-.39L5.825 5.5H3.5A.5.5 0 0 0 3 6v4a.5.5 0 0 0 .5.5h2.325l2.363 1.89A.5.5 0 0 0 9 12zM6.312 6.39 8 5.04v5.92L6.312 9.61A.5.5 0 0 0 6 9.5H4v-3h2a.5.5 0 0 0 .312-.11M12.025 8a4.5 4.5 0 0 1-1.318 3.182L10 10.475A3.5 3.5 0 0 0 11.025 8 3.5 3.5 0 0 0 10 5.525l.707-.707A4.5 4.5 0 0 1 12.025 8"/>
+    </symbol>
+    <!-- UNMUTE -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="unmute" viewBox="0 0 16 16">
+      <path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06M6 5.04 4.312 6.39A.5.5 0 0 1 4 6.5H2v3h2a.5.5 0 0 1 .312.11L6 10.96zm7.854.606a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0"/>
     </symbol>
   </svg>
 
@@ -747,7 +777,7 @@ input:checked + .slider:before {
         <div id="m3uInputContainer">
           <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
           <div class="m3u-controls">
-            <button id="loadM3uButton">加载播放列表</button>
+            <button id="loadM3uButton">从地址添加频道</button>
             <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
           </div>
 
@@ -759,12 +789,21 @@ input:checked + .slider:before {
 
           <div class="tools">
             <div class="settings-row">
+              <label class="label">自动检查可用性</label>
+              <label class="switch">
+                <input type="checkbox" id="autoCheckCheckbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
               <label class="label">检查缩略图</label>
               <label class="switch">
                 <input type="checkbox" id="storeFrameCheckbox">
                 <span class="slider"></span>
               </label>
             </div>
+
             <div class="settings-row">
               <label class="label">检查超时 (<span id="checkTimeoutDisplay">0</span>ms)</label>
               <input type="range" id="checkTimeout" class="range" min="5" max="60" step="1" required />
@@ -818,7 +857,19 @@ input:checked + .slider:before {
     <div class="video-container">
       <div class="box">
         <div class="video-wrapper">
-          <video id="videoPlayer" playsinline poster="background.jpeg"></video>
+
+          <figure id="videoContainer">
+            <video id="videoPlayer" playsinline poster="background.jpeg"></video>
+            <div id="videoControls" class="controls">
+              <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
+              <progress id="progressControl" value="0" min="0"></progress>
+              <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
+              <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
+              <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
+              <button id="fullscreenButton" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
+            </div>
+          </figure>
+
           <video id="frameVideo" playsinline disablepictureinpicture muted></video>
         </div>
         <div id="videoControl" class="video-control">
@@ -833,12 +884,6 @@ input:checked + .slider:before {
             <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
 
-          <div class="controls">
-            <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
-            <button id="fullscreenButton" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
-            <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
-            <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
-          </div>
         </div>
 
       </div>
@@ -846,8 +891,8 @@ input:checked + .slider:before {
   </div>
 
 <script>
-const SITE_TITLE = 'Hunhe IPTV';
-
+const SITE_TITLE_WEB = 'Hunhe IPTV';
+const SITE_TITLE_NATIVE = 'Hunhe IPTV | v1.0';
 const DB_VERSION = 4;
 const UNSAFE_HTTP = 'http://';
 const TYPES = {
@@ -874,37 +919,40 @@ function getElementById(idList = []) {
 /** @type {[
  * HTMLBodyElement,
  * HTMLVideoElement, HTMLDivElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
- * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement,
- * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLFormElement,
+ * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement, HTMLVideoElement,
+ * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLFormElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLButtonElement,
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLTextAreaElement, HTMLInputElement,
- * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement,
- * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
+ * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement, HTMLElement,
+ * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
  * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement, HTMLVideoElement, HTMLDivElement,
+ * HTMLProgressElement
  * ]} **/
 const [
   pageBody,
   videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
   loadM3uButton, settingsButton, m3uInputContainer, playlistContent, videoControl,
-  playlistContainer, playVideoButton, m3uList, searchContainer,
+  playlistContainer, playVideoButton, m3uList, searchContainer, speakerButton,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
   fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
   pageControl, clearButton, closeButton, m3uContent, m3uContentKey,
-  loadContentuButton, categorySelect, playlistItems, paginationGroup,
-  pageContainer, databaseSize, databaseCategories, storeFrameCheckbox,
-  checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage
+  loadContentuButton, categorySelect, playlistItems, paginationGroup, videoContainer,
+  pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
+  checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
+  progressControl
  ] = getElementById([
   'pageBody',
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent', 'videoControl',
-  'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer',
+  'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer', 'speakerButton',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
   'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
   'pageControl', 'clearButton', 'closeButton', 'm3uContent', 'm3uContentKey',
-  'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination',
-  'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox',
-  'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage'
+  'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination', 'videoContainer',
+  'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
+  'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
+  'progressControl'
 ]);
 
 let itemsPerPage = 15;
@@ -919,6 +967,7 @@ let filteredPlaylistData = [];
 /** @type {Object.<string, number>} **/
 let videoTimestamp = {};
 let storeFrame = 'false';
+let autoCheck = 'false';
 let stopURL = null;
 
 function generateBlankFrame() {
@@ -933,8 +982,6 @@ function generateBlankFrame() {
   }, 'video/mp4');
 }
 
-const UNIQUE_URLS = new Set();
-
 const VARS = {
   CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '',
   ICON_PLAY: '<svg width="20" height="20"><use xlink:href="#play"/></svg>',
@@ -943,9 +990,62 @@ const VARS = {
   ICON_FULLSCREEN: '<svg width="20" height="20"><use xlink:href="#fullscreen"/></svg>',
   ICON_UNFAVORITE: '<svg width="20" height="20"><use xlink:href="#unfavorite"/></svg>',
   ICON_FAVORITE: '<svg width="20" height="20"><use xlink:href="#favorite"/></svg>',
+  ICON_SPEAKER_ON: '<svg width="20" height="20"><use xlink:href="#unmute"/></svg>',
+  ICON_SPEAKER_OFF: '<svg width="20" height="20"><use xlink:href="#mute"/></svg>',
   POSTER: 'background.jpeg',
-  PING_TIMEOUT: 0
+  PING_TIMEOUT: 0,
+  URLS: new Set(),
+  IS_NATIVE: (typeof window.electronAPI !== 'undefined')
 };
+
+class WebShell {
+  async makeRequest(url, options = {}) {
+    console.log('web.makeRequest');
+    return new Promise((resolve, reject) => {
+      const response = fetch(url, options).then(response => {
+        if (response.ok || response.status === 302) {
+          response.text().then(data => {
+            if (data) {
+              resolve(data); 
+            }
+          }).catch(error => {
+            reject(error);
+          });
+        }
+      }).catch(error => {
+        reject(error);
+      });
+    });
+  }
+
+  changeTitle(title = SITE_TITLE_WEB) {
+    document.title = title;
+  }
+}
+
+class ElectronShell {
+  async makeRequest(url, options = {}) {
+    console.log('native.makeRequest');
+    return new Promise((resolve, reject) => {
+      const response = window['electronAPI'].makeRequest(url, options);
+      if(response.error) {
+        reject(response.error);
+      }
+      else if(response.data) {
+        resolve(response.data);
+      }
+      else {
+        reject({});
+      }
+    });
+  }
+
+  changeTitle(title = SITE_TITLE_NATIVE) {
+    window['electronAPI'].changeTitle(title);
+  }
+}
+
+const shell = VARS.IS_NATIVE ? new ElectronShell() : new WebShell();
 
 function timeAgo(timestamp) {
   // 检查 timestamp 是否为合法的时间戳
@@ -977,11 +1077,15 @@ function timeAgo(timestamp) {
   return Math.floor(secondsPast / (365 * 86400)) + ' 年前';
 }
 
+function getCachedM3uUrl() {
+  return window.localStorage.getItem('cachedM3uUrl') || '';
+}
+
 async function listStore(source) {
   printLog('listStore', source);
   settingsButton.disabled = true;
   const cachedM3uSource = localStorage.getItem('cachedM3uSource') || SOURCES.URL;
-  const cachedM3uUrl = localStorage.getItem('cachedM3uUrl') || '';
+  const cachedM3uUrl = getCachedM3uUrl();
 
   m3uList.innerHTML = '';
 
@@ -1013,13 +1117,14 @@ async function listStore(source) {
       if(element.textContent === cachedM3uUrl) {
         return;
       }
+
       // if(data.source === SOURCES.CONTENT) {
-      //   m3uUrlInput.value = '';
+      //   setUrlInput('');
       //   m3uContent.value = data.m3u;
       // }
       // else 
       if(data.source === SOURCES.URL) {
-        m3uUrlInput.value = database.decodeString(m3uItem.id);
+        setUrlInput(database.decodeString(m3uItem.id));
       }
       gotoPage(1);
       processM3uData(data.type || TYPES.M3U, data);
@@ -1059,6 +1164,9 @@ function loadLocalCache() {
   storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
   storeFrameCheckbox.checked = storeFrame === 'true';
 
+  autoCheck = window.localStorage.getItem('autoCheck') === 'true' ? 'true' : 'false';
+  autoCheckCheckbox.checked = autoCheck === 'true';
+
   VARS.PING_TIMEOUT = parseInt(window.localStorage.getItem('PING_TIMEOUT')) || 10000;
   checkTimeout.value = Math.round(VARS.PING_TIMEOUT / 1000);
   checkTimeoutDisplay.textContent = checkTimeout.value;
@@ -1096,7 +1204,6 @@ function loadVideoTimestamp() {
   return videoTimestamp;
 }
 
-
 function playLastVideo(isUserAction = true) {
   const lastPlayedItem = getLastVideoItem();
   if (lastPlayedItem) {
@@ -1115,7 +1222,8 @@ function stopVideo(poster = VARS.POSTER) {
   if(stopURL)
     videoPlayer.src = stopURL;
   videoPlayer.pause();
-  document.title = SITE_TITLE;
+  progressControl.value = 0;
+  shell.changeTitle();
   showPlayButton(false);
   rewindButton.disabled = forwardButton.disabled = true;
   saveVideoTimestamp();
@@ -1131,9 +1239,10 @@ function showPlayButton(showControls = false) {
 }
 
 function onStopped() {
-  showPlayButton(true);
-  document.title = SITE_TITLE;;
+  showPlayButton();
+  shell.changeTitle();
   saveVideoTimestamp();
+  showControls();
 }
 
 function setVideoTimestamp(timestamp) {
@@ -1215,35 +1324,31 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
 
   async function fetchDataAndProcess(id, payload, cached) {
     printLog('fetchDataAndProcess');
-    loadM3uButton.disabled = true;
-    const safeUrl = m3uUrl.startsWith(UNSAFE_HTTP) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
+    m3uUrlInput.disabled = loadM3uButton.disabled = true;
+    const safeUrl = (m3uUrl.startsWith(UNSAFE_HTTP) && VARS.IS_NATIVE === false) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
     try {
-      const response = await fetch(safeUrl, { cache: 'no-store' });
-      if (response.ok || response.status === 302) {
-        const data = await response.text();
-        loadM3uButton.disabled = false;
-        if (data) {
-          const time = new Date().getTime();
-          const x = { id, m3u: data, source: SOURCES.URL, type, time };
-          if (payload) {
-            await database.updateData(x);
-          } else {
-            await database.addData(x);
-          }
-          processM3uData(type, x, cached, false, isBooting);
-          listStore('fetch');
-          gotoPage(1);
+      const data = await shell.makeRequest(safeUrl, { cache: 'no-store' });
+
+      m3uUrlInput.disabled = loadM3uButton.disabled = false;
+      if (data) {
+        const time = new Date().getTime();
+        const x = { id, m3u: data, source: SOURCES.URL, type, time };
+        if (payload) {
+          await database.updateData(x);
         } else {
-          errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
-          showM3uInput();
+          await database.addData(x);
         }
+        processM3uData(type, x, cached, false, isBooting);
+        listStore('fetch');
+        gotoPage(1);
       } else {
-        throw new Error(`Fetch error: ${response.status}`);
+        errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
+        showM3uInput();
       }
     } catch (error) {
       errorMessage.textContent = `加载 M3U 文件时出错，请检查 URL 是否正确。${error.message}`;
       showM3uInput();
-      loadM3uButton.disabled = false;
+      m3uUrlInput.disabled = loadM3uButton.disabled = false;
     }
   }
 
@@ -1286,9 +1391,8 @@ function processM3uLine(line) {
     VARS.CURRENT_GROUP = groupMatch ? groupMatch[1] : allChannels;
     VARS.CURRENT_TITLE = infoLine.split(',').pop().trim();
   } else if (line && !line.startsWith('#')) {
-    if (!UNIQUE_URLS.has(line)) {
-      UNIQUE_URLS.add(line);
-
+    if (!VARS.URLS.has(line)) {
+      VARS.URLS.add(line);
       const item = { title: VARS.CURRENT_TITLE || line, url: line, group: VARS.CURRENT_GROUP };
       playlistData.push(item);
       categories[allChannels].push(item);
@@ -1317,8 +1421,8 @@ function processTxtLine(line) {
     VARS.CURRENT_URL = lineArray.pop().trim();
     VARS.CURRENT_TITLE = lineArray.pop().trim();
 
-    if (!UNIQUE_URLS.has(VARS.CURRENT_URL)) {
-      UNIQUE_URLS.add(VARS.CURRENT_URL);
+    if (!VARS.URLS.has(VARS.CURRENT_URL)) {
+      VARS.URLS.add(VARS.CURRENT_URL);
       const group = VARS.CURRENT_GROUP || allChannels;
       const item = { title: VARS.CURRENT_TITLE, url: VARS.CURRENT_URL, group };
       playlistData.push(item);
@@ -1339,7 +1443,7 @@ function initPlayData(type, data) {
   playlistData = [];
   // Data in categories
   categories = { [allChannels]: [], [favoriteChannels]: [] };
-  UNIQUE_URLS.clear();
+  VARS.URLS.clear();
 
   const lines = data.m3u.split('\n');
 
@@ -1449,7 +1553,7 @@ async function displayPlaylistPage(page) {
     if (playCache) {
       updateListItemStyle(li, playCache.result, lastPlayedItem, isFav);
     }
-    else {
+    else if (autoCheck === 'true') {
       // No cache or cleaned
       li.className = 'checking';
       const result = await checkVideoPlayability(videoUrl);
@@ -1591,16 +1695,26 @@ function hlsPlay(source) {
     const hls = new Hls();
     hls.loadSource(source.url);
     hls.attachMedia(videoPlayer);
-    hls.on(Hls.Events.MANIFEST_PARSED, (evt) => {
-      printLog('Hls.Events.MANIFEST_PARSED');
+    hls.on(Hls.Events.LEVEL_LOADED, (evt, data) => {
+      printLog('Hls.Events.LEVEL_LOADED');
       playVideSource(source);
+      if(data.details.live) {
+        progressControl.className = 'hidden';
+      }
+      else {
+        progressControl.className = '';
+        progressControl.setAttribute('max', data.details.totalduration); 
+      }
+    });
+    hls.on(Hls.Events.MANIFEST_PARSED, (evt, data) => {
+      printLog('Hls.Events.MANIFEST_PARSED');
     });
     hls.on(Hls.Events.ERROR, (error) => {
       hls.destroy();
     });
   }
   catch(error) {
-    console.log('HLS ERROR 1');
+    printLog('HLS ERROR 1');
   }
 }
 
@@ -1612,6 +1726,7 @@ function nativePlay(source) {
     if (source) {
       playVideSource(source);
     }
+    progressControl.setAttribute('max', evt.target.duration);
   }
   videoPlayer.removeEventListener('loadedmetadata', onLoadedMetadata);
   videoPlayer.addEventListener('loadedmetadata', onLoadedMetadata);
@@ -1648,7 +1763,6 @@ async function isFavorite(id) {
  * @param {{ title: string, url: string, group: string }} playingItem Play item
  **/
 async function onPlay(playingItem) {
-  videoPlayer.controls = true;
   errorMessage.textContent = '';
   favoriteButton.disabled = false;
 
@@ -1671,10 +1785,12 @@ function onPlaying() {
   playVideoButton.innerHTML = VARS.ICON_STOP;;
   fullscreenButton.disabled = false;
   playVideoButton.className = 'played';
-  videoPlayer.controls = true;
   errorMessage.textContent = '';
   videoPlayer.className = '';
   rewindButton.disabled = forwardButton.disabled = false;
+
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(hideControls, hideDelay);
 }
 
 /**
@@ -1684,14 +1800,14 @@ function onPlaying() {
 function playVideo(source, isUserAction = true) {
   favoriteButton.disabled = true;
   if (source) {
-    document.title = source.title;
+    shell.changeTitle(source.title);
   } else {
-    document.title = SITE_TITLE;
+    shell.changeTitle();
   }
   if(isUserAction === false) { return; }
   window.localStorage.removeItem('lastPlayedItem');
-  videoPlayer.muted = true;
-  if (Hls.isSupported() && source.url.startsWith(UNSAFE_HTTP) === false) {
+  muteOrUnmuteVideo(true);
+  if (Hls.isSupported() && (source.url.startsWith(UNSAFE_HTTP) === false || VARS.IS_NATIVE)) {
     hlsPlay(source);
   }
   else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
@@ -1702,15 +1818,34 @@ function playVideo(source, isUserAction = true) {
   }
 }
 
+function muteOrUnmuteVideo(mute) {
+  videoPlayer.muted = mute;
+  speakerButton.innerHTML = videoPlayer.muted ? VARS.ICON_SPEAKER_ON : VARS.ICON_SPEAKER_OFF;
+}
+
+// 控制器隐藏的延迟时间 (毫秒)
+const hideDelay = 2000;
+// 设置一个定时器变量
+let hideTimer = 0;
+
+// 隐藏控件
+function hideControls() {
+  videoControls.style.opacity = 0;
+  videoControls.style.pointerEvents = 'none';
+}
+
+// 显示控件
+function showControls() {
+  videoControls.style.opacity = 1;
+  videoControls.style.pointerEvents = 'auto';
+}
+
 /**
  * @param {Array<any>} args
  */
 function printLog(...args) {
   debugLogs.innerHTML = `$ ${args.join(' ')}\n`.concat(debugLogs.innerHTML);
 }
-debugLogs.addEventListener('dblclick', (evt) => {
-  debugLogs.innerHTML = '';
-});
 
 /**
  * @param {HTMLVideoElement} video Video tag
@@ -1779,7 +1914,7 @@ async function checkVideoPlayability(url) {
   const timestamp = new Date().getTime();
   return new Promise((resolve) => {
     let timeoutId = 0;
-    if (Hls.isSupported() && url.startsWith(UNSAFE_HTTP) === false) {
+    if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || VARS.IS_NATIVE)) {
       try {
         const hls = new Hls();
         const cleanup = () => {
@@ -1808,7 +1943,7 @@ async function checkVideoPlayability(url) {
         }, VARS.PING_TIMEOUT);
       }
       catch(error) {
-        console.log('HLS ERROR 2');
+        printLog('HLS ERROR 2');
       }
     }
     else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
@@ -1860,11 +1995,27 @@ async function fetchFavorites() {
   return categories[favoriteChannels];
 }
 
+function setUrlInput(url, label = '更新') {
+  
+  m3uUrlInput.value = url;
+  loadM3uButton.textContent = label;
+}
+
+function setFullscreenData(state) {
+  videoContainer.dataset['fullscreen'] = !!state;
+  if(videoContainer.dataset['fullscreen']) {
+    pageContainer.classList.add('fullscreen');
+  }
+  else {
+    pageContainer.classList.remove('fullscreen');
+  }
+}
+
 // 加载缓存的数据
 async function startup() {
   const cachedM3uUrl = window.localStorage.getItem('cachedM3uUrl') || '';
   if (cachedM3uUrl) {
-    m3uUrlInput.value = cachedM3uUrl;
+    setUrlInput(cachedM3uUrl);
     await loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
   }
   else {
@@ -1876,6 +2027,11 @@ async function startup() {
   listStore('startup');
   initSideMenu();
   generateBlankFrame();
+  shell.changeTitle();
+
+  if (!document?.fullscreenEnabled) {
+    fullscreenButton.className = 'hidden';
+  }
 }
 
 // 事件监听器
@@ -1959,6 +2115,17 @@ function resetPoster(evt) {
   }
 }
 
+function detectM3uUrl() {
+  loadM3uButton.disabled = !m3uUrlInput.checkValidity();
+  const cachedM3uUrl = getCachedM3uUrl();
+  if(cachedM3uUrl === m3uUrlInput.value) {
+    loadM3uButton.textContent = '更新';
+  }
+  else {
+    loadM3uButton.textContent = '从地址添加频道'; 
+  }
+}
+
 nextButton.addEventListener('click', gotoNextPage);
 nextButton.addEventListener('dblclick', gotoNextPage);
 
@@ -1995,6 +2162,16 @@ searchInput.addEventListener('input', function() {
   searchInput.dispatchEvent(new Event('keyup'));
 });
 
+m3uUrlInput.addEventListener('blur', (evt) => {
+  detectM3uUrl();
+});
+m3uUrlInput.addEventListener('keyup', (evt) => {
+  detectM3uUrl();
+});
+m3uUrlInput.addEventListener('input', (evt) => {
+  detectM3uUrl();
+});
+
 clearButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   searchInput.value = '';
@@ -2012,7 +2189,6 @@ listCheckButton.addEventListener('click', (evt) => {
 });
 
 videoPlayer.addEventListener('timeupdate', (evt) => {
-  console.log(evt.target);
   if(videoPlayer.src === stopURL) { return; }
 
   const lastPlayedItem = getLastVideoItem();
@@ -2020,11 +2196,13 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
     /** @type {HTMLVideoElement} **/
     const player = evt.target;
     if(player.duration - player.currentTime < 10) {
-      resetVideoTimestamp();
+      // resetVideoTimestamp();
     }
-    else {
-      setVideoTimestamp(player.currentTime);
-    }
+    else {  }
+    progressControl.value = player.currentTime;
+    setVideoTimestamp(player.currentTime);
+    if (!progressControl.getAttribute('max'))
+      progress.setAttribute('max', player.duration);
   }
 });
 
@@ -2044,6 +2222,7 @@ videoPlayer.addEventListener('play', (evt) => {
 });
 videoPlayer.addEventListener('loadeddata', (evt) => {
   printLog('videoPlayer.loadeddata');
+  showControls();
 });
 videoPlayer.addEventListener('playing', (evt) => {
   printLog('videoPlayer.playing');
@@ -2069,8 +2248,41 @@ videoPlayer.addEventListener('error', (evt) => {
   }
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
 });
+['mouseover', 'touchstart'].forEach(eventType => {
+  [videoPlayer, videoControls].forEach(element => {
+    element.addEventListener(eventType, () => {
+      clearTimeout(hideTimer);
+      showControls();
+    });
+  });
+});
+['mouseout', 'touchend'].forEach(eventType => {
+  [videoPlayer, videoControls].forEach(element => {
+    element.addEventListener(eventType, () => {
+      hideTimer = setTimeout(hideControls, hideDelay);
+    });
+  });
+});
+[videoPlayer, videoControls].forEach(element => {
+  element.addEventListener('touchcancel', () => {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(hideControls, hideDelay);
+  });
+});
 videoPlayer.addEventListener('dblclick', resetPoster);
 errorControl.addEventListener('dblclick', resetPoster);
+
+progressControl.addEventListener("click", (evt) => {
+  const rect = progressControl.getBoundingClientRect();
+  const pos = (evt.pageX - rect.left) / progressControl.offsetWidth;
+  videoPlayer.currentTime = pos * videoPlayer.duration;
+
+  const lastPlayedItem = getLastVideoItem();
+  if(lastPlayedItem) {
+    setVideoTimestamp(videoPlayer.currentTime);
+  }
+});
+
 playVideoButton.addEventListener('click', (evt) => {
   if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
     stopVideo();
@@ -2080,10 +2292,22 @@ playVideoButton.addEventListener('click', (evt) => {
   }
 });
 
+speakerButton.addEventListener('click', (evt) => {
+  muteOrUnmuteVideo(!videoPlayer.muted);
+});
+
 fullscreenButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
-  videoPlayer.requestFullscreen();
+  if (document.fullscreenElement !== null) {
+    // The document is in fullscreen mode
+    document.exitFullscreen();
+    setFullscreenData(false);
+  } else {
+    // The document is not in fullscreen mode
+    videoContainer.requestFullscreen();
+    setFullscreenData(true);
+  }
 });
 
 rewindButton.addEventListener('click', (evt) => {
@@ -2123,13 +2347,19 @@ storeFrameCheckbox.addEventListener('change', (evt) => {
   storeFrame = evt.target.checked ? 'true' : 'false';
   window.localStorage.setItem('storeFrame', storeFrame);
 });
-
+autoCheckCheckbox.addEventListener('change', (evt) => {
+  autoCheck = evt.target.checked ? 'true' : 'false';
+  window.localStorage.setItem('autoCheck', autoCheck);
+});
 checkTimeout.addEventListener('input', (evt) => {
   VARS.PING_TIMEOUT = parseInt(evt.target.value) * 1000;
   checkTimeoutDisplay.textContent = evt.target.value;
   window.localStorage.setItem('PING_TIMEOUT', VARS.PING_TIMEOUT);
 });
 
+debugLogs.addEventListener('dblclick', (evt) => {
+  debugLogs.innerHTML = '';
+});
 
 window.swipe(videoControl).on('swipeLeft', (evt) => {
   displaySideMenu(false);
@@ -2139,7 +2369,7 @@ window.swipe(videoControl).on('swipeRight', (evt) => {
   displaySideMenu(true);
 });
 
-let muted = true, isHidden = false;
+let isHidden = false;
 document.addEventListener('keydown', function (event) {
   if (event.key === 'Escape' || event.keyCode === 27) {
     event.preventDefault();
@@ -2148,9 +2378,7 @@ document.addEventListener('keydown', function (event) {
     }
     else {
       pageContainer.className = 'hidden';
-      muted = videoPlayer.muted;
-      //
-      videoPlayer.muted = true;
+      muteOrUnmuteVideo(true);
       videoPlayer.pause();
     }
     isHidden = !isHidden;
@@ -2162,8 +2390,9 @@ window.addEventListener('beforeunload', (evt) => {
 });
 
 // 初始化
-startup();
+window.addEventListener('DOMContentLoaded', (evt) => {
+  startup();
+});
 </script>
-
 </body>
 </html>
