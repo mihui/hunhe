@@ -1213,11 +1213,12 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
   const m3uUrl = m3uUrlInput.value.trim();
   const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
 
-  async function fetchDataAndProcess(id, payload) {
+  async function fetchDataAndProcess(id, payload, cached) {
+    printLog('fetchDataAndProcess');
     loadM3uButton.disabled = true;
     const safeUrl = m3uUrl.startsWith(UNSAFE_HTTP) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
     try {
-      const response = await fetch(safeUrl);
+      const response = await fetch(safeUrl, { cache: 'no-store' });
       if (response.ok || response.status === 302) {
         const data = await response.text();
         loadM3uButton.disabled = false;
@@ -1229,7 +1230,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
           } else {
             await database.addData(x);
           }
-          processM3uData(type, x, fromCache, false, isBooting);
+          processM3uData(type, x, cached, false, isBooting);
           listStore('fetch');
           gotoPage(1);
         } else {
@@ -1252,7 +1253,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
     if (payload && payload.m3u && fromCache) {
       processM3uData(type, payload, true, isBooting, false);
     } else {
-      fetchDataAndProcess(id, payload);
+      fetchDataAndProcess(id, payload, fromCache);
     }
   } else {
     errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
