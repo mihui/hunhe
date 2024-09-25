@@ -813,7 +813,7 @@ input:checked + .slider:before {
       </div>
     </div>
 
-    <div class="video-container">
+    <div id="videoContainer" class="video-container">
       <div class="box">
         <div class="video-wrapper">
           <video id="videoPlayer" playsinline poster="background.jpeg"></video>
@@ -1066,51 +1066,72 @@ function getElementById(idList = []) {
   return domList;
 }
 
-(function() {
+(function () {
   function SwipeHandler(dom) {
     this.domElement = dom;
     this.startX = 0;
     this.threshold = 100; // Minimum distance to consider a swipe
+    this.lastMoveTimestamp = 0;
+    this.debounceTime = 16; // Debounce time in ms (60fps)
 
-    this.domElement.addEventListener('touchstart', this.onTouchStart.bind(this));
-    this.domElement.addEventListener('touchmove', this.onTouchMove.bind(this));
+    this.domElement.addEventListener(
+      "touchstart",
+      this.onTouchStart.bind(this),
+      { passive: true }
+    );
+    this.domElement.addEventListener(
+      "touchmove",
+      this.onTouchMove.bind(this),
+      { passive: true }
+    );
   }
 
-  SwipeHandler.prototype.onTouchStart = function(evt) {
+  SwipeHandler.prototype.onTouchStart = function (evt) {
     this.startX = evt.touches[0].clientX;
   };
 
-  SwipeHandler.prototype.onTouchMove = function(evt) {
+  SwipeHandler.prototype.onTouchMove = function (evt) {
+    const currentTimestamp = performance.now();
+
+    if (currentTimestamp - this.lastMoveTimestamp < this.debounceTime) {
+      return;
+    }
+
+    this.lastMoveTimestamp = currentTimestamp;
+
     const currentX = evt.touches[0].clientX;
     const diffX = this.startX - currentX;
 
     if (Math.abs(diffX) >= this.threshold) {
-      if (diffX > 0) {
-        this.trigger('swipeLeft');
-      } else {
-        this.trigger('swipeRight');
-      }
-      this.startX = currentX;
+      requestAnimationFrame(() => {
+        if (diffX > 0) {
+          this.trigger("swipeLeft");
+        } else {
+          this.trigger("swipeRight");
+        }
+        this.startX = currentX;
+      });
     }
   };
 
-  SwipeHandler.prototype.on = function(eventName, callback) {
+  SwipeHandler.prototype.on = function (eventName, callback) {
     this.domElement.addEventListener(eventName, callback);
   };
 
-  SwipeHandler.prototype.off = function(eventName, callback) {
+  SwipeHandler.prototype.off = function (eventName, callback) {
     this.domElement.removeEventListener(eventName, callback);
   };
 
-  SwipeHandler.prototype.trigger = function(eventName) {
+  SwipeHandler.prototype.trigger = function (eventName) {
     const event = new Event(eventName);
     this.domElement.dispatchEvent(event);
   };
 
-  window.swipe = function(domElement) {
+  window.swipe = function (domElement) {
     return new SwipeHandler(domElement);
   };
 })();
+
 /** @type {[
  * HTMLBodyElement,
  * HTMLVideoElement, HTMLDivElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
@@ -1121,7 +1142,7 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLTextAreaElement, HTMLInputElement,
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
- * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement, HTMLVideoElement, HTMLDivElement
+ * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement, HTMLVideoElement, HTMLDivElement,
  * ]} **/
 const [
   pageBody,
@@ -2357,11 +2378,11 @@ checkTimeout.addEventListener('input', (evt) => {
 });
 
 
-window.swipe(pageBody).on('swipeLeft', (evt) => {
+window.swipe(errorControl).on('swipeLeft', (evt) => {
   displaySideMenu(false);
 });
 
-window.swipe(pageBody).on('swipeRight', (evt) => {
+window.swipe(errorControl).on('swipeRight', (evt) => {
   displaySideMenu(true);
 });
 
