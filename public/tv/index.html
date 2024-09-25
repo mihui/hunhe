@@ -112,7 +112,17 @@ body {
       pointer-events: auto;
       transition: opacity 0.5s;
     }
-
+    .container .video-container #videoContainer #videoControls button {
+      flex: 0;
+    }
+    .container .video-container #videoContainer #videoControls .progress {
+      flex: 1;
+      width: 100%;
+      display: flex;
+    }
+    .container .video-container #videoContainer #videoControls .progress #progressControl {
+      width: 100%;
+    }
     .container #pagination {
       display: flex;
       justify-content: space-between;
@@ -862,7 +872,7 @@ input:checked + .slider:before {
             <video id="videoPlayer" playsinline poster="background.jpeg"></video>
             <div id="videoControls" class="controls">
               <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
-              <progress id="progressControl" value="0" min="0"></progress>
+              <div class="progress"><input id="progressControl" type="range" value="0" min="0" max="0"></div>
               <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
               <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
               <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
@@ -927,7 +937,7 @@ function getElementById(idList = []) {
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement, HTMLElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
  * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement, HTMLVideoElement, HTMLDivElement,
- * HTMLProgressElement
+ * HTMLInputElement
  * ]} **/
 const [
   pageBody,
@@ -1699,10 +1709,10 @@ function hlsPlay(source) {
       printLog('Hls.Events.LEVEL_LOADED');
       playVideSource(source);
       if(data.details.live) {
-        progressControl.className = 'hidden';
+        progressControl.classList.add('hidden');
       }
       else {
-        progressControl.className = '';
+        progressControl.classList.remove('hidden');
         progressControl.setAttribute('max', data.details.totalduration); 
       }
     });
@@ -2272,15 +2282,25 @@ videoPlayer.addEventListener('error', (evt) => {
 videoPlayer.addEventListener('dblclick', resetPoster);
 errorControl.addEventListener('dblclick', resetPoster);
 
-progressControl.addEventListener("click", (evt) => {
-  const rect = progressControl.getBoundingClientRect();
-  const pos = (evt.pageX - rect.left) / progressControl.offsetWidth;
-  videoPlayer.currentTime = pos * videoPlayer.duration;
+// progressControl.addEventListener("click", (evt) => {
+//   const rect = progressControl.getBoundingClientRect();
+//   const pos = (evt.pageX - rect.left) / progressControl.offsetWidth;
+//   videoPlayer.currentTime = pos * videoPlayer.duration;
 
-  const lastPlayedItem = getLastVideoItem();
-  if(lastPlayedItem) {
-    setVideoTimestamp(videoPlayer.currentTime);
-  }
+//   const lastPlayedItem = getLastVideoItem();
+//   if(lastPlayedItem) {
+//     setVideoTimestamp(videoPlayer.currentTime);
+//   }
+// });
+
+progressControl.addEventListener('input', (evt) => {
+  const value = evt.target.value;
+  try {
+    const currentTime = parseFloat(value);
+    if (!isNaN(currentTime)) {
+      videoPlayer.currentTime = currentTime;
+    }
+  } catch (error) {}
 });
 
 playVideoButton.addEventListener('click', (evt) => {
