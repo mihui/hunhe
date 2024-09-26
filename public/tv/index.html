@@ -970,7 +970,7 @@ function getElementById(idList = []) {
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement, HTMLElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
  * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement, HTMLVideoElement, HTMLDivElement,
- * HTMLInputElement, HTMLSpanElement, HTMLSpanElement
+ * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement
  * ]} **/
 const [
   pageBody,
@@ -983,7 +983,7 @@ const [
   loadContentuButton, categorySelect, playlistItems, paginationGroup, videoContainer,
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
-  progressControl, currentTimeDisplay, totalTimeDisplay
+  progressControl, currentTimeDisplay, totalTimeDisplay, videoControls
  ] = getElementById([
   'pageBody',
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
@@ -995,7 +995,7 @@ const [
   'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination', 'videoContainer',
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
-  'progressControl', 'currentTimeDisplay', 'totalTimeDisplay'
+  'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls'
 ]);
 
 let itemsPerPage = 15;
