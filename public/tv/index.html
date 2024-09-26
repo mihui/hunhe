@@ -92,7 +92,7 @@ body {
       flex-flow: column;
       user-select: none;
     }
-    .container .video-container .controls {
+    .container .video-container .user-controls {
       width: 100%;
       display: flex;
       align-items: center;
@@ -382,7 +382,7 @@ button {
   justify-content: center;
 }
 
-#pagination button, .controls button {
+#pagination button, .user-controls button {
   flex: 1;
 }
 #pagination button {
@@ -879,7 +879,7 @@ input:checked + .slider:before {
             <button id="listCheckButton"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
           </div>
           <ul id="playlistItems"></ul>
-          <div class="controls">
+          <div class="user-controls">
             <div id="pagination">
               <button id="prevPage" disabled>上页</button>
               <div class="page-information">
@@ -899,7 +899,7 @@ input:checked + .slider:before {
 
           <figure id="videoContainer">
             <video id="videoPlayer" playsinline poster="background.jpeg"></video>
-            <div id="videoControls" class="controls">
+            <div id="videoControls" class="user-controls">
               <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
               <div class="progress">
                 <span id="currentTimeDisplay" class="time">00:00</span>
@@ -915,18 +915,17 @@ input:checked + .slider:before {
 
           <video id="frameVideo" playsinline disablepictureinpicture muted></video>
         </div>
-        <div id="videoControl" class="video-control">
 
-          <div class="controls" id="errorControl">
+        <div id="videoControl" class="video-control">
+          <div class="user-controls" id="errorControl">
             <div id="statisticsMessage"></div>
             <div id="errorMessage"></div>
           </div>
 
-          <div class="controls">
+          <div class="user-controls">
             <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
             <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
-
         </div>
 
       </div>
