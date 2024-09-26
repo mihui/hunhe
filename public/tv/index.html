@@ -1736,7 +1736,9 @@ function hlsPlay(source) {
     hls.attachMedia(videoPlayer);
     hls.once(Hls.Events.LEVEL_LOADED, (evt, data) => {
       printLog('Hls.Events.LEVEL_LOADED');
-      playVideSource(source, data.details.totalduration, data.details.live);
+      const duration = data?.details?.totalduration || 0;
+      const isLive = data?.details?.live || false;
+      playVideSource(source, duration, isLive);
     });
     hls.once(Hls.Events.MANIFEST_PARSED, (evt, data) => {
       printLog('Hls.Events.MANIFEST_PARSED');
@@ -2443,10 +2445,12 @@ debugLogs.addEventListener('dblclick', (evt) => {
 });
 
 window.swipe(videoControl).on('swipeLeft', (evt) => {
+  printLog('swipeLeft');
   displaySideMenu(false);
 });
 
 window.swipe(videoControl).on('swipeRight', (evt) => {
+  printLog('swipeRight');
   displaySideMenu(true);
 });
 
