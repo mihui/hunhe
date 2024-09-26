@@ -1,6 +1,14 @@
 class SwipeHandler {
   /** @type {HTMLElement} */
   domElement;
+  /** @type {number} */
+  startX;
+  /** @type {number} */
+  threshold;
+  /** @type {number} */
+  lastMoveTimestamp;
+  /** @type {number} */
+  debounceTime;
   /**
    * Constructor
    * @param {HTMLElement} dom HTML element
