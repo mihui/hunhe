@@ -2338,6 +2338,7 @@ videoPlayer.addEventListener('error', (evt) => {
 ['mouseout', 'touchend'].forEach(eventType => {
   [videoPlayer, videoControls].forEach(element => {
     element.addEventListener(eventType, () => {
+      clearTimeout(hideTimer);
       hideTimer = setTimeout(hideControls, hideDelay);
     });
   });
