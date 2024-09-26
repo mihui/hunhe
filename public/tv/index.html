@@ -2077,12 +2077,6 @@ function setUrlInput(url, label = '更新') {
 
 function setFullscreenData(state) {
   videoContainer.dataset['fullscreen'] = !!state;
-  if(videoContainer.dataset['fullscreen']) {
-    pageContainer.classList.add('fullscreen');
-  }
-  else {
-    pageContainer.classList.remove('fullscreen');
-  }
 }
 
 // 加载缓存的数据
