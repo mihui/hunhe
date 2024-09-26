@@ -1263,7 +1263,7 @@ function stopVideo(poster = VARS.POSTER) {
   if(stopURL)
     videoPlayer.src = stopURL;
   videoPlayer.pause();
-  progressControl.value = 0;
+  progressControl.max = progressControl.value = '0';
   shell.changeTitle();
   showPlayButton(false);
   rewindButton.disabled = forwardButton.disabled = true;
@@ -1529,7 +1529,7 @@ function resetListStyle() {
  * @param {HTMLLIElement} li List item
  * @param {{ title: string, url: string, group: string }} item Play item
  */
-function playNow (li, item) {
+function playNow(li, item) {
   if(li.dataset['broken']) return;
   resetListStyle();
   li.classList.add('active');
@@ -1570,9 +1570,7 @@ async function displayPlaylistPage(page) {
       evt.preventDefault();
       const { currentTarget } = evt;
       const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : VARS.POSTER;
-
       const isBroken = currentTarget.classList.contains('broken') === false;
-
       if((videoPlayer.poster === frame || frame === VARS.POSTER) && isBroken) {
         playNow(currentTarget, item);
       }
@@ -1722,11 +1720,11 @@ async function refreshCurrentPage() {
   saveDataToCache();
 }
 
-function playVideSource(source) {
+function playVideSource(source, duration = '0', isLive = false) {
   videoPlayer.play().catch(error => {
     errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
   }).then(() => {
-    onPlay(source);
+    onPlay(source, duration, isLive);
   });
 }
 
@@ -1736,22 +1734,14 @@ function hlsPlay(source) {
     const hls = new Hls();
     hls.loadSource(source.url);
     hls.attachMedia(videoPlayer);
-    hls.on(Hls.Events.LEVEL_LOADED, (evt, data) => {
+    hls.once(Hls.Events.LEVEL_LOADED, (evt, data) => {
       printLog('Hls.Events.LEVEL_LOADED');
-      playVideSource(source);
-      if(data.details.live) {
-        progressControl.classList.add('hidden');
-      }
-      else {
-        progressControl.classList.remove('hidden');
-        totalTimeDisplay.textContent = getMinutes(data.details.totalduration);
-        progressControl.setAttribute('max', data.details.totalduration); 
-      }
+      playVideSource(source, data.details.totalduration, data.details.live);
     });
-    hls.on(Hls.Events.MANIFEST_PARSED, (evt, data) => {
+    hls.once(Hls.Events.MANIFEST_PARSED, (evt, data) => {
       printLog('Hls.Events.MANIFEST_PARSED');
     });
-    hls.on(Hls.Events.ERROR, (error) => {
+    hls.once(Hls.Events.ERROR, (error) => {
       hls.destroy();
     });
   }
@@ -1784,10 +1774,8 @@ function nativePlay(source) {
   const onLoadedMetadata = (evt) => {
     printLog('videoPlayer.loadedmetadata');
     if (source) {
-      playVideSource(source);
+      playVideSource(source, evt.target.duration);
     }
-    progressControl.setAttribute('max', evt.target.duration);
-    totalTimeDisplay.textContent = getMinutes(evt.target.duration);
   }
   videoPlayer.removeEventListener('loadedmetadata', onLoadedMetadata);
   videoPlayer.addEventListener('loadedmetadata', onLoadedMetadata);
@@ -1823,7 +1811,7 @@ async function isFavorite(id) {
 /**
  * @param {{ title: string, url: string, group: string }} playingItem Play item
  **/
-async function onPlay(playingItem) {
+async function onPlay(playingItem, duration = '0', isLive = false) {
   errorMessage.textContent = '';
   favoriteButton.disabled = false;
 
@@ -1838,6 +1826,19 @@ async function onPlay(playingItem) {
   const lastPlayedTime = videoTimestamp[playingItem.url];
   if (!isNaN(lastPlayedTime)) {
     videoPlayer.currentTime = lastPlayedTime;
+  }
+  currentTimeDisplay.textContent = getMinutes(videoPlayer.currentTime);
+  totalTimeDisplay.textContent = getMinutes(duration);
+  progressControl.max = duration;
+  if(isLive) {
+    progressControl.classList.add('hidden');
+    totalTimeDisplay.classList.add('hidden');
+    currentTimeDisplay.classList.add('hidden');
+  }
+  else {
+    progressControl.classList.remove('hidden');
+    totalTimeDisplay.classList.remove('hidden');
+    currentTimeDisplay.classList.remove('hidden');
   }
   saveLastPlayedVideo(playingItem);
 }
@@ -1868,6 +1869,11 @@ function playVideo(source, isUserAction = true) {
   if(isUserAction === false) { return; }
   window.localStorage.removeItem('lastPlayedItem');
   muteOrUnmuteVideo(true);
+
+  currentTimeDisplay.textContent = getMinutes(0);
+  totalTimeDisplay.textContent = getMinutes(0);
+  progressControl.max = '0';
+
   if (Hls.isSupported() && (source.url.startsWith(UNSAFE_HTTP) === false || VARS.IS_NATIVE)) {
     hlsPlay(source);
   }
@@ -1986,14 +1992,14 @@ async function checkVideoPlayability(url) {
         };
 
         hls.loadSource(url);
-        hls.on(Hls.Events.MANIFEST_PARSED, async () => {
+        hls.once(Hls.Events.MANIFEST_PARSED, async () => {
           const duration = new Date().getTime() - timestamp;
           const frame = await captureFrame(frameVideo, url, hls);
           cleanup();
           resolve({ ok: true, duration, frame, timeout: false });
         });
 
-        hls.on(Hls.Events.ERROR, () => {
+        hls.once(Hls.Events.ERROR, () => {
           cleanup();
           resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: false });
         });
@@ -2262,8 +2268,9 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
     else {  }
     progressControl.value = player.currentTime;
     setVideoTimestamp(player.currentTime);
-    if (!progressControl.getAttribute('max')) {
-      progress.setAttribute('max', player.duration);
+    
+    if (progressControl.max === '0') {
+      progress.max = player.duration;
       totalTimeDisplay.textContent = getMinutes(player.duration);
     }
     currentTimeDisplay.textContent = getMinutes(player.currentTime);
