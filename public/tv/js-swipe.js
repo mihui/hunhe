@@ -62,7 +62,7 @@ class SwipeHandler {
       console.error('Invalid event name');
       return;
     }
-    this.domElement.addEventListener(eventName, callback, { once: true });
+    this.domElement.addEventListener(eventName, callback);
   }
   
   off(eventName, callback) {
