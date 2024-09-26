@@ -1263,7 +1263,11 @@ function stopVideo(poster = VARS.POSTER) {
   if(stopURL)
     videoPlayer.src = stopURL;
   videoPlayer.pause();
-  progressControl.max = progressControl.value = '0';
+
+  currentTimeDisplay.textContent = getMinutes(0);
+  totalTimeDisplay.textContent = getMinutes(0);
+  progressControl.value = progressControl.max = '0';
+
   shell.changeTitle();
   showPlayButton(false);
   rewindButton.disabled = forwardButton.disabled = true;
@@ -1874,7 +1878,7 @@ function playVideo(source, isUserAction = true) {
 
   currentTimeDisplay.textContent = getMinutes(0);
   totalTimeDisplay.textContent = getMinutes(0);
-  progressControl.max = '0';
+  progressControl.value = progressControl.max = '0';
 
   if (Hls.isSupported() && (source.url.startsWith(UNSAFE_HTTP) === false || VARS.IS_NATIVE)) {
     hlsPlay(source);
