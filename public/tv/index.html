@@ -87,11 +87,11 @@ body {
       width: 100%;
       flex-flow: column;
       row-gap: 0.5rem;
+      user-select: none;
     }
     .container .video-container .bottom-controls #errorControl {
       flex: 1;
       flex-flow: column;
-      user-select: none;
     }
     .container .video-container .user-controls {
       width: 100%;
@@ -294,7 +294,6 @@ select:focus-visible {
   align-items: center;
   scrollbar-width: none;
   border-left: 3px solid gray;
-  user-select: none;
   transition: 0.5s all;
   column-gap: 0.5rem;
   border-bottom: 1px solid #eee;
@@ -384,24 +383,6 @@ button {
   justify-content: center;
 }
 
-#pagination button, .user-controls button {
-  flex: 1;
-}
-#pagination button {
-  font-size: 16px;
-  flex: 0;
-  background-color: lightslategrey;
-}
-
-#pageInfo {
-  font-size: 16px;
-  white-space: nowrap;
-  width: 100%;
-  flex: 0;
-  text-align: center;
-  user-select: none;
-}
-
 #errorMessage {
   color: #e74c3c;
   text-align: center;
@@ -414,7 +395,6 @@ button {
   font-size: 0.8rem;
   color: gray;
   font-style: italic;
-  user-select: none;
 }
 
 @media (min-width: 768px) {
@@ -523,11 +503,25 @@ button {
 }
   #playlistContent .page-controls {
     flex: 0 0;
+    user-select: none;
   }
 
-.hidden {
-  display: none !important;
-}
+  #playlistContent .page-controls #pagination button, .user-controls button {
+    flex: 1;
+  }
+  #playlistContent .page-controls #pagination button {
+    font-size: 16px;
+    flex: 0;
+    background-color: lightslategrey;
+  }
+  #playlistContent .page-controls #pagination #pageInfo {
+    font-size: 16px;
+    white-space: nowrap;
+    width: 100%;
+    flex: 0;
+    text-align: center;
+  }
+
 .box {
   display: flex;
   flex-flow: column;
@@ -632,12 +626,24 @@ button {
     box-sizing: border-box;
     width: 100%;
     padding: 0.5rem;
+    position: relative;
   }
   .tools .debug #debugLogs {
     width: 100%;
     resize: vertical;
     flex: 1;
     white-space: pre-wrap;
+    line-height: 1.2;
+  }
+  .tools .debug #logClearButton {
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    background-color: #e74c3c;
+    padding: 0.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.6;
   }
 .usage {
   row-gap: 0.5rem;
@@ -748,6 +754,10 @@ input:checked + .slider:before {
     padding: 1rem;
     top: -3rem;
   }
+}
+
+.hidden {
+  display: none !important;
 }
 </style>
 </head>
@@ -875,7 +885,8 @@ input:checked + .slider:before {
 
           <div class="tools">
             <div class="debug">
-              <div id="debugLogs"></div>
+              <button id="logClearButton"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
+              <code id="debugLogs">&gt; 日志</code>
             </div>
           </div>
 
@@ -984,8 +995,8 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLTextAreaElement, HTMLInputElement,
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement, HTMLElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
- * HTMLInputElement, HTMLSpanElement, HTMLTextAreaElement, HTMLVideoElement, HTMLDivElement,
- * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement
+ * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement, HTMLDivElement,
+ * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement
  * ]} **/
 const [
   pageBody,
@@ -998,7 +1009,7 @@ const [
   loadContentuButton, categorySelect, playlistItems, paginationGroup, videoContainer,
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
-  progressControl, currentTimeDisplay, totalTimeDisplay, videoControls
+  progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton
  ] = getElementById([
   'pageBody',
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
@@ -1010,7 +1021,7 @@ const [
   'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination', 'videoContainer',
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
-  'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls'
+  'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton'
 ]);
 
 let itemsPerPage = 15;
@@ -1935,6 +1946,7 @@ function showControls() {
  */
 function printLog(...args) {
   debugLogs.innerHTML = `$ ${args.join(' ')}\n`.concat(debugLogs.innerHTML);
+  logClearButton.classList.remove('hidden');
 }
 
 /**
@@ -2456,8 +2468,9 @@ checkTimeout.addEventListener('input', (evt) => {
   window.localStorage.setItem('PING_TIMEOUT', VARS.PING_TIMEOUT);
 });
 
-debugLogs.addEventListener('dblclick', (evt) => {
-  debugLogs.innerHTML = '';
+logClearButton.addEventListener('click', (evt) => {
+  logClearButton.classList.add('hidden');
+  debugLogs.innerHTML = '> 日志';
 });
 
 [playlistContent, bottomControls].forEach(element => {
