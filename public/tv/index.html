@@ -2313,7 +2313,6 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
     currentTimeDisplay.textContent = getMinutes(player.currentTime);
   }
 });
-
 videoPlayer.addEventListener('pause', (evt) => {
   printLog('videoPlayer.pause');
   onStopped();
@@ -2378,6 +2377,16 @@ videoPlayer.addEventListener('error', (evt) => {
     hideTimer = setTimeout(hideControls, hideDelay);
   });
 });
+videoPlayer.addEventListener('click', (evt) => {
+  clearTimeout(hideTimer);
+  if(videoControls.classList.contains('transparent')) {
+    showControls();
+  }
+  else {
+    hideControls();
+  }
+});
+
 videoPlayer.addEventListener('dblclick', resetPoster);
 errorControl.addEventListener('dblclick', resetPoster);
 

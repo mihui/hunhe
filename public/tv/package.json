@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make --arch=universal"
   },
   "keywords": [
     "TV"
@@ -25,6 +25,7 @@
     "electron": "^32.1.2"
   },
   "dependencies": {
+    "@electron/universal": "^2.0.1",
     "electron-squirrel-startup": "^1.0.1"
   }
 }
