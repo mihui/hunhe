@@ -3,8 +3,8 @@
 
 <head>
   <title>Hunhe IPTV</title>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="js-indexeddb.js"></script>
   <script src="js-hls.js"></script>
   <script src="js-swipe.js"></script>
@@ -724,7 +724,7 @@ input:checked + .slider:before {
 }
 
 /* iPhone Portrait */
-@media only screen and (max-device-width: 812px) and (orientation: portrait)
+@media only screen and (max-width: 812px) and (orientation: portrait)
 {
   .container #playlistContainer {
     position: absolute;
@@ -845,7 +845,7 @@ input:checked + .slider:before {
 
             <div class="settings-row">
               <label class="label">检查超时 (<span id="checkTimeoutDisplay">0</span>ms)</label>
-              <input type="range" id="checkTimeout" class="range" min="5" max="60" step="1" required />
+              <input type="range" id="checkTimeout" class="range" min="5" max="60" step="1">
             </div>
             <div class="settings-row">
               <label class="label">数据使用情况</label>
@@ -883,7 +883,7 @@ input:checked + .slider:before {
             <div id="pagination">
               <button id="prevPage" disabled>上页</button>
               <div class="page-information">
-                <input id="pageControl" class="range" min="1" type="range" />
+                <input id="pageControl" class="range" min="1" type="range">
                 <div id="pageInfo"></div>
               </div>
               <button id="nextPage" disabled>下页</button>
@@ -899,7 +899,7 @@ input:checked + .slider:before {
 
           <figure id="videoContainer">
             <video id="videoPlayer" playsinline poster="background.jpeg"></video>
-            <div id="videoControls" class="user-controls">
+            <div id="videoControls" class="user-controls controls">
               <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
               <div class="progress">
                 <span id="currentTimeDisplay" class="time">00:00</span>
@@ -913,7 +913,7 @@ input:checked + .slider:before {
             </div>
           </figure>
 
-          <video id="frameVideo" playsinline disablepictureinpicture muted></video>
+          <video id="frameVideo" playsinline muted></video>
         </div>
 
         <div id="videoControl" class="video-control">
