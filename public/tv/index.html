@@ -916,7 +916,7 @@ input:checked + .slider:before {
           <video id="frameVideo" playsinline muted></video>
         </div>
 
-        <div id="videoControl" class="video-control">
+        <div id="bottomControls" class="video-control">
           <div class="user-controls" id="errorControl">
             <div id="statisticsMessage"></div>
             <div id="errorMessage"></div>
@@ -974,7 +974,7 @@ function getElementById(idList = []) {
 const [
   pageBody,
   videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
-  loadM3uButton, settingsButton, m3uInputContainer, playlistContent, videoControl,
+  loadM3uButton, settingsButton, m3uInputContainer, playlistContent, bottomControls,
   playlistContainer, playVideoButton, m3uList, searchContainer, speakerButton,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
   fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
@@ -986,7 +986,7 @@ const [
  ] = getElementById([
   'pageBody',
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
-  'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent', 'videoControl',
+  'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent', 'bottomControls',
   'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer', 'speakerButton',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
   'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
@@ -2444,12 +2444,12 @@ debugLogs.addEventListener('dblclick', (evt) => {
   debugLogs.innerHTML = '';
 });
 
-window.swipe(videoControl).on('swipeLeft', (evt) => {
+window.swipe(bottomControls).on('swipeLeft', (evt) => {
   printLog('swipeLeft');
   displaySideMenu(false);
 });
 
-window.swipe(videoControl).on('swipeRight', (evt) => {
+window.swipe(bottomControls).on('swipeRight', (evt) => {
   printLog('swipeRight');
   displaySideMenu(true);
 });
