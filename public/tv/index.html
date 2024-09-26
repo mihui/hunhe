@@ -77,7 +77,7 @@ body {
         position: absolute;
         z-index: -1;
       }
-    .container .video-container .video-control {
+    .container .video-container .bottom-controls {
       flex: 1;
       align-items: flex-start;
       display: flex;
@@ -87,7 +87,7 @@ body {
       flex-flow: column;
       row-gap: 0.5rem;
     }
-    .container .video-container .video-control #errorControl {
+    .container .video-container .bottom-controls #errorControl {
       flex: 1;
       flex-flow: column;
       user-select: none;
@@ -916,7 +916,7 @@ input:checked + .slider:before {
           <video id="frameVideo" playsinline muted></video>
         </div>
 
-        <div id="bottomControls" class="video-control">
+        <div id="bottomControls" class="bottom-controls">
           <div class="user-controls" id="errorControl">
             <div id="statisticsMessage"></div>
             <div id="errorMessage"></div>
