@@ -1,13 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron/main');
 const path = require('path');
 const os = require('os');
-const { makeUniversalApp } = require('@electron/universal');
-
-await makeUniversalApp({
-  x64AppPath: '/Users/michael/Documents/Projects/migg/migg/hunhe/public/tv/out/tv_x64.app',
-  arm64AppPath: '/Users/michael/Documents/Projects/migg/migg/hunhe/public/tv/out/tv_arm64.app',
-  outAppPath: '/Users/michael/Documents/Projects/migg/migg/hunhe/public/tv/out/tv_universal.app',
-});
 
 if (os.platform() === 'darwin' && os.arch() === 'x64') {
   app.disableHardwareAcceleration();
@@ -15,8 +8,8 @@ if (os.platform() === 'darwin' && os.arch() === 'x64') {
 
 const createWindow = () => {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1920,
+    height: 1080,
     webPreferences: {
       nodeIntegration: true,
       preload: path.join(__dirname, 'preload.js'),
