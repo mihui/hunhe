@@ -1,4 +1,10 @@
 class SwipeHandler {
+  /** @type {HTMLElement} */
+  domElement;
+  /**
+   * Constructor
+   * @param {HTMLElement} dom HTML element
+   */
   constructor(dom) {
     this.domElement = dom;
     this.startX = 0;
@@ -35,11 +41,8 @@ class SwipeHandler {
   
       if (Math.abs(diffX) >= this.threshold) {
         requestAnimationFrame(() => {
-          if (diffX > 0) {
-            this.trigger("swipeLeft");
-          } else {
-            this.trigger("swipeRight");
-          }
+          const eventName = diffX > 0 ? 'swipeLeft' : 'swipeRight';
+          this.trigger(eventName);
           this.startX = currentX;
         });
       }
