@@ -1158,7 +1158,7 @@ function getCachedM3uUrl() {
 }
 
 async function listStore(source) {
-  printLog('listStore', source);
+  printLog('[listStore]', source);
   settingsButton.disabled = true;
   const cachedM3uSource = localStorage.getItem('cachedM3uSource') || SOURCES.URL;
   const cachedM3uUrl = getCachedM3uUrl();
@@ -2318,7 +2318,12 @@ videoPlayer.addEventListener('pause', (evt) => {
   onStopped();
 });
 videoPlayer.addEventListener('seeked', (evt) => {
+  const lastPlayedItem = getLastVideoItem();
   printLog('videoPlayer.seeked', evt.target.src);
+  if(lastPlayedItem) {
+    printLog('lastPlayedItem.seeked', lastPlayedItem.url);
+    setVideoTimestamp(videoPlayer.currentTime);
+  }
 });
 videoPlayer.addEventListener('canplay', (evt) => {
   printLog('videoPlayer.canplay');
@@ -2440,18 +2445,10 @@ fullscreenButton.addEventListener('click', (evt) => {
 
 rewindButton.addEventListener('click', (evt) => {
   videoPlayer.currentTime -= 30;
-  const lastPlayedItem = getLastVideoItem();
-  if(lastPlayedItem) {
-    setVideoTimestamp(videoPlayer.currentTime);
-  }
 });
 
 forwardButton.addEventListener('click', (evt) => {
   videoPlayer.currentTime += 30;
-  const lastPlayedItem = getLastVideoItem();
-  if(lastPlayedItem) {
-    setVideoTimestamp(videoPlayer.currentTime);
-  }
 });
 
 function displaySideMenu(show = false) {
