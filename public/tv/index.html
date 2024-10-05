@@ -933,7 +933,7 @@ input:checked + .slider:before {
 
           <figure id="videoContainer">
             <video id="videoPlayer" playsinline poster="background.jpeg"></video>
-            <div id="videoControls" class="user-controls controls">
+            <div id="videoControls" class="user-controls controls transparent">
               <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
               <div class="progress">
                 <span id="currentTimeDisplay" class="time">00:00</span>
@@ -1017,7 +1017,8 @@ const [
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton
- ] = getElementById([
+ ] = 
+getElementById([
   'pageBody',
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent', 'bottomControls',
@@ -1796,7 +1797,7 @@ function hlsPlay(source) {
 
 function getMinutes(duration) {
   // 类型检查和异常处理
-  if (typeof duration !== 'number' || isNaN(duration)) {
+  if (typeof duration !== 'number' || isNaN(duration) || Number.isNaN(duration)) {
     return '00:00';
   }
 
@@ -1963,7 +1964,7 @@ function printLog(...args) {
  * @param {Hls?} hls Hls instance
  * @returns {string?} Returns frame URL
  */
-async function captureFrame(video, url, hls = null) {
+async function captureFrame(url, hls = null) {
   if(storeFrame === 'false') { return null; }
 
   const frame = await new Promise((resolve) => {
@@ -1972,41 +1973,41 @@ async function captureFrame(video, url, hls = null) {
     const canvasContext = canvas.getContext('2d');
 
     if(hls) {
-      hls.attachMedia(video);
+      hls.attachMedia(frameVideo);
     }
     else if(url) {
-      video.src = url;
+      frameVideo.src = url;
     }
     else {
       return resolve(null);
     }
     const onLoadedMetaData = (evt) => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      video.play().then(() => {
-        video.currentTime = 3;
+      canvas.width = frameVideo.videoWidth;
+      canvas.height = frameVideo.videoHeight;
+      frameVideo.play().then(() => {
+        frameVideo.currentTime = 3;
       }).catch(error => {
         cleanupEvents(null);
       });
     },
     onSeeked = (evt) => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.width = frameVideo.videoWidth;
+      canvas.height = frameVideo.videoHeight;
+      canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
       canvas.toBlob((blob) => {
         cleanupEvents(blob);
       });
     };
 
     const cleanupEvents = (data) => {
-      video.removeEventListener('seeked', onSeeked);
-      video.removeEventListener('loadedmetadata', onLoadedMetaData);
+      frameVideo.removeEventListener('seeked', onSeeked);
+      frameVideo.removeEventListener('loadedmetadata', onLoadedMetaData);
       clearTimeout(timer);
       resolve(data);
     };
 
-    video.addEventListener('seeked', onSeeked);
-    video.addEventListener('loadedmetadata', onLoadedMetaData);
+    frameVideo.addEventListener('seeked', onSeeked);
+    frameVideo.addEventListener('loadedmetadata', onLoadedMetaData);
 
     timer = setTimeout(() => {
       cleanupEvents(null);
@@ -2037,7 +2038,7 @@ async function checkVideoPlayability(url) {
         hls.loadSource(url);
         hls.once(Hls.Events.MANIFEST_PARSED, async () => {
           const duration = new Date().getTime() - timestamp;
-          const frame = await captureFrame(frameVideo, url, hls);
+          const frame = await captureFrame(url, hls);
           cleanup();
           resolve({ ok: true, duration, frame, timeout: false });
         });
@@ -2068,7 +2069,7 @@ async function checkVideoPlayability(url) {
 
       video.onloadedmetadata = async () => {
         const duration = new Date().getTime() - timestamp;
-        const frame = await captureFrame(frameVideo, url);
+        const frame = await captureFrame(url);
         cleanup();
         resolve({ ok: true, duration, frame, timeout: false });
       };
@@ -2189,7 +2190,8 @@ prevButton.addEventListener('dblclick', gotoPrevPage);
 document.addEventListener('dblclick', (evt) => {
   /** @type {HTMLElement} **/
   const node = evt.target;
-  switch(node.tagName) {
+  const nodeName = node.tagName.toLowerCase();
+  switch(nodeName) {
     case 'input':
       break;
     case 'video':
@@ -2299,13 +2301,8 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
   if(lastPlayedItem) {
     /** @type {HTMLVideoElement} **/
     const player = evt.target;
-    if(player.duration - player.currentTime < 10) {
-      // resetVideoTimestamp();
-    }
-    else {  }
     progressControl.value = player.currentTime;
     setVideoTimestamp(player.currentTime);
-    
     if (progressControl.max === '0') {
       progress.max = player.duration;
       totalTimeDisplay.textContent = getMinutes(player.duration);
