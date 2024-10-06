@@ -282,7 +282,7 @@ select:focus-visible {
   background-position: -100px center;
   background-color: #f1f1f1;
   border-radius: 8px;
-  padding: 0.5rem 0.9rem;
+  padding: 0px 0px 0px 0.9rem;
   height: 100%;
   min-height: 1rem;
   white-space: nowrap;
@@ -297,6 +297,7 @@ select:focus-visible {
   column-gap: 0.5rem;
   border-bottom: 1px solid #eee;
   user-select: none;
+  position: relative;
 }
   #playlistItems li::-webkit-scrollbar { 
     display: none;
@@ -365,6 +366,21 @@ select:focus-visible {
   }
   #playlistItems li div {
     width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+  #playlistItems li .delete {
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    right: 0;
+    width: 3rem;
+    flex: 0;
+    height: 100%;
   }
 
 button {
@@ -1682,8 +1698,21 @@ function updateListItemStyle(li, checkResult, lastPlayedItem, isFav) {
   if(lastPlayedItem?.url === li.dataset['url']) {
     li.classList.add('active');
   }
-  if(isFav && currentCategory !== favoriteChannels) {
-    li.classList.add('favorite');
+  if(isFav) {
+    if(currentCategory !== favoriteChannels) {
+      li.classList.add('favorite'); 
+    }
+    if(li.classList.contains('timeout')) {
+      const deleteButton = document.createElement('span');
+      deleteButton.innerHTML = VARS.ICON_CANCEL;
+      deleteButton.className = 'delete';
+      deleteButton.onclick = (evt) => {
+        evt.stopPropagation();
+        const id = database.encodeString(li.dataset['url']);
+        deleteFavorite(id);
+      };
+      li.append(deleteButton);
+    }
   }
 }
 
@@ -2139,6 +2168,18 @@ async function startup() {
   }
 }
 
+async function deleteFavorite(id) {
+  await database.deleteData(id, FAV_STORE);
+  refreshFavoriteButton(false);
+  initializePlaylist();
+}
+
+async function addFavorite(id, url, title, group) {
+  await database.addData({ id, url, title, group }, FAV_STORE);
+  refreshFavoriteButton(true);
+  initializePlaylist();
+}
+
 // 事件监听器
 favoriteButton.addEventListener('click', async (evt) => {
   const id = favoriteButton.dataset['id'];
@@ -2148,13 +2189,11 @@ favoriteButton.addEventListener('click', async (evt) => {
   const isAddingData = favoriteButton.dataset['action'] === 'add';
   const isDeletingData = favoriteButton.dataset['action'] === 'remove';
   if(isAddingData) {
-    await database.addData({ id, url, title, group }, FAV_STORE);
+    addFavorite(id, url, title, group);
   }
   else if(isDeletingData) {
-    await database.deleteData(id, FAV_STORE);
+    deleteFavorite(id);
   }
-  refreshFavoriteButton(isAddingData);
-  initializePlaylist();
 });
 
 categorySelect.addEventListener('change', async (evt) => {
