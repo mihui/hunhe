@@ -26,7 +26,7 @@ publicRouter.get('/meeting/:id', async (req, res, next) => {
     if(meeting) {
       return res.send(httpNormal({ meeting }));
     }
-    return next(httpError(httpCodes.NOT_FOUND, httpMessages.NOT_FOUND));
+    throw httpError(httpCodes.NOT_FOUND, httpMessages.NOT_FOUND);
   }
   catch(error) {}
   return next(httpError(httpCodes.NOT_FOUND, httpMessages.NOT_FOUND));

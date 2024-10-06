@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 const colors = {
   error: '\x1b[31m',
   success: '\x1b[32m',
@@ -54,6 +56,32 @@ class Utility {
     }
     return result;
   }
+
+  /**
+   * Hash string
+   * 
+   * @param {string|Object} value String to hash
+   * @param {string} algorithm Algorithm
+   * @param {'base64' | 'base64url' | 'hex' | 'binary'} encoding 
+   * @returns {string} Returns hashed string
+   */
+  hash(value, algorithm = 'sha256', encoding = 'hex') {
+    let toUpdate = '';
+    if(value === null || value === undefined) {
+      toUpdate = '';
+    }
+    else if(typeof value === 'boolean' || typeof value === 'number') {
+      toUpdate = value.toString();
+    }
+    if(Array.isArray(value)) {
+      toUpdate = value.join();
+    }
+    else if(typeof value === 'object') {
+      toUpdate = JSON.stringify(value);
+    }
+    return crypto.createHash(algorithm).update(toUpdate).digest(encoding);
+  }
+
 }
 
 export const utility = new Utility();

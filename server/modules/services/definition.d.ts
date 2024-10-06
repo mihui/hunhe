@@ -2,14 +2,9 @@ declare namespace Express {
   export interface Request {
 
     /**
-     * Is the user logged in
-     * @returns {Boolean} true | false
+     * Client browser feature identity
+     * @type {string}
      */
-    isIn(): boolean;
-
-    /**
-     * @type {Payload} User data
-     */
-    hunheUser: Payload;
+    clientId: string;
   }
 }

@@ -1,7 +1,7 @@
 
 import { Collection } from "mongodb";
 import mongoManager from '../managers/mongo-manager.js';
-import { Meeting } from '../models/chat.js';
+import { Comment, Meeting } from '../models/chat.js';
 import { APP_ID_STUDIO } from "../models/studio.js";
 
 class BaseDataService {
@@ -40,6 +40,17 @@ class BaseDataService {
    */
   async find(filter) {
     const data = await this.getCollection().findOne(filter);
+    return data;
+  }
+
+  /**
+   * Find document
+   * @param {import('mongodb').Filter<import("mongodb").Document>} filter - The filter used to select the document to update
+   * @param {import('mongodb').FindOptions} opts - Optional settings for the command
+   * @returns {Promise<import("mongodb").WithId<import("mongodb").Document>} Returns update result
+   */
+  async findMany(filter, opts = {}) {
+    const data = await this.getCollection().find(filter, opts).toArray();
     return data;
   }
 
@@ -135,6 +146,46 @@ class DeviceService extends BaseDataService {
   }
 }
 
+class CommentService extends BaseDataService {
+  constructor() {
+    super('comment');
+  }
+
+  /**
+   * Query Comments
+   * @param {Object.<string, any>} query Query
+   * @param {import('mongodb').FindOptions} opts Find options
+   * @returns {Promise<Comment>} Returns meeting data
+   */
+  async queryComments(query, opts = {}) {
+    const data = await this.findMany(query, opts);
+    if(data)
+      return data;
+    return [];
+  }
+
+  /**
+   * Create Comment
+   * @param {string} clientId Client ID
+   * @param {string} targetId Target ID
+   * @param {string} content Comment
+   * @returns {Promise<Comment>} Returns doc inserted
+   */
+  async createComment(clientId, targetId, content) {
+    const comment = new Comment(clientId, targetId);
+    comment.content = content;
+    /** @type { import('mongodb').InsertOneResult } */
+    const data = await this.update({ client_id: clientId, target_id: targetId }, comment);
+    if(data.acknowledged) {
+      return comment;
+    }
+    return null;
+  }
+
+}
+
 export const meetingService = new MeetingService();
 
 export const deviceService = new DeviceService();
+
+export const commentService = new CommentService();

@@ -8,7 +8,9 @@
   <script src="js-indexeddb.js"></script>
   <script src="js-hls.js"></script>
   <script src="js-swipe.js?v=1"></script>
-<style>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
 html, body {
   width: 100%;
   height: 100%;
@@ -89,9 +91,9 @@ body {
       flex-flow: column;
       row-gap: 0.5rem;
       user-select: none;
+      max-height: 50%;
     }
     .container .video-container .bottom-controls #errorControl {
-      flex: 1;
       flex-flow: column;
     }
     .container .video-container .user-controls {
@@ -110,7 +112,7 @@ body {
       width: 100%;
       background-color: rgba(0, 0, 0, 0.5);
       z-index: 20;
-      padding: 1rem;
+      padding: 0.5rem;
       box-sizing: border-box;
       opacity: 1;
       pointer-events: auto;
@@ -131,6 +133,12 @@ body {
         column-gap: 0.3rem;
         align-items: center;
         justify-content: space-between;
+        position: absolute;
+        box-sizing: border-box;
+        left: 0px;
+        padding: 0.5rem;
+        top: -2.17rem;
+        background-color: rgba(0, 0, 0, 0.5);
       }
       .container .video-container #videoContainer #videoControls .progress #progressControl {
         width: 100%;
@@ -251,11 +259,6 @@ select:focus-visible {
   border: none;
   cursor: pointer;
   white-space: nowrap;
-}
-
-#settingsButton {
-  border-radius: 0px;
-  background-color: #39db34;
 }
 
 #closeButton, #playlistContent .category #listCheckButton {
@@ -421,6 +424,7 @@ button {
 
 #settingsButton {
   background-color: #606060;
+  border-radius: 0px;
 }
 #favoriteButton {
   background-color: darkslategrey;
@@ -551,6 +555,7 @@ button {
   row-gap: 0.6rem;
   scrollbar-width: none;
   height: 100%;
+  justify-content: space-between;
 }
 
 .range {
@@ -770,19 +775,66 @@ input:checked + .slider:before {
   .container #videoControls button {
     border-radius: 5px;
   }
-  .container .video-container #videoContainer #videoControls .progress {
-    position: absolute;
-    box-sizing: border-box;
-    left: 0px;
-    padding: 1rem;
-    top: -3rem;
-  }
 }
 
 .hidden {
   display: none !important;
 }
-</style>
+
+#commentsLayout {
+  display: none;
+  width: 100%;
+  flex-flow: column;
+  max-height: 50%;
+}
+.play-list #commentsLayout {
+  display: flex;
+}
+#commentsLayout .comments-form {
+  display: flex;
+  width: 100%;
+  flex: 0;
+}
+#commentsLayout .comments-container {
+  width: 100%;
+  row-gap: 0;
+  display: flex;
+  flex-flow: column;
+  overflow: auto;
+  max-height: 100%;
+}
+#commentsLayout .comments-container .comment {
+  display: flex;
+  width: 100%;
+  flex-flow: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+  #commentsLayout .comments-container .comment:nth-of-type(even) {
+    background: #f2f2f286;
+  }
+  #commentsLayout .comments-container .comment .time {
+    font-size: 0.8rem;
+    color: gray;
+  }
+
+  #commentsLayout .comments-form input {
+    padding: 0.5rem;
+    background: #ffffff80;
+    border-radius: 4px;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+    border: 0px;
+  }
+  #commentsLayout .comments-form #commentsInput {
+    flex: 1;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+  }
+  </style>
 </head>
 
 <body id="pageBody">
@@ -920,7 +972,7 @@ input:checked + .slider:before {
               <input type="text" id="searchInput" required placeholder="搜索...">
               <button type="reset" id="clearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
             </div>
-            <button type="submit" id="searchButton"><svg width="20" height="20"><use xlink:href="#search"/></svg></button>
+            <button type="submit" id="searchButton" class="hidden"><svg width="20" height="20"><use xlink:href="#search"/></svg></button>
             <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
             <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
           </form>
@@ -972,6 +1024,14 @@ input:checked + .slider:before {
             <div id="errorMessage"></div>
           </div>
 
+          <div id="commentsLayout">
+            <div id="commentsList" class="comments-container"></div>
+            <form id="commentsForm" class="comments-form">
+              <input type="text" id="commentsInput" placeholder="评论" />
+              <input type="submit" id="commentsButton" value="发送" disabled />
+            </form>
+          </div>
+
           <div class="user-controls">
             <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
             <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
@@ -992,6 +1052,26 @@ const TYPES = {
 };
 const SOURCES = {
   URL: 'url', CONTENT: 'content'
+};
+
+const VARS = {
+  CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '',
+  ICON_PLAY: '<svg width="20" height="20"><use xlink:href="#play"/></svg>',
+  ICON_STOP: '<svg width="20" height="20"><use xlink:href="#stop"/></svg>',
+  ICON_CANCEL: '<svg width="20" height="20"><use xlink:href="#cancel"/></svg>',
+  ICON_FULLSCREEN: '<svg width="20" height="20"><use xlink:href="#fullscreen"/></svg>',
+  ICON_UNFAVORITE: '<svg width="20" height="20"><use xlink:href="#unfavorite"/></svg>',
+  ICON_FAVORITE: '<svg width="20" height="20"><use xlink:href="#favorite"/></svg>',
+  ICON_SPEAKER_ON: '<svg width="20" height="20"><use xlink:href="#unmute"/></svg>',
+  ICON_SPEAKER_OFF: '<svg width="20" height="20"><use xlink:href="#mute"/></svg>',
+  POSTER: 'background.jpeg',
+  PING_TIMEOUT: 0,
+  URLS: new Set(),
+  IS_NATIVE: (typeof window.electronAPI !== 'undefined'),
+  /** @type {string} **/
+  TRANSACTION: '',
+  /** @type {string} **/
+  BASE_URL: (typeof window.electronAPI === 'undefined') ? window.location.origin : 'https://mihui.net'
 };
 
 const database = new Database(DB_VERSION);
@@ -1019,7 +1099,8 @@ function getElementById(idList = []) {
  * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement, HTMLElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
  * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement, HTMLDivElement,
- * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement
+ * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
+ * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement
  * ]} **/
 const [
   pageBody,
@@ -1032,7 +1113,8 @@ const [
   loadContentuButton, categorySelect, playlistItems, paginationGroup, videoContainer,
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
-  progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton
+  progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
+  commentsForm, commentsInput, commentsButton, commentsList
  ] = 
 getElementById([
   'pageBody',
@@ -1045,7 +1127,8 @@ getElementById([
   'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination', 'videoContainer',
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
-  'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton'
+  'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
+  'commentsForm', 'commentsInput', 'commentsButton', 'commentsList'
 ]);
 
 let itemsPerPage = 15;
@@ -1074,24 +1157,6 @@ function generateBlankFrame() {
     printLog('generateBlankFrame.generated', stopURL);
   }, 'video/mp4');
 }
-
-const VARS = {
-  CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '',
-  ICON_PLAY: '<svg width="20" height="20"><use xlink:href="#play"/></svg>',
-  ICON_STOP: '<svg width="20" height="20"><use xlink:href="#stop"/></svg>',
-  ICON_CANCEL: '<svg width="20" height="20"><use xlink:href="#cancel"/></svg>',
-  ICON_FULLSCREEN: '<svg width="20" height="20"><use xlink:href="#fullscreen"/></svg>',
-  ICON_UNFAVORITE: '<svg width="20" height="20"><use xlink:href="#unfavorite"/></svg>',
-  ICON_FAVORITE: '<svg width="20" height="20"><use xlink:href="#favorite"/></svg>',
-  ICON_SPEAKER_ON: '<svg width="20" height="20"><use xlink:href="#unmute"/></svg>',
-  ICON_SPEAKER_OFF: '<svg width="20" height="20"><use xlink:href="#mute"/></svg>',
-  POSTER: 'background.jpeg',
-  PING_TIMEOUT: 0,
-  URLS: new Set(),
-  IS_NATIVE: (typeof window.electronAPI !== 'undefined'),
-  /** @type {string} **/
-  TRANSACTION: ''
-};
 
 class WebShell {
   async makeRequest(url, options = {}) {
@@ -1372,6 +1437,7 @@ function showPlaylistContent() {
   playlistContent.classList.remove('hidden');
   playlistContainer.className = 'play-list';
   pageBody.classList.remove('settings');
+  pageBody.classList.add('play-list')
 }
 
 function getMegaBytes(val) {
@@ -1637,6 +1703,7 @@ async function displayPlaylistPage(page, transaction) {
       }
       else {
         stopVideo(frame);
+        loadComments(database.encodeString(currentTarget.dataset['url']));
       }
     };
 
@@ -1947,6 +2014,7 @@ function playVideo(source, isUserAction = true) {
   } else {
     shell.changeTitle();
   }
+  loadComments(database.encodeString(source.url));
   if(isUserAction === false) { return; }
   window.localStorage.removeItem('lastPlayedItem');
   muteOrUnmuteVideo(true);
@@ -2503,6 +2571,7 @@ function displaySideMenu(show = false) {
   else {
     playlistContainer.className = 'back';
     pageBody.classList.remove('settings');
+    pageBody.classList.remove('play-list');
   }
   window.localStorage.setItem('playListVisible', show ? 'true' : 'false');
 }
@@ -2529,6 +2598,62 @@ checkTimeout.addEventListener('input', (evt) => {
 logClearButton.addEventListener('click', (evt) => {
   logClearButton.classList.add('hidden');
   debugLogs.innerHTML = '> 日志';
+});
+
+function loadComments(id, skip = 0) {
+  axios.get(`${VARS.BASE_URL}/api/tv/comments/${id}?skip=${skip}`)
+  .catch(error => {
+    console.log('load.comments.error->', error);
+  })
+  .then(response => {
+    const { data } = response;
+    const { comments } = data;
+
+    commentsList.innerHTML = '';
+
+    comments.forEach(comment => {
+      const commentItem = document.createElement('div');
+      const commentContent = document.createElement('div');
+      const commentTime = document.createElement('div');
+      commentItem.className = 'comment';
+      commentContent.className = 'content';
+      commentContent.textContent = comment.content;
+      commentTime.className = 'time';
+      commentTime.textContent = timeAgo(new Date(comment.created_time).getTime());
+
+      commentItem.append(commentTime);
+      commentItem.append(commentContent);
+
+      commentsList.appendChild(commentItem);
+    });
+
+  });
+}
+
+commentsForm.addEventListener('submit', async (evt) => {
+  evt.preventDefault();
+  const lastPlayedItem = getLastVideoItem();
+  if(lastPlayedItem) {
+    const id = database.encodeString(lastPlayedItem.url);
+    axios.post(`${VARS.BASE_URL}/api/tv/comments/${id}`, {
+      content: commentsInput.value
+    })
+    .catch(error => {
+      console.log('error->', error);
+    })
+    .then(response => {
+      console.log('response->', response);
+      commentsInput.value = '';
+      commentsInput.focus();
+      commentsInput.dispatchEvent(new Event('input'));
+      loadComments(id);
+    });
+  }
+});
+
+commentsInput.addEventListener('input', (evt) => {
+  const isOK =  evt.target.value.length > 0;
+  commentsButton.disabled = isOK ? false : true;
 });
 
 [bottomControls, paginationGroup].forEach(element => {

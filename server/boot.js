@@ -6,7 +6,7 @@ import path from 'path';
 import express, { static as staticModule, json } from 'express';
 
 import { VARS, HTTP_INTERFACES } from './modules/vars.js';
-import { httpErrorHandler, httpNotFoundHandler } from './modules/http-manager.js';
+import { clientIdHandler, httpErrorHandler, httpNotFoundHandler } from './modules/http-manager.js';
 import { sessionService } from './modules/services/session.js';
 import { Logger } from './modules/logger.js';
 import mongoManager from './modules/managers/mongo-manager.js';
@@ -60,6 +60,8 @@ class Boot {
     this.app.set('views', 'server/views');
     this.app.set('x-powered-by', false);
 
+    this.app.use(clientIdHandler);
+
     if(VARS.IS_DEBUGGING)
       this.app.use(cors({ origin: true, credentials: true }));
 
@@ -92,7 +94,7 @@ class Boot {
       
         if(sequence === list.length) {
           logger.debug('### COMPLETED DYNAMIC IMPORT ###');
-          // this.app.use(httpErrorHandler);
+          this.app.use(httpErrorHandler);
         }
       }
     }).catch(error => {

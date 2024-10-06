@@ -2,6 +2,7 @@ import express from 'express';
 import { STATUS_CODES } from 'http';
 import { Logger } from './logger.js';
 import { VARS } from './vars.js';
+import { utility } from './utility.js';
 const { logger } = Logger('http-manager');
 
 const httpCodes = {
@@ -98,6 +99,26 @@ const httpNotFoundHandler = (req, res, next) => {
   logger.debug('httpNotFoundHandler');
   return res.status(404).send({ message: 'Route'+req.url+' Not found.' });
 }
+const clientIdHandler = (req, res, next) => {
+  //
+  // logger.debug(Object.keys(req.headers));
+  const features = [];
+  const headerKeys = [
+    'user-agent',
+    'sec-ch-ua-mobile',
+    'sec-ch-ua',
+    'sec-ch-ua-platform',
+    'accept',
+    'dnt'
+  ];
+  for(const key of headerKeys) {
+    const feature = req.headers[key];
+    // logger.debug(`[${key}] =>`,feature);
+    if(feature) features.push(feature);
+  }
+  req.clientId = utility.hash(features, 'sha256', 'base64');
+  next();
+};
 
 /**
  * Generate error for Express
@@ -127,5 +148,6 @@ export {
   httpNormal,
   httpError,
   httpErrorHandler,
-  httpNotFoundHandler
+  httpNotFoundHandler,
+  clientIdHandler
 };
