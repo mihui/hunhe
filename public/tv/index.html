@@ -1088,7 +1088,9 @@ const VARS = {
   POSTER: 'background.jpeg',
   PING_TIMEOUT: 0,
   URLS: new Set(),
-  IS_NATIVE: (typeof window.electronAPI !== 'undefined')
+  IS_NATIVE: (typeof window.electronAPI !== 'undefined'),
+  /** @type {string} **/
+  TRANSACTION: ''
 };
 
 class WebShell {
@@ -1596,7 +1598,7 @@ function playNow(li, item) {
 }
 
 // 显示播放列表页面
-async function displayPlaylistPage(page) {
+async function displayPlaylistPage(page, transaction) {
   playlistItems.innerHTML = '';
   /** @type {Array<{ title: string, url: string, group: string }>} **/
   const itemsToDisplay = filteredPlaylistData || [];
@@ -1615,7 +1617,7 @@ async function displayPlaylistPage(page) {
     div.className = 'label';
     div.textContent = item.group === currentCategory ? item.title : `[${item.group}] ${item.title}`;
 
-    if(item.url.startsWith(UNSAFE_HTTP)) {
+    if(item.url.startsWith(UNSAFE_HTTP) && VARS.IS_NATIVE === false) {
       li.dataset['http'] = true;
       li.classList.add('http');
       li.classList.add('broken');
@@ -1651,7 +1653,7 @@ async function displayPlaylistPage(page) {
     if (playCache) {
       updateListItemStyle(li, playCache.result, lastPlayedItem, isFav);
     }
-    else if (autoCheck === 'true') {
+    else if (autoCheck === 'true' && transaction === VARS.TRANSACTION) {
       // No cache or cleaned
       li.className = 'checking';
       const result = await checkVideoPlayability(videoUrl);
@@ -1740,7 +1742,7 @@ function updatePaginationControls() {
 async function initializePlaylist() {
   await fetchFavorites();
   filteredPlaylistData = categories[currentCategory] || playlistData;
-  displayPlaylistPage(currentPage).catch(error => {
+  displayPlaylistPage(currentPage, VARS.TRANSACTION).catch(error => {
     printLog(error.message);
   });
   updatePaginationControls();
@@ -1763,7 +1765,7 @@ function performSearch() {
 }
 
 // 刷新当前页面
-async function refreshCurrentPage() {
+async function refreshCurrentPage(transaction) {
   listCheckButton.disabled = true;
   const lastPlayedItem = getLastVideoItem();
 
@@ -1778,11 +1780,16 @@ async function refreshCurrentPage() {
     const itemUrl = li.dataset['url'];
 
     if (itemUrl) {
-      const id = database.encodeString(itemUrl);
-      const result = await checkVideoPlayability(itemUrl);
-      const isFav = await isFavorite(id);
-      await database.updateData({ id, result }, STA_STORE);
-      updateListItemStyle(li, result, lastPlayedItem, isFav);
+      if(transaction === VARS.TRANSACTION) {
+        const id = database.encodeString(itemUrl);
+        const result = await checkVideoPlayability(itemUrl);
+        const isFav = await isFavorite(id);
+        await database.updateData({ id, result }, STA_STORE);
+        updateListItemStyle(li, result, lastPlayedItem, isFav);
+      }
+      else {
+        li.className = '';
+      }
     }
     else {
       li.classList.add('broken');
@@ -2122,7 +2129,7 @@ async function checkVideoPlayability(url) {
 function gotoPage(p) {
   currentPage = p;
 
-  displayPlaylistPage(currentPage).catch(error => {
+  displayPlaylistPage(currentPage, VARS.TRANSACTION = crypto.randomUUID()).catch(error => {
     printLog(error.message);
   });
 
@@ -2330,7 +2337,7 @@ closeButton.addEventListener('click', (evt) => {
 });
 
 listCheckButton.addEventListener('click', (evt) => {
-  refreshCurrentPage();
+  refreshCurrentPage(VARS.TRANSACTION = crypto.randomUUID());
 });
 
 videoPlayer.addEventListener('timeupdate', (evt) => {
