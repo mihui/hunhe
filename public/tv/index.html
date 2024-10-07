@@ -737,7 +737,7 @@ button {
   display: flex;
   column-gap: 1rem;
   flex-flow: column;
-  height: 50%;
+  height: 15rem;
   overflow: auto;
   padding: 0.5rem 0.8rem;
   scrollbar-width: none;
@@ -2882,7 +2882,7 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
     progressControl.value = player.currentTime;
     setVideoTimestamp(player.currentTime);
     if (progressControl.max === '0') {
-      progress.max = player.duration;
+      progressControl.max = player.duration;
       totalTimeDisplay.textContent = getMinutes(player.duration);
     }
     currentTimeDisplay.textContent = getMinutes(player.currentTime);
@@ -2995,7 +2995,8 @@ progressControl.addEventListener('input', (evt) => {
   const value = evt.target.value;
   try {
     const currentTime = parseFloat(value);
-    if (!isNaN(currentTime)) {
+    currentTimeDisplay.textContent = getMinutes(currentTime);
+    if (!isNaN(currentTime) && !Number.isNaN(currentTime)) {
       videoPlayer.currentTime = currentTime;
     }
   } catch (error) {}

@@ -2,9 +2,11 @@ const { app, BrowserWindow, ipcMain } = require('electron/main');
 const path = require('path');
 const os = require('os');
 
-if (os.platform() === 'darwin' && os.arch() === 'x64') {
-  app.disableHardwareAcceleration();
-}
+// if (os.platform() === 'darwin' && os.arch() === 'x64') {
+//   app.disableHardwareAcceleration();
+// }
+
+app.commandLine.appendSwitch('enable-unsafe-webgpu');
 
 const createWindow = () => {
   const win = new BrowserWindow({

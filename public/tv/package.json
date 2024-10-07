@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "make": "electron-forge make --use-dawn",
     "make:arm": "electron-forge make --arch=arm64",
     "publish": "electron-forge publish --arch=arm64"
   },
