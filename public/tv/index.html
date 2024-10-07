@@ -471,7 +471,8 @@ body {
     }
 
 textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
-#loadContentuButton, #m3uContentKey, #settingsButton, #loadM3uButton, #closeM3uButton {
+#loadContentuButton, #m3uContentKey, #settingsButton,
+.m3u-controls #loadM3uButton, .m3u-controls #closeM3uButton {
   width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
@@ -703,15 +704,6 @@ button {
   font-style: italic;
 }
 
-#loadM3uButton {
-  background-color: #3498db;
-  color: white;
-  border: 0px;
-  cursor: pointer;
-  border-radius: 0px;
-  font-size: 14px;
-}
-
 #settingsButton {
   background-color: #606060;
   border-radius: 0px;
@@ -912,6 +904,15 @@ button {
   .m3u-controls #closeM3uButton {
     width: auto;
     border: 0px;
+  }
+
+  .m3u-controls #loadM3uButton {
+    background-color: #3498db;
+    color: white;
+    border: 0px;
+    cursor: pointer;
+    border-radius: 0px;
+    font-size: 14px;
   }
 
 .page-information {
