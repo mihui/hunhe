@@ -777,8 +777,10 @@ button {
     opacity: 0.6;
     transition: all 1s;
   }
+  #m3uList div a.ready,
   #m3uList div a.delete:hover {
-    background-color: #fbe3e3;
+    background-color: #e74c3c;
+    color: white;
     opacity: 1;
   }
 #m3uContentKey {
@@ -1230,6 +1232,13 @@ input:checked + .slider:before {
       <path d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
       <path d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
     </symbol>
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="read-from-url" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M11 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8M6.025 7.5a5 5 0 1 1 0 1H4A1.5 1.5 0 0 1 2.5 10h-1A1.5 1.5 0 0 1 0 8.5v-1A1.5 1.5 0 0 1 1.5 6h1A1.5 1.5 0 0 1 4 7.5zM11 5a.5.5 0 0 1 .5.5v2h2a.5.5 0 0 1 0 1h-2v2a.5.5 0 0 1-1 0v-2h-2a.5.5 0 0 1 0-1h2v-2A.5.5 0 0 1 11 5M1.5 7a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"/>
+    </symbol>
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="update-from-url" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+      <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+    </symbol>
   </svg>
 
   <div class="container" id="pageContainer">
@@ -1238,7 +1247,7 @@ input:checked + .slider:before {
         <div id="m3uInputContainer">
           <div class="m3u-controls">
             <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
-            <button id="loadM3uButton">从地址添加频道</button>
+            <button id="loadM3uButton"><svg width="20" height="20"><use xlink:href="#read-from-url"/></svg></button>
             <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#goback"/></svg></button>
           </div>
 
@@ -1406,6 +1415,8 @@ const VARS = {
   ICON_FAVORITE: '<svg width="20" height="20"><use xlink:href="#favorite"/></svg>',
   ICON_SPEAKER_ON: '<svg width="20" height="20"><use xlink:href="#unmute"/></svg>',
   ICON_SPEAKER_OFF: '<svg width="20" height="20"><use xlink:href="#mute"/></svg>',
+  ICON_READ_FROM_URL: '<svg width="20" height="20"><use xlink:href="#read-from-url"/></svg>',
+  ICON_UPDATE_FROM_URL: '<svg width="20" height="20"><use xlink:href="#update-from-url"/></svg>',
   POSTER: 'background.jpeg',
   PING_TIMEOUT: 0,
   URLS: new Set(),
@@ -1607,10 +1618,17 @@ async function listStore(source) {
     dItem.innerText = '删';
     dItem.className = 'delete';
     dItem.dataset['id'] = m3uItem.id;
-    dItem.ondblclick = async (evt) => {
+    dItem.onclick = async (evt) => {
       evt.preventDefault();
-      await database.deleteData(evt.target.dataset['id']);
-      listStore('click');
+      /** @type {HTMLAnchorElement} **/
+      const deleteButton = evt.target;
+      if(deleteButton.classList.contains('ready')) {
+        await database.deleteData(evt.target.dataset['id']);
+        listStore('click');
+      }
+      else {
+        deleteButton.classList.add('ready');
+      }
     };
     aItem.textContent = url;
     aItem.className = 'load';
@@ -2635,10 +2653,10 @@ async function fetchFavorites() {
   return categories[favoriteChannels];
 }
 
-function setUrlInput(url, label = '更新') {
+function setUrlInput(url, label = VARS.ICON_UPDATE_FROM_URL) {
   
   m3uUrlInput.value = url;
-  loadM3uButton.textContent = label;
+  loadM3uButton.innerHTML = label;
 }
 
 function setFullscreenData(state) {
@@ -2769,10 +2787,10 @@ function detectM3uUrl() {
   loadM3uButton.disabled = !m3uUrlInput.checkValidity();
   const cachedM3uUrl = getCachedM3uUrl();
   if(cachedM3uUrl === m3uUrlInput.value) {
-    loadM3uButton.textContent = '更新';
+    loadM3uButton.innerHTML = VARS.ICON_UPDATE_FROM_URL;
   }
   else {
-    loadM3uButton.textContent = '从地址添加频道'; 
+    loadM3uButton.innerHTML = VARS.ICON_READ_FROM_URL;
   }
 }
 
