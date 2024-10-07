@@ -240,11 +240,8 @@ class Database {
             storeSize[objectStoreName] += size; // 累加到存储对象大小
           }
           resolve();
-          console.warn(objectStoreName, 'size--->', storeSize[objectStoreName]);
         };
         getAllRequest.onerror = (event) => {
-          // 处理错误
-          console.error('error', event);
           resolve();
         };
       }));
@@ -2985,10 +2982,9 @@ commentsForm.addEventListener('submit', async (evt) => {
       content: commentsInput.value
     })
     .catch(error => {
-      console.log('error->', error);
+      printLog('comments.error->', error.message);
     })
     .then(response => {
-      console.log('response->', response);
       commentsInput.value = '';
       commentsInput.focus();
       commentsInput.dispatchEvent(new Event('input'));
