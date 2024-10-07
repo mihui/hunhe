@@ -325,6 +325,10 @@ body {
       height: auto;
       background-color: #333;
       position: relative;
+      flex: none;
+    }
+    .play-list .container .video-container .video-wrapper {
+      max-height: calc(100vh - 4rem);
     }
       .container .video-container .video-wrapper #videoContainer {
         display: flex;
@@ -356,7 +360,7 @@ body {
       flex-flow: column;
       row-gap: 0.5rem;
       user-select: none;
-      max-height: 50%;
+      overflow: auto;
     }
     .container .video-container .bottom-controls #errorControl {
       flex-flow: column;
@@ -1059,7 +1063,8 @@ input:checked + .slider:before {
   display: none;
   width: 100%;
   flex-flow: column;
-  max-height: 50%;
+  overflow: auto;
+  flex: 1;
 }
 .play-list #commentsLayout {
   display: flex;
@@ -1075,7 +1080,7 @@ input:checked + .slider:before {
   display: flex;
   flex-flow: column;
   overflow: auto;
-  max-height: 100%;
+  flex: 1;
 }
 #commentsLayout .comments-container .comment {
   display: flex;
@@ -2201,6 +2206,9 @@ function hlsPlay(source) {
     hls.attachMedia(videoPlayer);
     hls.once(Hls.Events.LEVEL_LOADED, (evt, data) => {
       printLog('Hls.Events.LEVEL_LOADED');
+      if (!data?.details) {
+        return printLog('Warning: Data details is undefined.');
+      }
       const duration = data?.details?.totalduration || 0;
       const isLive = data?.details?.live || false;
       playVideSource(source, duration, isLive);
@@ -2209,7 +2217,26 @@ function hlsPlay(source) {
       printLog('Hls.Events.MANIFEST_PARSED');
     });
     hls.once(Hls.Events.ERROR, (error) => {
-      hls.destroy();
+      printLog('Hls.Events.ERROR');
+      if (error.fatal) {
+        switch (error.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            printLog('Hls.ErrorTypes.NETWORK_ERROR', '重试网络请求');
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            printLog('Hls.ErrorTypes.MEDIA_ERROR', '处理媒体播放错误');
+            printLog('fatal media error encountered, try to recover');
+            hls.recoverMediaError();
+            break;
+          default:
+            printLog(error.type, '其他错误类型');
+            hls.destroy();
+            break;
+        }
+      }
+      else {
+        printLog('HLS ERROR unknown');
+      }
     });
   }
   catch(error) {
@@ -2953,7 +2980,7 @@ function loadComments(id, title, skip = 0) {
       const { comments } = data;
 
       commentsList.innerHTML = '';
-
+      for(let i = 0; i < 30; i++)
       comments.forEach(comment => {
         const commentItem = document.createElement('div');
         const commentContent = document.createElement('div');
@@ -2969,6 +2996,7 @@ function loadComments(id, title, skip = 0) {
 
         commentsList.appendChild(commentItem);
       });
+
     }
   });
 }
