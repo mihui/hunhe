@@ -471,7 +471,7 @@ body {
     }
 
 textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
-#loadM3uButton, #closeM3uButton, #loadContentuButton, #m3uContentKey, #settingsButton {
+#loadContentuButton, #m3uContentKey, #settingsButton, #loadM3uButton, #closeM3uButton {
   width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
@@ -480,8 +480,13 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
   -webkit-appearance: none;
   box-sizing: border-box;
 }
+#m3uUrlInput {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  font-size: 14px;
+}
 
-#searchContainer, #m3uUrlInput, .m3u-controls, #playlistContent .category {
+#searchContainer, #playlistContent .category {
   margin-bottom: 10px;
 }
 
@@ -556,7 +561,11 @@ select:focus-visible {
   justify-content: space-evenly;
   overflow: auto;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+  #playlistItems::-webkit-scrollbar { 
+    display: none;
+  }
 
 #playlistItems li {
   cursor: pointer;
@@ -573,6 +582,7 @@ select:focus-visible {
   display: flex;
   align-items: center;
   scrollbar-width: none;
+  -ms-overflow-style: none;
   border-left: 3px solid gray;
   transition: 0.5s all;
   column-gap: 0.5rem;
@@ -696,8 +706,10 @@ button {
 #loadM3uButton {
   background-color: #3498db;
   color: white;
-  border: none;
+  border: 0px;
   cursor: pointer;
+  border-radius: 0px;
+  font-size: 14px;
 }
 
 #settingsButton {
@@ -734,13 +746,21 @@ button {
   display: flex;
   column-gap: 1rem;
   flex-flow: column;
+  height: 50%;
+  overflow: auto;
+  padding: 0.5rem 0.8rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+#m3uList::-webkit-scrollbar {
+  display: none;
 }
 
 #m3uList div {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: 4px;
+  border-top: 1px solid #ccc;
 }
   #m3uList div.active {
     background-color: #fff;
@@ -758,7 +778,7 @@ button {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
   #m3uList div a.delete {
     color: #e74c3c;
@@ -832,8 +852,12 @@ button {
   column-gap: 0.6rem;
   row-gap: 0.6rem;
   scrollbar-width: none;
+  -ms-overflow-style: none;
   height: 100%;
   justify-content: space-between;
+}
+.box::-webkit-scrollbar { 
+  display: none;
 }
 
 .range {
@@ -874,17 +898,20 @@ button {
 
 .m3u-controls {
   display: flex;
-  column-gap: 0.5rem;
   flex-flow: row;
   align-items: center;
   justify-content: flex-end;
+  padding: 0.5rem 0.8rem;
 }
   .m3u-controls #closeM3uButton {
     background-color: #db6634;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
   }
   .m3u-controls #loadM3uButton,
   .m3u-controls #closeM3uButton {
     width: auto;
+    border: 0px;
   }
 
 .page-information {
@@ -930,6 +957,11 @@ button {
     flex: 1;
     white-space: pre-wrap;
     line-height: 1.2;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .tools .debug #debugLogs::-webkit-scrollbar {
+    display: none;
   }
   .tools .debug #logClearButton {
     position: absolute;
@@ -941,7 +973,7 @@ button {
     cursor: pointer;
     opacity: 0.6;
   }
-.usage {
+.settings-usage {
   row-gap: 0.5rem;
 }
 button:disabled {
@@ -1192,16 +1224,21 @@ input:checked + .slider:before {
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="unmute" viewBox="0 0 16 16">
       <path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06M6 5.04 4.312 6.39A.5.5 0 0 1 4 6.5H2v3h2a.5.5 0 0 1 .312.11L6 10.96zm7.854.606a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0"/>
     </symbol>
+    <!-- BACK -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="goback" viewBox="0 0 16 16">
+      <path d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
+      <path d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
+    </symbol>
   </svg>
 
   <div class="container" id="pageContainer">
     <div id="playlistContainer" class="back">
       <div class="box">
         <div id="m3uInputContainer">
-          <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
           <div class="m3u-controls">
+            <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
             <button id="loadM3uButton">从地址添加频道</button>
-            <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
+            <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#goback"/></svg></button>
           </div>
 
           <div id="m3uList"></div>
@@ -1228,7 +1265,7 @@ input:checked + .slider:before {
             </div>
 
             <div class="settings-row">
-              <label class="label">只更无缩略图</label>
+              <label class="label">跳过可用缩略图</label>
               <label class="switch">
                 <input type="checkbox" id="onlyCheckBrokenCheckbox">
                 <span class="slider"></span>
@@ -1239,19 +1276,29 @@ input:checked + .slider:before {
               <label class="label">检查超时 (<span id="checkTimeoutDisplay">0</span>ms)</label>
               <input type="range" id="checkTimeout" class="range" min="5" max="60" step="1">
             </div>
-            <div class="settings-row">
+
+            <div class="settings-row settings-usage hidden">
               <label class="label">数据使用情况</label>
               <div id="databaseSize"></div>
             </div>
+
+            <div class="settings-row settings-usage hidden">
+              <div id="databaseCategories"></div>
+            </div>
+  
+            <div class="settings-row">
+              <label class="label">启用日志</label>
+              <label class="switch">
+                <input type="checkbox" id="enableLoggingCheckbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+
           </div>
 
-          <div class="tools usage">
-            <div id="databaseCategories"></div>
-          </div>
-
-          <div class="tools">
+          <div id="logContainer" class="tools hidden">
             <div class="debug">
-              <button id="logClearButton"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
+              <button id="logClearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
               <code id="debugLogs">&gt; 日志</code>
             </div>
           </div>
@@ -1365,7 +1412,9 @@ const VARS = {
   /** @type {string} **/
   TRANSACTION: '',
   /** @type {string} **/
-  BASE_URL: (typeof window.electronAPI === 'undefined') ? window.location.origin : 'https://mihui.net'
+  BASE_URL: (typeof window.electronAPI === 'undefined') ? window.location.origin : 'https://mihui.net',
+  KILOBYTE: 1024,
+  MEGABYTE: 1048576
 };
 
 const database = new Database(DB_VERSION);
@@ -1395,7 +1444,7 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement, HTMLDivElement,
  * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
  * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
- * HTMLDivElement
+ * HTMLDivElement, HTMLInputElement, HTMLDivElement
  * ]} **/
 const [
   pageBody,
@@ -1410,7 +1459,7 @@ const [
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
   commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
-  progressBar,
+  progressBar, enableLoggingCheckbox, logContainer
  ] = 
 getElementById([
   'pageBody',
@@ -1425,7 +1474,7 @@ getElementById([
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
   'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
-  'progressBar'
+  'progressBar', 'enableLoggingCheckbox', 'logContainer'
 ]);
 
 let itemsPerPage = 15;
@@ -1441,6 +1490,7 @@ let filteredPlaylistData = [];
 let videoTimestamp = {};
 let storeFrame = 'false';
 let autoCheck = 'false';
+let enableLogging = 'false';
 let onlyCheckBroken = 'false';
 let stopURL = null;
 
@@ -1622,6 +1672,13 @@ function loadLocalCache() {
   autoCheck = window.localStorage.getItem('autoCheck') === 'true' ? 'true' : 'false';
   autoCheckCheckbox.checked = autoCheck === 'true';
 
+  enableLogging = window.localStorage.getItem('enableLogging') === 'true' ? 'true' : 'false';
+  enableLoggingCheckbox.checked = enableLogging === 'true';
+
+  if(enableLogging === 'true') {
+    logContainer.classList.remove('hidden');
+  }
+
   onlyCheckBroken = window.localStorage.getItem('onlyCheckBroken') === 'true' ? 'true' : 'false';
   onlyCheckBrokenCheckbox.checked = onlyCheckBroken === 'true';
 
@@ -1740,8 +1797,25 @@ function showPlaylistContent() {
   videoPlayer.controls = false;
 }
 
-function getMegaBytes(val) {
-  return (val/1024/1024).toFixed(2);
+/**
+ * 将字节转换为合适的单位大小
+ * @param {number} val 字节数
+ * @returns {string} 转换后的大小字符串
+ */
+function toSize(val) {
+  // 类型检查
+  if (typeof val !== 'number' || val < 0) {
+    return val;
+  }
+
+  // 转换逻辑
+  if (val < VARS.KILOBYTE) {
+    return `${val} B`;
+  } else if (val < VARS.MEGABYTE) {
+    return (val / VARS.KILOBYTE).toFixed(2) + ' KB';
+  } else {
+    return (val / VARS.MEGABYTE).toFixed(2) + ' MB';
+  }
 }
 
 // 显示 M3U 输入界面
@@ -1760,13 +1834,15 @@ async function showM3uInput() {
   }
 
   const { totalSize, storeSize } = await database.totalSize();
-  const size = getMegaBytes(totalSize);
-  databaseSize.textContent = `${size} MB`;
+  databaseSize.textContent = toSize(totalSize);
   databaseCategories.innerHTML = '';
+
+  document.querySelectorAll('.settings-usage').forEach(item => item.classList.remove('hidden'));
+
   const labels = { [FAV_STORE]: '收藏', [M3U_STORE]: '频道', [STA_STORE]: '缓存' };
   for(const item in storeSize) {
     const button = document.createElement('button');
-    button.textContent = `${labels[item]}: ${getMegaBytes(storeSize[item])} MB`;
+    button.textContent = `${labels[item]}: ${toSize(storeSize[item])}`;
     button.ondblclick = async () => {
       await database.purgeData(item);
       window.location.reload();
@@ -2404,8 +2480,10 @@ function showControls() {
  * @param {Array<any>} args
  */
 function printLog(...args) {
-  debugLogs.innerHTML = `$ ${args.join(' ')}\n`.concat(debugLogs.innerHTML);
-  logClearButton.classList.remove('hidden');
+  if(enableLogging === 'true') {
+    debugLogs.innerHTML = `$ ${args.join(' ')}\n`.concat(debugLogs.innerHTML);
+    logClearButton.classList.remove('hidden');
+  }
 }
 
 /**
@@ -2963,6 +3041,17 @@ onlyCheckBrokenCheckbox.addEventListener('change', (evt) => {
   window.localStorage.setItem('onlyCheckBroken', onlyCheckBroken);
 });
 
+enableLoggingCheckbox.addEventListener('change', (evt) => {
+  enableLogging = evt.target.checked ? 'true' : 'false';
+  window.localStorage.setItem('enableLogging', enableLogging);
+  if(enableLogging === 'true') {
+    logContainer.classList.remove('hidden');
+  }
+  else {
+    logContainer.classList.add('hidden');
+  }
+});
+
 logClearButton.addEventListener('click', (evt) => {
   logClearButton.classList.add('hidden');
   debugLogs.innerHTML = '> 日志';
@@ -2980,7 +3069,7 @@ function loadComments(id, title, skip = 0) {
       const { comments } = data;
 
       commentsList.innerHTML = '';
-      for(let i = 0; i < 30; i++)
+
       comments.forEach(comment => {
         const commentItem = document.createElement('div');
         const commentContent = document.createElement('div');
