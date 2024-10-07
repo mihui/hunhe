@@ -5,11 +5,10 @@
   <title>Hunhe IPTV</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <script src="js-indexeddb.js"></script>
+  <script src="js-indexeddb.js?v=2"></script>
   <script src="js-hls.js"></script>
   <script src="js-swipe.js?v=1"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <link rel="stylesheet" href="styles.css" />
   <style>
 html, body {
   width: 100%;
@@ -117,14 +116,26 @@ body {
       opacity: 1;
       pointer-events: auto;
       transition: opacity 0.5s;
+      flex-flow: column;
     }
       .container .video-container #videoContainer #videoControls.transparent {
         opacity: 0;
         pointer-events: none;
       }
-
       .container .video-container #videoContainer #videoControls button {
         flex: 0;
+      }
+      .container .video-container #videoContainer #videoControls .buttons {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        box-sizing: border-box;
+        position: relative;
+        padding: 0px;
+        column-gap: 1rem;
+      }
+      .container .video-container #videoContainer #videoControls .buttons .divider {
+        flex: 1;
       }
       .container .video-container #videoContainer #videoControls .progress {
         flex: 1;
@@ -133,11 +144,8 @@ body {
         column-gap: 0.3rem;
         align-items: center;
         justify-content: space-between;
-        position: absolute;
         box-sizing: border-box;
-        left: 0px;
         padding: 0.5rem;
-        top: -2.17rem;
         background-color: rgba(0, 0, 0, 0.5);
       }
       .container .video-container #videoContainer #videoControls .progress #progressControl {
@@ -834,6 +842,10 @@ input:checked + .slider:before {
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
   }
+  #commentsLayout .comments-form #commentsButton {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+  }
   </style>
 </head>
 
@@ -945,6 +957,14 @@ input:checked + .slider:before {
             </div>
 
             <div class="settings-row">
+              <label class="label">只更无缩略图</label>
+              <label class="switch">
+                <input type="checkbox" id="onlyCheckBrokenCheckbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
               <label class="label">检查超时 (<span id="checkTimeoutDisplay">0</span>ms)</label>
               <input type="range" id="checkTimeout" class="range" min="5" max="60" step="1">
             </div>
@@ -1002,16 +1022,19 @@ input:checked + .slider:before {
           <figure id="videoContainer">
             <video id="videoPlayer" playsinline poster="background.jpeg"></video>
             <div id="videoControls" class="user-controls controls transparent">
-              <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
-              <div class="progress">
+              <div class="buttons">
+                <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
+                <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
+                <div class="divider"></div>
+                <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
+                <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
+                <button id="fullscreenButton" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
+              </div>
+              <div id="progressBar" class="progress">
                 <span id="currentTimeDisplay" class="time">00:00</span>
                 <input id="progressControl" class="range" type="range" value="0" min="0" max="0">
                 <span id="totalTimeDisplay" class="time">00:00</span>
               </div>
-              <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
-              <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
-              <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
-              <button id="fullscreenButton" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
             </div>
           </figure>
 
@@ -1100,7 +1123,8 @@ function getElementById(idList = []) {
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
  * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement, HTMLDivElement,
  * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
- * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement
+ * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
+ * HTMLDivElement
  * ]} **/
 const [
   pageBody,
@@ -1114,7 +1138,8 @@ const [
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
-  commentsForm, commentsInput, commentsButton, commentsList
+  commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
+  progressBar,
  ] = 
 getElementById([
   'pageBody',
@@ -1128,7 +1153,8 @@ getElementById([
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
-  'commentsForm', 'commentsInput', 'commentsButton', 'commentsList'
+  'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
+  'progressBar'
 ]);
 
 let itemsPerPage = 15;
@@ -1144,10 +1170,10 @@ let filteredPlaylistData = [];
 let videoTimestamp = {};
 let storeFrame = 'false';
 let autoCheck = 'false';
+let onlyCheckBroken = 'false';
 let stopURL = null;
 
 function generateBlankFrame() {
-  printLog('generateBlankFrame');
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = 'darkblue';
@@ -1242,7 +1268,6 @@ function getCachedM3uUrl() {
 }
 
 async function listStore(source) {
-  printLog('[listStore]', source);
   settingsButton.disabled = true;
   const cachedM3uSource = localStorage.getItem('cachedM3uSource') || SOURCES.URL;
   const cachedM3uUrl = getCachedM3uUrl();
@@ -1327,6 +1352,9 @@ function loadLocalCache() {
   autoCheck = window.localStorage.getItem('autoCheck') === 'true' ? 'true' : 'false';
   autoCheckCheckbox.checked = autoCheck === 'true';
 
+  onlyCheckBroken = window.localStorage.getItem('onlyCheckBroken') === 'true' ? 'true' : 'false';
+  onlyCheckBrokenCheckbox.checked = onlyCheckBroken === 'true';
+
   VARS.PING_TIMEOUT = parseInt(window.localStorage.getItem('PING_TIMEOUT')) || 10000;
   checkTimeout.value = Math.round(VARS.PING_TIMEOUT / 1000);
   checkTimeoutDisplay.textContent = checkTimeout.value;
@@ -1336,11 +1364,14 @@ function initSideMenu() {
   const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
   if(playListVisible === 'false') {
     playlistContainer.className = 'back';
+    pageBody.classList.remove('play-list');
   }
   else {
     playlistContainer.className = 'play-list';
+    pageBody.classList.add('play-list');
   }
   pageBody.classList.remove('settings');
+  videoPlayer.controls = false;
 }
 
 /**
@@ -1380,8 +1411,7 @@ function changePoster(poster) {
 
 function stopVideo(poster = VARS.POSTER) {
   printLog('stopVideo');
-  if(stopURL)
-    videoPlayer.src = stopURL;
+  if(stopURL) videoPlayer.src = stopURL;
   videoPlayer.pause();
 
   currentTimeDisplay.textContent = getMinutes(0);
@@ -1437,7 +1467,7 @@ function showPlaylistContent() {
   playlistContent.classList.remove('hidden');
   playlistContainer.className = 'play-list';
   pageBody.classList.remove('settings');
-  pageBody.classList.add('play-list')
+  videoPlayer.controls = false;
 }
 
 function getMegaBytes(val) {
@@ -1453,17 +1483,19 @@ async function showM3uInput() {
     pageBody.classList.add('settings')
     m3uInputContainer.classList.remove('hidden');
     playlistContent.classList.add('hidden');
+    videoPlayer.controls = true;
   }
   else {
     showPlaylistContent();
   }
+
   const { totalSize, storeSize } = await database.totalSize();
   const size = getMegaBytes(totalSize);
   databaseSize.textContent = `${size} MB`;
   databaseCategories.innerHTML = '';
+  const labels = { [FAV_STORE]: '收藏', [M3U_STORE]: '频道', [STA_STORE]: '缓存' };
   for(const item in storeSize) {
     const button = document.createElement('button');
-    const labels = { [FAV_STORE]: '收藏', [M3U_STORE]: '频道', [STA_STORE]: '缓存' };
     button.textContent = `${labels[item]}: ${getMegaBytes(storeSize[item])} MB`;
     button.ondblclick = async () => {
       await database.purgeData(item);
@@ -1491,7 +1523,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
   const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
 
   async function fetchDataAndProcess(id, payload, cached) {
-    printLog('fetchDataAndProcess');
+    printLog('loadM3uFile.fetchDataAndProcess');
     m3uUrlInput.disabled = loadM3uButton.disabled = true;
     const safeUrl = (m3uUrl.startsWith(UNSAFE_HTTP) && VARS.IS_NATIVE === false) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
     try {
@@ -1663,6 +1695,16 @@ function playNow(li, item) {
   playVideo(item);
 }
 
+/**
+ * @param {string} url URL
+ */
+function processUrl(url) {
+  if(url.includes('#')) {
+    return url.substring(0, url.indexOf('#'));
+  }
+  return url;
+}
+
 // 显示播放列表页面
 async function displayPlaylistPage(page, transaction) {
   playlistItems.innerHTML = '';
@@ -1689,7 +1731,8 @@ async function displayPlaylistPage(page, transaction) {
       li.classList.add('broken');
     }
 
-    li.dataset['url'] = item.url;
+    li.dataset['title'] = item.title;
+    li.dataset['url'] = processUrl(item.url);
     li.dataset['group'] = item.group;
     li.title = item.title;
 
@@ -1703,7 +1746,7 @@ async function displayPlaylistPage(page, transaction) {
       }
       else {
         stopVideo(frame);
-        loadComments(database.encodeString(currentTarget.dataset['url']));
+        loadComments(database.encodeString(currentTarget.dataset['url']), currentTarget.dataset['title']);
       }
     };
 
@@ -1716,12 +1759,14 @@ async function displayPlaylistPage(page, transaction) {
     const videoUrl = li.dataset['url'];
     const id = database.encodeString(videoUrl);
     const isFav = await isFavorite(id);
+    /** @type {{ result: { ok: boolean, duration: number, frame: string, timeout: boolean } }} */
     const playCache = await database.readData(id, STA_STORE);
     if (playCache) {
       updateListItemStyle(li, playCache.result, lastPlayedItem, isFav);
     }
     else if (autoCheck === 'true' && transaction === VARS.TRANSACTION) {
       // No cache or cleaned
+      // Check video playability
       li.className = 'checking';
       const result = await checkVideoPlayability(videoUrl);
       await database.addData({ id, result }, STA_STORE);
@@ -1810,7 +1855,7 @@ async function initializePlaylist() {
   await fetchFavorites();
   filteredPlaylistData = categories[currentCategory] || playlistData;
   displayPlaylistPage(currentPage, VARS.TRANSACTION).catch(error => {
-    printLog(error.message);
+    printLog('initializePlaylist.displayPlaylistPage.error', error.message);
   });
   updatePaginationControls();
 }
@@ -1837,12 +1882,21 @@ async function refreshCurrentPage(transaction) {
   const lastPlayedItem = getLastVideoItem();
 
   const items = playlistItems.childNodes;
-  items.forEach(node => {
-    node.className = '';
-  });
+  for (let i = 0; i < items.length; i++) {
+    /** @type {HTMLLIElement} */
+    const li = items[i];
+    if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
+      continue;
+    }
+    li.className = '';
+  }
 
   for (let i = 0; i < items.length; i++) {
+    /** @type {HTMLLIElement} */
     const li = items[i];
+    if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
+      continue;
+    }
     li.className = 'checking';
     const itemUrl = li.dataset['url'];
 
@@ -1972,19 +2026,19 @@ async function onPlay(playingItem, duration = '0', isLive = false) {
 
   refreshFavoriteButton(await isFavorite(id));
   const lastPlayedTime = videoTimestamp[playingItem.url];
-  if (!isNaN(lastPlayedTime)) {
-    videoPlayer.currentTime = lastPlayedTime;
-  }
   currentTimeDisplay.textContent = getMinutes(videoPlayer.currentTime);
   totalTimeDisplay.textContent = getMinutes(duration);
   progressControl.max = duration;
   if(isLive) {
-    progressControl.classList.add('hidden');
+    progressBar.classList.add('hidden');
     totalTimeDisplay.classList.add('hidden');
     currentTimeDisplay.classList.add('hidden');
   }
   else {
-    progressControl.classList.remove('hidden');
+    if (!isNaN(lastPlayedTime)) {
+      videoPlayer.currentTime = lastPlayedTime;
+    }
+    progressBar.classList.remove('hidden');
     totalTimeDisplay.classList.remove('hidden');
     currentTimeDisplay.classList.remove('hidden');
   }
@@ -2014,7 +2068,7 @@ function playVideo(source, isUserAction = true) {
   } else {
     shell.changeTitle();
   }
-  loadComments(database.encodeString(source.url));
+  loadComments(database.encodeString(source.url), source.title);
   if(isUserAction === false) { return; }
   window.localStorage.removeItem('lastPlayedItem');
   muteOrUnmuteVideo(true);
@@ -2198,7 +2252,7 @@ function gotoPage(p) {
   currentPage = p;
 
   displayPlaylistPage(currentPage, VARS.TRANSACTION = crypto.randomUUID()).catch(error => {
-    printLog(error.message);
+    printLog('gotoPage.error', error.message);
   });
 
   updatePaginationControls();
@@ -2238,7 +2292,7 @@ async function startup() {
   generateBlankFrame();
   shell.changeTitle();
 
-  if (!document?.fullscreenEnabled) {
+  if(!document?.fullscreenEnabled) {
     fullscreenButton.className = 'hidden';
   }
 }
@@ -2328,6 +2382,11 @@ function gotoNextPage(evt) {
 
 function resetPoster(evt) {
   evt.preventDefault();
+  const node = evt.target;
+  const nodeName = node.tagName.toLowerCase();
+  if(nodeName === 'input' || nodeName === 'video') {
+    return;
+  }
   /** @type {HTMLVideoElement} */
   const player = evt.target;
   if(player.poster !== VARS.POSTER) {
@@ -2450,6 +2509,16 @@ videoPlayer.addEventListener('loadeddata', (evt) => {
 videoPlayer.addEventListener('playing', (evt) => {
   printLog('videoPlayer.playing');
 });
+videoPlayer.addEventListener('emptied', (evt) => {
+  printLog('videoPlayer.emptied');
+});
+videoPlayer.addEventListener("stalled", (evt) => {
+  printLog('videoPlayer.stalled');
+});
+videoPlayer.addEventListener("suspend", (evt) => {
+  printLog('videoPlayer.suspend');
+});
+
 videoPlayer.addEventListener('waiting', (evt) => {
   printLog('videoPlayer.waiting');
   playVideoButton.className = 'playing';
@@ -2504,7 +2573,7 @@ videoPlayer.addEventListener('click', (evt) => {
 });
 
 videoPlayer.addEventListener('dblclick', resetPoster);
-errorControl.addEventListener('dblclick', resetPoster);
+bottomControls.addEventListener('dblclick', resetPoster);
 
 // progressControl.addEventListener("click", (evt) => {
 //   const rect = progressControl.getBoundingClientRect();
@@ -2566,12 +2635,14 @@ function displaySideMenu(show = false) {
   // Hide playlist
   if(show) {
     showPlaylistContent();
+    pageBody.classList.add('play-list');
   }
   // Show playlist
   else {
     playlistContainer.className = 'back';
     pageBody.classList.remove('settings');
     pageBody.classList.remove('play-list');
+    videoPlayer.controls = false;
   }
   window.localStorage.setItem('playListVisible', show ? 'true' : 'false');
 }
@@ -2595,38 +2666,45 @@ checkTimeout.addEventListener('input', (evt) => {
   window.localStorage.setItem('PING_TIMEOUT', VARS.PING_TIMEOUT);
 });
 
+onlyCheckBrokenCheckbox.addEventListener('change', (evt) => {
+  onlyCheckBroken = evt.target.checked ? 'true' : 'false';
+  window.localStorage.setItem('onlyCheckBroken', onlyCheckBroken);
+});
+
 logClearButton.addEventListener('click', (evt) => {
   logClearButton.classList.add('hidden');
   debugLogs.innerHTML = '> 日志';
 });
 
-function loadComments(id, skip = 0) {
+function loadComments(id, title, skip = 0) {
+  commentsInput.placeholder = `评论：${title}`;
   axios.get(`${VARS.BASE_URL}/api/tv/comments/${id}?skip=${skip}`)
   .catch(error => {
     console.log('load.comments.error->', error);
   })
   .then(response => {
-    const { data } = response;
-    const { comments } = data;
+    if(response) {
+      const { data } = response;
+      const { comments } = data;
 
-    commentsList.innerHTML = '';
+      commentsList.innerHTML = '';
 
-    comments.forEach(comment => {
-      const commentItem = document.createElement('div');
-      const commentContent = document.createElement('div');
-      const commentTime = document.createElement('div');
-      commentItem.className = 'comment';
-      commentContent.className = 'content';
-      commentContent.textContent = comment.content;
-      commentTime.className = 'time';
-      commentTime.textContent = timeAgo(new Date(comment.created_time).getTime());
+      comments.forEach(comment => {
+        const commentItem = document.createElement('div');
+        const commentContent = document.createElement('div');
+        const commentTime = document.createElement('div');
+        commentItem.className = 'comment';
+        commentContent.className = 'content';
+        commentContent.textContent = comment.content;
+        commentTime.className = 'time';
+        commentTime.textContent = timeAgo(new Date(comment.created_time).getTime());
 
-      commentItem.append(commentTime);
-      commentItem.append(commentContent);
+        commentItem.append(commentTime);
+        commentItem.append(commentContent);
 
-      commentsList.appendChild(commentItem);
-    });
-
+        commentsList.appendChild(commentItem);
+      });
+    }
   });
 }
 
@@ -2646,7 +2724,7 @@ commentsForm.addEventListener('submit', async (evt) => {
       commentsInput.value = '';
       commentsInput.focus();
       commentsInput.dispatchEvent(new Event('input'));
-      loadComments(id);
+      loadComments(id, lastPlayedItem.title);
     });
   }
 });
@@ -2658,23 +2736,19 @@ commentsInput.addEventListener('input', (evt) => {
 
 [bottomControls, paginationGroup].forEach(element => {
   window.swipe(element).on('swipeLeft', (evt) => {
-    printLog('swipeLeft');
     displaySideMenu(false);
   });
 })
 
 window.swipe(bottomControls).on('swipeRight', (evt) => {
-  printLog('swipeRight');
   displaySideMenu(true);
 });
 
 window.swipe(videoPlayer).on('swipeRight', (evt) => {
-  printLog('swipeRight.forward');
   forwardButton.dispatchEvent(new Event('click'));
 });
 
 window.swipe(videoPlayer).on('swipeLeft', (evt) => {
-  printLog('swipeRight.rewind');
   rewindButton.dispatchEvent(new Event('click'));
 });
 
