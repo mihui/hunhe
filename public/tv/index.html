@@ -2324,7 +2324,9 @@ function hlsPlay(source) {
       playVideSource(source, duration, isLive);
     });
     hls.once(Hls.Events.MANIFEST_PARSED, (evt, data) => {
-      printLog('Hls.Events.MANIFEST_PARSED');
+      const duration = data?.details?.totalduration || 0;
+      const isLive = data?.details?.live || false;
+      printLog('Hls.Events.MANIFEST_PARSED', 'duration->', duration, 'isLive->', isLive);
     });
     hls.once(Hls.Events.ERROR, (error) => {
       printLog('Hls.Events.ERROR', 'error.fatal->', error.fatal, 'error.type->', error.type);
@@ -2351,7 +2353,7 @@ function hlsPlay(source) {
     });
   }
   catch(error) {
-    printLog('HLS ERROR 1');
+    printLog('HLS ERROR 1', error.message);
   }
 }
 
