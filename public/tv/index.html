@@ -1819,6 +1819,7 @@ function stopVideo(poster = VARS.POSTER) {
   videoPlayer.pause();
   if(stopURL) videoPlayer.src = stopURL;
   videoPlayer.pause();
+  videoPlayer.removeAttribute('src');
   pauseVideoButton.classList.add('hidden');
   currentTimeDisplay.textContent = getMinutes(0);
   totalTimeDisplay.textContent = getMinutes(0);
@@ -2394,7 +2395,7 @@ function hlsPlay(source) {
             break;
           case Hls.ErrorTypes.MEDIA_ERROR:
             printLog('Hls.ErrorTypes.MEDIA_ERROR', '处理媒体播放错误');
-            if(videoPlayer.src === stopURL) {
+            if(videoPlayer.src === stopURL || videoPlayer.src === '') {
               printLog('Hls.ErrorTypes.MEDIA_ERROR', '停止视频');
               hls.destroy();
             }
