@@ -1764,6 +1764,7 @@ function playLastVideo(isUserAction = true) {
 }
 
 function changePoster(poster) {
+  printLog('changePoster', poster);
   videoPlayer.poster = poster;
   pageBody.style.background = `transparent url("${poster}") center center / cover no-repeat`;
 }
@@ -2330,6 +2331,8 @@ function hlsPlay(source) {
     });
     hls.once(Hls.Events.ERROR, (error, data) => {
       printLog('Hls.Events.ERROR', 'data.fatal->', data.fatal, 'data.type->', data.type);
+      printLog('Hls.Events.ERROR', JSON.stringify(error));
+
       if (data.fatal) {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
@@ -2699,10 +2702,6 @@ async function startup() {
   initSideMenu();
   generateBlankFrame();
   shell.changeTitle();
-
-  if(!document?.fullscreenEnabled) {
-    fullscreenButton.className = 'hidden';
-  }
 }
 
 async function deleteFavorite(id) {
@@ -3041,14 +3040,23 @@ speakerButton.addEventListener('click', (evt) => {
 fullscreenButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
-  if (document.fullscreenElement !== null) {
+  
+  // Check if fullscreen is supported
+  // if(document?.fullscreenEnabled) {
+    
+  // }
+  // else {
+    
+  // }
+
+  if (document.fullscreenElement === null || document.fullscreenElement === undefined) {
+    // The document is not in fullscreen mode
+    videoPlayer.requestFullscreen();
+    setFullscreenData(true);
+  } else {
     // The document is in fullscreen mode
     document.exitFullscreen();
     setFullscreenData(false);
-  } else {
-    // The document is not in fullscreen mode
-    videoContainer.requestFullscreen();
-    setFullscreenData(true);
   }
 });
 
