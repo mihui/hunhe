@@ -1084,8 +1084,12 @@ input:checked + .slider:before {
     top: 0px;
     left: 0px;
   }
-  .container #videoControls button {
-    border-radius: 5px;
+  .container .video-container #videoContainer #videoControls .buttons {
+    column-gap: 0.5rem;
+  }
+  .container .video-container #videoContainer #videoControls .buttons button {
+    border-radius: 4px;
+    padding: 0.5rem 0.7rem;
   }
 }
 
@@ -1727,6 +1731,7 @@ async function loadLocalCache() {
 
 function initUI() {
   const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
+  console.log('playListVisible->', playListVisible);
   if(playListVisible === 'false') {
     playlistContainer.className = 'back';
     pageBody.classList.remove('play-list');
@@ -1740,6 +1745,7 @@ function initUI() {
   if(displayPlayerControls()) {
     fullscreenButton.classList.remove('hidden');
   }
+  console.log('playlistContainer.className--->', playlistContainer.className, playlistContainer);
 }
 
 function displayPlayerControls(show = false) {
@@ -2716,7 +2722,7 @@ function setFullscreenData(state) {
 
 // 加载缓存的数据
 async function startup() {
-  loadLocalCache();
+  await loadLocalCache();
   gotoPage(currentPage);
   playLastVideo(false);
   listStore('startup');
