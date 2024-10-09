@@ -1367,7 +1367,7 @@ input:checked + .slider:before {
                 <div class="divider"></div>
                 <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
                 <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
-                <button id="fullscreenButton" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
+                <button id="fullscreenButton" class="hidden" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
                 <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
                 <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
               </div>
@@ -1691,8 +1691,17 @@ function saveCurrentChannel() {
   window.localStorage.setItem('currentCategory', currentCategory);
 }
 
-function loadLocalCache() {
+async function loadLocalCache() {
+  const cachedM3uUrl = window.localStorage.getItem('cachedM3uUrl') || '';
+  if (cachedM3uUrl) {
+    setUrlInput(cachedM3uUrl);
+    await loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
+  }
+  else {
+    await showM3uInput();
+  }
   loadVideoTimestamp();
+
   currentPage = parseInt(window.localStorage.getItem('currentPage')) || 1;
 
   storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
@@ -1716,7 +1725,7 @@ function loadLocalCache() {
   checkTimeoutDisplay.textContent = checkTimeout.value;
 }
 
-function initSideMenu() {
+function initUI() {
   const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
   if(playListVisible === 'false') {
     playlistContainer.className = 'back';
@@ -1727,7 +1736,19 @@ function initSideMenu() {
     pageBody.classList.add('play-list');
   }
   pageBody.classList.remove('settings');
-  videoPlayer.controls = false;
+
+  if(displayPlayerControls()) {
+    fullscreenButton.classList.remove('hidden');
+  }
+}
+
+function displayPlayerControls(show = false) {
+  if (document.fullscreenEnabled) {
+    videoPlayer.controls = false;
+    return true;
+  }
+  videoPlayer.controls = show;
+  return false;
 }
 
 /**
@@ -1776,7 +1797,7 @@ function stopVideo(poster = VARS.POSTER) {
   progressControl.value = progressControl.max = '0';
 
   shell.changeTitle();
-  showPlayButton(false);
+  showPlayButton();
   rewindButton.disabled = forwardButton.disabled = true;
   saveVideoTimestamp();
   changePoster(poster);
@@ -1786,7 +1807,7 @@ function showPlayButton(showControls = false) {
   playVideoButton.innerHTML = VARS.ICON_PLAY;
   pauseVideoButton.innerHTML = VARS.ICON_UNPAUSE;
   playVideoButton.className = 'stopped';
-  videoPlayer.controls = showControls;
+  displayPlayerControls(showControls);
   videoPlayer.className = 'paused';
 }
 
@@ -1824,7 +1845,7 @@ function showPlaylistContent() {
   playlistContent.classList.remove('hidden');
   playlistContainer.className = 'play-list';
   pageBody.classList.remove('settings');
-  videoPlayer.controls = false;
+  displayPlayerControls();
 }
 
 /**
@@ -1857,7 +1878,7 @@ async function showM3uInput() {
     pageBody.classList.add('settings')
     m3uInputContainer.classList.remove('hidden');
     playlistContent.classList.add('hidden');
-    videoPlayer.controls = true;
+    displayPlayerControls(true);
   }
   else {
     showPlaylistContent();
@@ -2695,19 +2716,11 @@ function setFullscreenData(state) {
 
 // 加载缓存的数据
 async function startup() {
-  const cachedM3uUrl = window.localStorage.getItem('cachedM3uUrl') || '';
-  if (cachedM3uUrl) {
-    setUrlInput(cachedM3uUrl);
-    await loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
-  }
-  else {
-    await showM3uInput();
-  }
   loadLocalCache();
   gotoPage(currentPage);
   playLastVideo(false);
   listStore('startup');
-  initSideMenu();
+  initUI();
   generateBlankFrame();
   shell.changeTitle();
 }
@@ -3053,16 +3066,8 @@ speakerButton.addEventListener('click', (evt) => {
 fullscreenButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
-  
-  // Check if fullscreen is supported
-  // if(document?.fullscreenEnabled) {
-    
-  // }
-  // else {
-    
-  // }
 
-  if (document.fullscreenElement === null || document.fullscreenElement === undefined) {
+  if (document.fullscreenElement === null && document.fullscreenEnabled) {
     // The document is not in fullscreen mode
     videoPlayer.requestFullscreen();
     setFullscreenData(true);
@@ -3092,7 +3097,7 @@ function displaySideMenu(show = false) {
     playlistContainer.className = 'back';
     pageBody.classList.remove('settings');
     pageBody.classList.remove('play-list');
-    videoPlayer.controls = false;
+    displayPlayerControls();
   }
   window.localStorage.setItem('playListVisible', show ? 'true' : 'false');
 }
