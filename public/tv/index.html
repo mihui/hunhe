@@ -2926,7 +2926,9 @@ videoPlayer.addEventListener('emptied', (evt) => {
   printLog('videoPlayer.emptied');
 });
 videoPlayer.addEventListener("stalled", (evt) => {
-  printLog('videoPlayer.stalled');
+  /** @type {HTMLVideoElement} */
+  const player = evt.target;
+  printLog('videoPlayer.stalled', player.paused);
 });
 
 videoPlayer.addEventListener("suspend", (evt) => {
