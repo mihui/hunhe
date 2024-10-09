@@ -2314,7 +2314,7 @@ function hlsPlay(source) {
     const hls = new Hls();
     hls.loadSource(source.url);
     hls.attachMedia(videoPlayer);
-    hls.on(Hls.Events.LEVEL_LOADED, (evt, data) => {
+    hls.once(Hls.Events.LEVEL_LOADED, (evt, data) => {
       printLog('Hls.Events.LEVEL_LOADED');
       if (!data?.details) {
         return printLog('Warning: Data details is undefined.');
@@ -2323,11 +2323,11 @@ function hlsPlay(source) {
       const isLive = data?.details?.live || false;
       playVideSource(source, duration, isLive);
     });
-    hls.on(Hls.Events.MANIFEST_PARSED, (evt, data) => {
+    hls.once(Hls.Events.MANIFEST_PARSED, (evt, data) => {
       printLog('Hls.Events.MANIFEST_PARSED');
     });
-    hls.on(Hls.Events.ERROR, (error) => {
-      printLog('Hls.Events.ERROR');
+    hls.once(Hls.Events.ERROR, (error) => {
+      printLog('Hls.Events.ERROR', 'error.fatal->', error.fatal, 'error.type->', error.type);
       if (error.fatal) {
         switch (error.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
