@@ -2346,6 +2346,7 @@ function hlsPlay(source) {
       }
       else {
         printLog('HLS ERROR unknown');
+        hls.recoverMediaError();
       }
     });
   }
