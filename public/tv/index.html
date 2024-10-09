@@ -1084,13 +1084,15 @@ input:checked + .slider:before {
     top: 0px;
     left: 0px;
   }
+}
+@media only screen and (max-width: 965px) {
   .container .video-container #videoContainer #videoControls .buttons {
-    column-gap: 0.5rem;
+    column-gap: 0.5rem; 
   }
   .container .video-container #videoContainer #videoControls .buttons button {
     border-radius: 4px;
     padding: 0.5rem 0.7rem;
-  }
+  }  
 }
 
 .hidden {
@@ -1748,9 +1750,17 @@ function initUI() {
   console.log('playlistContainer.className--->', playlistContainer.className, playlistContainer);
 }
 
-function displayPlayerControls(show = false) {
+function displayPlayerControls(showNativeControls = false, showCustomControls = false) {
   if (document.fullscreenEnabled) {
-    videoPlayer.controls = show;
+    if(showCustomControls) {
+      videoControls.classList.remove('transparent');
+    }
+    else if(showNativeControls) {
+      videoPlayer.controls = showNativeControls;
+    }
+    else {
+      videoControls.classList.add('transparent');
+    }
     return true;
   }
   videoPlayer.controls = true;
@@ -1809,11 +1819,11 @@ function stopVideo(poster = VARS.POSTER) {
   changePoster(poster);
 }
 
-function showPlayButton(showControls = false) {
+function showPlayButton() {
   playVideoButton.innerHTML = VARS.ICON_PLAY;
   pauseVideoButton.innerHTML = VARS.ICON_UNPAUSE;
   playVideoButton.className = 'stopped';
-  displayPlayerControls(showControls);
+  displayPlayerControls();
   videoPlayer.className = 'paused';
 }
 
@@ -1821,7 +1831,7 @@ function onStopped() {
   showPlayButton();
   shell.changeTitle();
   saveVideoTimestamp();
-  showControls();
+  displayPlayerControls(false, true);
 }
 
 function setVideoTimestamp(timestamp) {
@@ -1884,7 +1894,7 @@ async function showM3uInput() {
     pageBody.classList.add('settings')
     m3uInputContainer.classList.remove('hidden');
     playlistContent.classList.add('hidden');
-    displayPlayerControls(true);
+    displayPlayerControls(true, true);
   }
   else {
     showPlaylistContent();
@@ -2499,7 +2509,7 @@ function onPlaying() {
   rewindButton.disabled = forwardButton.disabled = false;
 
   clearTimeout(hideTimer);
-  hideTimer = setTimeout(hideControls, hideDelay);
+  hideTimer = setTimeout(displayPlayerControls, hideDelay);
 }
 
 /**
@@ -2542,16 +2552,6 @@ function muteOrUnmuteVideo(mute) {
 const hideDelay = 2000;
 // 设置一个定时器变量
 let hideTimer = 0;
-
-// 隐藏控件
-function hideControls() {
-  videoControls.classList.add('transparent');
-}
-
-// 显示控件
-function showControls() {
-  videoControls.classList.remove('transparent');
-}
 
 /**
  * @param {Array<any>} args
@@ -2921,6 +2921,7 @@ videoPlayer.addEventListener('pause', (evt) => {
   printLog('videoPlayer.pause');
   onStopped();
 });
+
 videoPlayer.addEventListener('seeked', (evt) => {
   const lastPlayedItem = getLastVideoItem();
   printLog('videoPlayer.seeked', videoPlayer.currentTime, evt.target.currentTime);
@@ -2938,7 +2939,7 @@ videoPlayer.addEventListener('play', (evt) => {
 });
 videoPlayer.addEventListener('loadeddata', (evt) => {
   printLog('videoPlayer.loadeddata');
-  showControls();
+  displayPlayerControls(true, true);
 });
 videoPlayer.addEventListener('playing', (evt) => {
   printLog('videoPlayer.playing');
@@ -2984,7 +2985,7 @@ videoPlayer.addEventListener('error', (evt) => {
   [videoPlayer, videoControls].forEach(element => {
     element.addEventListener(eventType, () => {
       clearTimeout(hideTimer);
-      showControls();
+      displayPlayerControls(true, true);
     });
   });
 });
@@ -2992,23 +2993,23 @@ videoPlayer.addEventListener('error', (evt) => {
   [videoPlayer, videoControls].forEach(element => {
     element.addEventListener(eventType, () => {
       clearTimeout(hideTimer);
-      hideTimer = setTimeout(hideControls, hideDelay);
+      hideTimer = setTimeout(displayPlayerControls, hideDelay);
     });
   });
 });
 [videoPlayer, videoControls].forEach(element => {
   element.addEventListener('touchcancel', () => {
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(hideControls, hideDelay);
+    hideTimer = setTimeout(displayPlayerControls, hideDelay);
   });
 });
 videoPlayer.addEventListener('click', (evt) => {
   clearTimeout(hideTimer);
   if(videoControls.classList.contains('transparent')) {
-    showControls();
+    displayPlayerControls(true, true);
   }
   else {
-    hideControls();
+    displayPlayerControls();
   }
 });
 
