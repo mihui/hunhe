@@ -1084,6 +1084,9 @@ input:checked + .slider:before {
     top: 0px;
     left: 0px;
   }
+  .container #commentsLayout {
+    display: flex;
+  }
 }
 @media only screen and (max-width: 965px) {
   .container .video-container #videoContainer #videoControls .buttons {
@@ -1374,8 +1377,6 @@ input:checked + .slider:before {
                 <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
                 <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
                 <button id="fullscreenButton" class="hidden" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
-                <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
-                <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
               </div>
               <div id="progressBar" class="progress">
                 <span id="currentTimeDisplay" class="time">00:00</span>
@@ -1401,6 +1402,11 @@ input:checked + .slider:before {
               <input type="submit" id="commentsButton" value="发送" disabled />
             </form>
           </div>
+        </div>
+
+        <div class="user-controls">
+          <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
+          <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
         </div>
 
       </div>
