@@ -2929,6 +2929,9 @@ videoPlayer.addEventListener("stalled", (evt) => {
   /** @type {HTMLVideoElement} */
   const player = evt.target;
   printLog('videoPlayer.stalled', player.paused);
+  if(player.paused) {
+    onStopped();
+  }
 });
 
 videoPlayer.addEventListener("suspend", (evt) => {
