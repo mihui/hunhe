@@ -2314,7 +2314,7 @@ function hlsPlay(source) {
     const hls = new Hls();
     hls.loadSource(source.url);
     hls.attachMedia(videoPlayer);
-    hls.once(Hls.Events.LEVEL_LOADED, (evt, data) => {
+    hls.on(Hls.Events.LEVEL_LOADED, (evt, data) => {
       printLog('Hls.Events.LEVEL_LOADED');
       if (!data?.details) {
         return printLog('Warning: Data details is undefined.');
@@ -2323,10 +2323,10 @@ function hlsPlay(source) {
       const isLive = data?.details?.live || false;
       playVideSource(source, duration, isLive);
     });
-    hls.once(Hls.Events.MANIFEST_PARSED, (evt, data) => {
+    hls.on(Hls.Events.MANIFEST_PARSED, (evt, data) => {
       printLog('Hls.Events.MANIFEST_PARSED');
     });
-    hls.once(Hls.Events.ERROR, (error) => {
+    hls.on(Hls.Events.ERROR, (error) => {
       printLog('Hls.Events.ERROR');
       if (error.fatal) {
         switch (error.type) {
@@ -2894,9 +2894,9 @@ videoPlayer.addEventListener('pause', (evt) => {
 });
 videoPlayer.addEventListener('seeked', (evt) => {
   const lastPlayedItem = getLastVideoItem();
-  printLog('videoPlayer.seeked', evt.target.src);
+  printLog('videoPlayer.seeked', videoPlayer.currentTime, evt.target.currentTime);
   if(lastPlayedItem) {
-    printLog('lastPlayedItem.seeked', lastPlayedItem.url);
+    printLog('lastPlayedItem.seeked', videoPlayer.currentTime, evt.target.currentTime);
     setVideoTimestamp(videoPlayer.currentTime);
   }
 });
@@ -2990,6 +2990,12 @@ bottomControls.addEventListener('dblclick', resetPoster);
 //     setVideoTimestamp(videoPlayer.currentTime);
 //   }
 // });
+
+progressControl.addEventListener('change', (evt) => {
+  const value = evt.target.value;
+  const currentTime = parseFloat(value);
+  printLog('progressControl.change', currentTime);
+});
 
 progressControl.addEventListener('input', (evt) => {
   const value = evt.target.value;
@@ -3195,6 +3201,14 @@ document.addEventListener('keydown', function (event) {
       videoPlayer.pause();
     }
     isHidden = !isHidden;
+  }
+  else if(event.key === 'ArrowLeft' || event.keyCode === 37) {
+    event.preventDefault();
+    rewindButton.dispatchEvent(new Event('click'));
+  }
+  else if(event.key === 'ArrowRight' || event.keyCode === 39) {
+    event.preventDefault();
+    forwardButton.dispatchEvent(new Event('click'));
   }
 });
 
