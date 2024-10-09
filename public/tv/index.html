@@ -2328,10 +2328,10 @@ function hlsPlay(source) {
       const isLive = data?.details?.live || false;
       printLog('Hls.Events.MANIFEST_PARSED', 'duration->', duration, 'isLive->', isLive);
     });
-    hls.once(Hls.Events.ERROR, (error) => {
-      printLog('Hls.Events.ERROR', 'error.fatal->', error.fatal, 'error.type->', error.type);
-      if (error.fatal) {
-        switch (error.type) {
+    hls.once(Hls.Events.ERROR, (error, data) => {
+      printLog('Hls.Events.ERROR', 'data.fatal->', data.fatal, 'data.type->', data.type);
+      if (data.fatal) {
+        switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
             printLog('Hls.ErrorTypes.NETWORK_ERROR', '重试网络请求');
             break;
@@ -2341,7 +2341,7 @@ function hlsPlay(source) {
             hls.recoverMediaError();
             break;
           default:
-            printLog(error.type, '其他错误类型');
+            printLog(data.type, '其他错误类型');
             hls.destroy();
             break;
         }
@@ -2922,7 +2922,6 @@ videoPlayer.addEventListener('emptied', (evt) => {
 });
 videoPlayer.addEventListener("stalled", (evt) => {
   printLog('videoPlayer.stalled');
-  videoPlayer.currentTime += 2;
 });
 
 videoPlayer.addEventListener("suspend", (evt) => {
