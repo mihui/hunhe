@@ -2922,7 +2922,9 @@ videoPlayer.addEventListener('emptied', (evt) => {
 });
 videoPlayer.addEventListener("stalled", (evt) => {
   printLog('videoPlayer.stalled');
+  videoPlayer.currentTime += 2;
 });
+
 videoPlayer.addEventListener("suspend", (evt) => {
   printLog('videoPlayer.suspend');
 });
