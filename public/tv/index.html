@@ -1764,7 +1764,6 @@ function playLastVideo(isUserAction = true) {
 }
 
 function changePoster(poster) {
-  printLog('changePoster', poster);
   videoPlayer.poster = poster;
   pageBody.style.background = `transparent url("${poster}") center center / cover no-repeat`;
 }
@@ -1789,7 +1788,6 @@ function stopVideo(poster = VARS.POSTER) {
 function showPlayButton(showControls = false) {
   playVideoButton.innerHTML = VARS.ICON_PLAY;
   pauseVideoButton.innerHTML = VARS.ICON_UNPAUSE;
-  fullscreenButton.disabled = true;
   playVideoButton.className = 'stopped';
   videoPlayer.controls = showControls;
   videoPlayer.className = 'paused';
@@ -2301,7 +2299,17 @@ async function refreshCurrentPage(transaction) {
   saveDataToCache();
 }
 
+/**
+ * 播放视频
+ * @param {{ url: string, group: string, title: string }} source Play data source
+ * @param {number} duration Duration
+ * @param {boolean} isLive Is alive
+ */
 function playVideSource(source, duration = '0', isLive = false) {
+  const lastPlayedTime = videoTimestamp[source.url];
+  if (!isNaN(lastPlayedTime)) {
+    videoPlayer.currentTime = lastPlayedTime;
+  }
   videoPlayer.play().catch(error => {
     errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
   }).then(() => {
@@ -2420,6 +2428,8 @@ async function isFavorite(id) {
 
 /**
  * @param {{ title: string, url: string, group: string }} playingItem Play item
+ * @param {string} duration Duration
+ * @param {boolean} isLive Is live
  **/
 async function onPlay(playingItem, duration = '0', isLive = false) {
   errorMessage.textContent = '';
@@ -2433,7 +2443,6 @@ async function onPlay(playingItem, duration = '0', isLive = false) {
   favoriteButton.dataset['title'] = playingItem.title;
 
   refreshFavoriteButton(await isFavorite(id));
-  const lastPlayedTime = videoTimestamp[playingItem.url];
   currentTimeDisplay.textContent = getMinutes(videoPlayer.currentTime);
   totalTimeDisplay.textContent = getMinutes(duration);
   progressControl.max = duration;
@@ -2443,9 +2452,6 @@ async function onPlay(playingItem, duration = '0', isLive = false) {
     currentTimeDisplay.classList.add('hidden');
   }
   else {
-    if (!isNaN(lastPlayedTime)) {
-      videoPlayer.currentTime = lastPlayedTime;
-    }
     progressBar.classList.remove('hidden');
     totalTimeDisplay.classList.remove('hidden');
     currentTimeDisplay.classList.remove('hidden');
