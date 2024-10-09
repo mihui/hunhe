@@ -701,6 +701,8 @@ button {
   font-size: 0.8rem;
   color: gray;
   font-style: italic;
+  display: none;
+  justify-content: flex-end;
 }
 
 #settingsButton {
@@ -1109,7 +1111,7 @@ input:checked + .slider:before {
   overflow: auto;
   flex: 1;
 }
-.play-list #commentsLayout {
+.play-list #commentsLayout, .play-list #statisticsMessage {
   display: flex;
 }
 #commentsLayout .comments-form {
