@@ -1368,6 +1368,8 @@ input:checked + .slider:before {
                 <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
                 <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
                 <button id="fullscreenButton" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
+                <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
+                <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
               </div>
               <div id="progressBar" class="progress">
                 <span id="currentTimeDisplay" class="time">00:00</span>
@@ -1392,11 +1394,6 @@ input:checked + .slider:before {
               <input type="text" id="commentsInput" placeholder="评论" />
               <input type="submit" id="commentsButton" value="发送" disabled />
             </form>
-          </div>
-
-          <div class="user-controls">
-            <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
-            <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
         </div>
 
@@ -2348,8 +2345,14 @@ function hlsPlay(source) {
             break;
           case Hls.ErrorTypes.MEDIA_ERROR:
             printLog('Hls.ErrorTypes.MEDIA_ERROR', '处理媒体播放错误');
-            printLog('fatal media error encountered, try to recover');
-            hls.recoverMediaError();
+            if(videoPlayer.src === stopURL) {
+              printLog('Hls.ErrorTypes.MEDIA_ERROR', '停止视频');
+              hls.destroy();
+            }
+            else if(videoPlayer.src) {
+              printLog('Hls.ErrorTypes.MEDIA_ERROR', '重新加载视频');
+              hls.recoverMediaError(); 
+            }
             break;
           default:
             printLog(data.type, '其他错误类型');
@@ -2359,7 +2362,6 @@ function hlsPlay(source) {
       }
       else {
         printLog('HLS ERROR unknown');
-        hls.recoverMediaError();
       }
     });
   }
@@ -2776,7 +2778,7 @@ document.addEventListener('dblclick', (evt) => {
     case 'input':
       break;
     case 'video':
-      videoPlayer.requestFullscreen();
+      if(videoPlayer.paused === false) videoPlayer.requestFullscreen();
       break;
     default:
       evt.preventDefault();
