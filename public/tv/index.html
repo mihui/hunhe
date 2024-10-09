@@ -1750,10 +1750,10 @@ function initUI() {
 
 function displayPlayerControls(show = false) {
   if (document.fullscreenEnabled) {
-    videoPlayer.controls = false;
+    videoPlayer.controls = show;
     return true;
   }
-  videoPlayer.controls = show;
+  videoPlayer.controls = true;
   return false;
 }
 
