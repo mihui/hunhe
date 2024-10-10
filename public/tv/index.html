@@ -19,6 +19,12 @@ const STA_STORE = 'sta-store';
  * 数据库类，封装了IndexedDB的操作
  */
 class Database {
+  /** @type {IDBDatabase} */
+  db;
+  /** @type {string} */
+  dbName;
+  /** @type {number} */
+  dbVersion;
   /**
    * 构造函数，初始化数据库版本和名称
    * @param {number} dbVersion - 数据库版本，默认为1
@@ -39,6 +45,11 @@ class Database {
       const request = indexedDB.open(this.dbName, this.dbVersion); // 创建打开数据库的请求
       request.onblocked = (event) => {
         // 如果其他标签页已经加载了数据库，则需要先关闭它
+        try {
+          this.db.close();
+        }
+        catch(error) {}
+        reject(error);
       };
 
       request.onupgradeneeded = (event) => {
@@ -78,118 +89,141 @@ class Database {
    * @returns {Promise} - 返回一个Promise对象，解析为添加操作的结果
    */
   async addData(data, storeName = M3U_STORE) {
-    const db = await this.openDB(); // 打开数据库
-    const transaction = db.transaction(storeName, "readwrite"); // 创建事务
-    const store = transaction.objectStore(storeName); // 获取存储对象
-    const request = store.add(data); // 添加数据
+    try {
+      const db = await this.openDB(); // 打开数据库
+      const transaction = db.transaction(storeName, "readwrite"); // 创建事务
+      const store = transaction.objectStore(storeName); // 获取存储对象
+      const request = store.add(data); // 添加数据
 
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result); // 在成功时，解析Promise为结果
-      };
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+          resolve({ data: request.result }); // 在成功时，解析Promise为结果
+        };
 
-      request.onerror = () => {
-        reject(request.error); // 在错误时，拒绝Promise为错误
-      };
-    });
+        request.onerror = () => {
+          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+        };
+      });
+    }
+    catch(error) {
+      return { error };
+    }
   }
 
   /**
    * 读取数据库中的数据
    * @param {number} id - 数据的ID
    * @param {string} storeName - 存储对象名称，默认为M3U_STORE
-   * @returns {Promise} - 返回一个Promise对象，解析为读取到的数据对象
+   * @returns {Promise<{ data: any, error: Error }>} - 返回一个Promise对象，解析为读取到的数据对象
    */
   async readData(id, storeName = M3U_STORE) {
-    const db = await this.openDB(); // 打开数据库
-    const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
-    const store = transaction.objectStore(storeName); // 获取存储对象
-    const request = store.get(id); // 获取数据
+    try {
+      const db = await this.openDB(); // 打开数据库
+      const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
+      const store = transaction.objectStore(storeName); // 获取存储对象
+      const request = store.get(id); // 获取数据
 
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result); // 在成功时，解析Promise为结果
-      };
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+          resolve({ data: request.result }); // 在成功时，解析Promise为结果
+        };
 
-      request.onerror = () => {
-        reject(request.error); // 在错误时，拒绝Promise为错误
-      };
-    });
+        request.onerror = () => {
+          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+        };
+      });
+    }
+    catch(error) {
+      return { error };
+    }
   }
 
   /**
    * 更新数据库中的数据
    * @param {Object} data - 要更新的数据对象
    * @param {string} storeName - 存储对象名称，默认为M3U_STORE
-   * @returns {Promise} - 返回一个Promise对象，解析为更新操作的结果
+   * @returns {Promise<{ data: any, error: Error }>} - 返回一个Promise对象，解析为更新操作的结果
    */
   async updateData(data, storeName = M3U_STORE) {
-    const db = await this.openDB(); // 打开数据库
-    const transaction = db.transaction(storeName, "readwrite"); // 创建事务
-    const store = transaction.objectStore(storeName); // 获取存储对象
-    const request = store.put(data); // 更新数据
+    try {
+      const db = await this.openDB(); // 打开数据库
+      const transaction = db.transaction(storeName, "readwrite"); // 创建事务
+      const store = transaction.objectStore(storeName); // 获取存储对象
+      const request = store.put(data); // 更新数据
 
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result); // 在成功时，解析Promise为结果
-      };
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+          resolve({ data: request.result }); // 在成功时，解析Promise为结果
+        };
 
-      request.onerror = () => {
-        reject(request.error); // 在错误时，拒绝Promise为错误
-      };
-    });
+        request.onerror = () => {
+          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+        };
+      });
+    }
+    catch(error) {
+      return { error };
+    }
   }
 
   /**
    * 从数据库中删除数据
    * @param {number} id - 要删除的数据的ID
    * @param {string} storeName - 存储对象名称，默认为M3U_STORE
-   * @returns {Promise} - 返回一个Promise对象，解析为删除操作的结果
+   * @returns {Promise<{ data: any, error: Error }>} - 返回一个Promise对象，解析为删除操作的结果
    */
   async deleteData(id, storeName = M3U_STORE) {
-    const db = await this.openDB(); // 打开数据库
-    const transaction = db.transaction(storeName, "readwrite"); // 创建事务
-    const store = transaction.objectStore(storeName); // 获取存储对象
-    const request = store.delete(id); // 删除数据
+    try {
+      const db = await this.openDB(); // 打开数据库
+      const transaction = db.transaction(storeName, "readwrite"); // 创建事务
+      const store = transaction.objectStore(storeName); // 获取存储对象
+      const request = store.delete(id); // 删除数据
 
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result); // 在成功时，解析Promise为结果
-      };
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+          resolve({ data: request.result }); // 在成功时，解析Promise为结果
+        };
 
-      request.onerror = () => {
-        reject(request.error); // 在错误时，拒绝Promise为错误
-      };
-    });
+        request.onerror = () => {
+          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+        };
+      });
+    }
+    catch(error) {
+      return { error };
+    }
   }
 
   /**
    * 列出存储对象中的所有数据
    * @param {string} storeName - 存储对象名称，默认为M3U_STORE
-   * @returns {Promise} - 返回一个Promise对象，解析为数据列表
+   * @returns {Promise<{ data: [], error: Error }>} - 返回一个Promise对象，解析为数据列表
    */
   async listData(storeName = M3U_STORE) {
-    const db = await this.openDB(); // 打开数据库
-    const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
-    const store = transaction.objectStore(storeName); // 获取存储对象
-    let request = store.openCursor(); // 打开游标
-    const list = []; // 保存数据列表
-
-    return new Promise((resolve, reject) => {
-      request.onsuccess = (evt) => {
-        const cursor = evt.target.result; // 获取游标
-        if (cursor) {
-          list.push(cursor.value); // 将数据添加到列表中
-          cursor.continue(); // 继续遍历
-        } else {
-          resolve(list); // 在遍历完成后，解析Promise为列表
-        }
-      };
-
-      request.onerror = () => {
-        reject(request.error); // 在错误时，拒绝Promise为错误
-      };
-    });
+    try {
+      const db = await this.openDB(); // 打开数据库
+      const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
+      const store = transaction.objectStore(storeName); // 获取存储对象
+      let request = store.openCursor(); // 打开游标
+      const list = []; // 保存数据列表
+      return new Promise((resolve, reject) => {
+        request.onsuccess = (evt) => {
+          const cursor = evt.target.result; // 获取游标
+          if (cursor) {
+            list.push(cursor.value); // 将数据添加到列表中
+            cursor.continue(); // 继续遍历
+          } else {
+            resolve({ data: list }); // 在遍历完成后，解析Promise为列表
+          }
+        };
+        request.onerror = () => {
+          resolve({ data: [], error: request.error }); // 在错误时，拒绝Promise为错误
+        };
+      });
+    }
+    catch(error) {
+      return { data: [], error };
+    }
   }
 
   /**
@@ -198,56 +232,67 @@ class Database {
    * @returns {Promise} - 返回一个Promise对象，解析为清空操作的结果
    */
   async purgeData(storeName = FAV_STORE) {
-    const db = await this.openDB(); // 打开数据库
-    const transaction = db.transaction(storeName, "readwrite"); // 创建事务
-    const store = transaction.objectStore(storeName); // 获取存储对象
-    const request = store.clear(); // 清空数据
+    try {
+      const db = await this.openDB(); // 打开数据库
+      const transaction = db.transaction(storeName, "readwrite"); // 创建事务
+      const store = transaction.objectStore(storeName); // 获取存储对象
+      const request = store.clear(); // 清空数据
 
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => {
-        resolve(request.result); // 在成功时，解析Promise为结果
-      };
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+          resolve({ data: request.result }); // 在成功时，解析Promise为结果
+        };
 
-      request.onerror = () => {
-        reject(request.error); // 在错误时，拒绝Promise为错误
-      };
-    });
+        request.onerror = () => {
+          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+        };
+      });
+    }
+    catch(error) {
+      return { error };
+    }
   }
 
   /**
    * 计算数据库中所有数据的总大小
-   * @returns {Promise} - 返回一个Promise对象，解析为包含总大小和各存储对象大小的对象
+   * @returns {Promise<{ totalSize: number, storeSize: Object.<string, number> }>} - 返回一个Promise对象，解析为包含总大小和各存储对象大小的对象
    */
   async totalSize() {
     let totalSize = 0; // 总大小
     let storeSize = {}; // 各存储对象大小
-    const db = await this.openDB(); // 打开数据库
-    const transaction = db.transaction(db.objectStoreNames, "readonly"); // 创建只读事务
+    
+    try {
+      const db = await this.openDB(); // 打开数据库
+      const transaction = db.transaction(db.objectStoreNames, "readonly"); // 创建只读事务
 
-    const promises = [];
+      const promises = [];
 
-    for (const objectStoreName of db.objectStoreNames) { // 遍历所有存储对象
-      const objectStore = transaction.objectStore(objectStoreName); // 获取存储对象
-      storeSize[objectStoreName] = 0; // 初始化存储对象大小
+      for (const objectStoreName of db.objectStoreNames) { // 遍历所有存储对象
+        const objectStore = transaction.objectStore(objectStoreName); // 获取存储对象
+        storeSize[objectStoreName] = 0; // 初始化存储对象大小
 
-      const getAllRequest = objectStore.getAll(); // 获取所有数据的请求
-      promises.push(new Promise((resolve) => {
-        getAllRequest.onsuccess = (event) => {
-          const items = event.target.result; // 获取所有数据
-          for (const item of items) {
-            const size = new Blob([JSON.stringify(item)]).size; // 计算数据大小
-            totalSize += size; // 累加到总大小
-            storeSize[objectStoreName] += size; // 累加到存储对象大小
-          }
-          resolve();
-        };
-        getAllRequest.onerror = (event) => {
-          resolve();
-        };
-      }));
+        const getAllRequest = objectStore.getAll(); // 获取所有数据的请求
+        promises.push(new Promise((resolve) => {
+          getAllRequest.onsuccess = (event) => {
+            const items = event.target.result; // 获取所有数据
+            for (const item of items) {
+              const size = new Blob([JSON.stringify(item)]).size; // 计算数据大小
+              totalSize += size; // 累加到总大小
+              storeSize[objectStoreName] += size; // 累加到存储对象大小
+            }
+            resolve();
+          };
+          getAllRequest.onerror = (event) => {
+            resolve();
+          };
+        }));
+      }
+
+      await Promise.all(promises);
     }
-
-    await Promise.all(promises);
+    catch(error) {
+      
+    }
 
     return { totalSize, storeSize };
   }
@@ -1634,8 +1679,8 @@ async function listStore(source) {
 
   m3uList.innerHTML = '';
 
-  /** @type {Array<{ key: string, id: string, source: string }>} */
-  const list = await database.listData();
+  /** @type {{ data: Array<{ key: string, id: string, source: string }> }} **/
+  const { data: list } = await database.listData();
   for(const m3uItem of list) {
     const url = database.decodeString(m3uItem.id);
     const isCurrent = cachedM3uUrl.includes(url) || (cachedM3uSource === SOURCES.CONTENT && m3uItem.source === SOURCES.CONTENT && cachedM3uUrl.includes(url));
@@ -1664,9 +1709,9 @@ async function listStore(source) {
     aItem.onclick = async (evt) => {
       /** @type {HTMLAnchorElement} **/
       const element = evt.target;
-      /** @type {{ id: string, m3u: string, source: string, type: string, time: number }} */
-      const data = await database.readData(element.dataset['id']);
-      if(element.textContent === cachedM3uUrl) {
+      /** @type {{ data: { id: string, m3u: string, source: string, type: string, time: number }, error: Error }} */
+      const { data, error } = await database.readData(element.dataset['id']);
+      if(element.textContent === cachedM3uUrl || error) {
         return;
       }
 
@@ -1980,13 +2025,18 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
 
   if (type && m3uUrlInput.checkValidity()) {
     const id = database.encodeString(m3uUrl);
-    const payload = await database.readData(id);
+    const { data: payload, error } = await database.readData(id);
+    if(error) {
+      errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
+      return;
+    }
     if (payload && payload.m3u && fromCache) {
       processM3uData(type, payload, true, isBooting, false);
     } else {
       fetchDataAndProcess(id, payload, fromCache);
     }
-  } else {
+  }
+  else {
     errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
   }
 }
@@ -1994,7 +2044,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
 // async function loadM3uContent() {
 //   if(m3uContent.value.includes('#EXTINF:')) {
 //     const id = database.encodeString(m3uContentKey.value);
-//     const payload = await database.readData(id);
+//     const { data: payload } = await database.readData(id);
 //     const data = { id, m3u: m3uContent.value, source: SOURCES.CONTENT, type: TYPES.M3U }; // m3u only
 //     if(payload) {
 //       await database.updateData(data);
@@ -2185,8 +2235,8 @@ async function displayPlaylistPage(page, transaction) {
     const videoUrl = li.dataset['url'];
     const id = database.encodeString(videoUrl);
     const isFav = await isFavorite(id);
-    /** @type {{ result: { ok: boolean, duration: number, frame: string, timeout: boolean } }} */
-    const playCache = await database.readData(id, STA_STORE);
+    /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, timeout: boolean } }, error: Error }} */
+    const { data: playCache, error } = await database.readData(id, STA_STORE);
     if (playCache) {
       updateListItemStyle(li, playCache.result, lastPlayedItem, isFav);
     }
@@ -2387,7 +2437,6 @@ function hlsPlay(source) {
     hls.once(Hls.Events.ERROR, (error, data) => {
       printLog('Hls.Events.ERROR', 'data.fatal->', data.fatal, 'data.type->', data.type);
       printLog('Hls.Events.ERROR', JSON.stringify(error));
-
       if (data.fatal) {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
@@ -2474,7 +2523,10 @@ function saveLastPlayedVideo(playingItem) {
  * @returns {Promise<boolean>} Returns true or false
  */
 async function isFavorite(id) {
-  const data = await database.readData(id, FAV_STORE);
+  const { data, error } = await database.readData(id, FAV_STORE);
+  if(error) {
+    return false;
+  }
   return data ? true : false;
 }
 
@@ -2720,7 +2772,8 @@ function gotoPage(p) {
 }
 
 async function fetchFavorites() {
-  categories[favoriteChannels] = await database.listData(FAV_STORE);
+  const { data } = await database.listData(FAV_STORE);
+  categories[favoriteChannels] = data;
   return categories[favoriteChannels];
 }
 
