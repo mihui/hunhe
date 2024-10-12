@@ -16,7 +16,8 @@ const createWindow = () => {
       nodeIntegration: true,
       preload: path.join(__dirname, 'preload.js'),
       devTools: false
-    }
+    },
+    title: 'TV Browser'
   });
 
   win.loadFile('index.html');

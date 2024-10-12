@@ -641,18 +641,21 @@ select:focus-visible {
   #playlistItems li.good {
     border-left: 3px solid green;
   }
+  #playlistItems li.good.preview,
   #playlistItems li.good:hover {
     border-bottom: 1px solid green;
   }
   #playlistItems li.average {
     border-left: 3px solid orange;
   }
+  #playlistItems li.average.preview,
   #playlistItems li.average:hover {
     border-bottom: 1px solid orange;
   }
   #playlistItems li.bad {
     border-left: 3px solid red;
   }
+  #playlistItems li.bad.preview,
   #playlistItems li.bad:hover {
     border-bottom: 1px solid red;
   }
@@ -1790,7 +1793,6 @@ async function loadLocalCache() {
 
 function initUI() {
   const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
-  console.log('playListVisible->', playListVisible);
   if(playListVisible === 'false') {
     playlistContainer.className = 'back';
     pageBody.classList.remove('play-list');
@@ -1804,7 +1806,6 @@ function initUI() {
   if(displayPlayerControls()) {
     fullscreenButton.classList.remove('hidden');
   }
-  console.log('playlistContainer.className--->', playlistContainer.className, playlistContainer);
 }
 
 function displayPlayerControls(showNativeControls = false, showCustomControls = false) {
@@ -2154,9 +2155,9 @@ function initializeCategories(isBooting = false) {
   categorySelect.value = loadCurrentChannel(isBooting, 'initializeCategories');
 }
 
-function resetListStyle() {
+function resetListStyle(className) {
   for(const node of playlistItems.childNodes) {
-    node.classList.remove('active');
+    node.classList.remove(className);
   }
 }
 
@@ -2166,9 +2167,30 @@ function resetListStyle() {
  */
 function playNow(li, item) {
   if(li.dataset['broken']) return;
-  resetListStyle();
+  resetListStyle('active');
   li.classList.add('active');
   playVideo(item);
+}
+/**
+ * @param {HTMLLIElement} li List item
+ * @param {{ title: string, url: string, group: string }} item Play item
+ * @param {string} frame Poster
+ */
+async function previewNow(li, item, frame) {
+  favoriteButton.disabled = true;
+  if(li.dataset['broken']) return;
+  resetListStyle('preview');
+  li.classList.add('preview');
+  stopVideo(frame);
+  loadComments(database.encodeString(li.dataset['url']), li.dataset['title']);
+
+  const id = database.encodeString(item.url);
+  favoriteButton.disabled = false;
+  favoriteButton.dataset['id'] = id;
+  favoriteButton.dataset['url'] = item.url;
+  favoriteButton.dataset['group'] = item.group;
+  favoriteButton.dataset['title'] = item.title;
+  refreshFavoriteButton(await isFavorite(id));
 }
 
 /**
@@ -2221,8 +2243,7 @@ async function displayPlaylistPage(page, transaction) {
         playNow(currentTarget, item);
       }
       else {
-        stopVideo(frame);
-        loadComments(database.encodeString(currentTarget.dataset['url']), currentTarget.dataset['title']);
+        previewNow(currentTarget, item, frame);
       }
     };
 
@@ -2537,16 +2558,6 @@ async function isFavorite(id) {
  **/
 async function onPlay(playingItem, duration = '0', isLive = false) {
   errorMessage.textContent = '';
-  favoriteButton.disabled = false;
-
-  const id = database.encodeString(playingItem.url);
-
-  favoriteButton.dataset['id'] = id;
-  favoriteButton.dataset['url'] = playingItem.url;
-  favoriteButton.dataset['group'] = playingItem.group;
-  favoriteButton.dataset['title'] = playingItem.title;
-
-  refreshFavoriteButton(await isFavorite(id));
   currentTimeDisplay.textContent = getMinutes(videoPlayer.currentTime);
   totalTimeDisplay.textContent = getMinutes(duration);
   progressControl.max = duration;
@@ -2582,7 +2593,6 @@ function onPlaying() {
  * @param {boolean} isUserAction If it is controled by user
  */
 function playVideo(source, isUserAction = true) {
-  favoriteButton.disabled = true;
   if (source) {
     shell.changeTitle(source.title);
   } else {
@@ -2798,7 +2808,10 @@ async function startup() {
 }
 
 async function deleteFavorite(id) {
-  await database.deleteData(id, FAV_STORE);
+  const { data, error } = await database.deleteData(id, FAV_STORE);
+  if(error) {
+    printLog('deleteFavorite.error', error);
+  }
   refreshFavoriteButton(false);
   initializePlaylist();
 }
