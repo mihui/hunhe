@@ -522,7 +522,7 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
-  -webkit-appearance: none;
+  appearance: none;
   box-sizing: border-box;
 }
 #m3uUrlInput {
@@ -907,7 +907,7 @@ button {
 }
 
 .range {
-  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   height: 15px;
   border-radius: 5px;  
@@ -925,7 +925,6 @@ button {
 
 /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
 .range::-webkit-slider-thumb {
-  -webkit-appearance: none;
   appearance: none;
   width: 25px;
   height: 25px;
@@ -1151,6 +1150,16 @@ input:checked + .slider:before {
   }
 }
 
+@media only screen and (max-width: 400px) {
+  #bottomButtons {
+    column-gap: 0.5rem; 
+  }
+  #bottomButtons button {
+    border-radius: 4px;
+    padding: 0.5rem 0.7rem;
+  }
+}
+
 .hidden {
   display: none !important;
 }
@@ -1348,9 +1357,22 @@ input:checked + .slider:before {
             </div>
 
             <div class="settings-row">
+              <label class="label">截图时间 (<span id="screenshotTimeDisplay">0</span>s)</label>
+              <input type="range" id="screenshotTime" class="range" min="1" max="300" step="1">
+            </div>
+
+            <div class="settings-row">
               <label class="label">跳过可用缩略图</label>
               <label class="switch">
                 <input type="checkbox" id="onlyCheckBrokenCheckbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
+              <label class="label">播放时静音</label>
+              <label class="switch">
+                <input type="checkbox" id="muteWhenPlayCheckbox">
                 <span class="slider"></span>
               </label>
             </div>
@@ -1376,7 +1398,6 @@ input:checked + .slider:before {
                 <span class="slider"></span>
               </label>
             </div>
-
           </div>
 
           <div id="logContainer" class="tools hidden">
@@ -1426,10 +1447,8 @@ input:checked + .slider:before {
               <div class="buttons">
                 <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
                 <button id="pauseVideoButton" class="hidden"><svg width="20" height="20"><use xlink:href="#pause"/></svg></button>
-                <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
                 <div class="divider"></div>
-                <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
-                <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
+                <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
                 <button id="fullscreenButton" class="hidden" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
               </div>
               <div id="progressBar" class="progress">
@@ -1458,8 +1477,11 @@ input:checked + .slider:before {
           </div>
         </div>
 
-        <div class="user-controls">
+        <div id="bottomButtons" class="user-controls">
+          <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
+          <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
           <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
+          <button id="reCaptureButton" disabled><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
           <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
         </div>
 
@@ -1495,6 +1517,7 @@ const VARS = {
   ICON_UPDATE_FROM_URL: '<svg width="20" height="20"><use xlink:href="#update-from-url"/></svg>',
   POSTER: 'background.jpeg',
   PING_TIMEOUT: 0,
+  SCREENSHOT_TIME: 3,
   URLS: new Set(),
   IS_NATIVE: (typeof window.electronAPI !== 'undefined'),
   /** @type {string} **/
@@ -1532,7 +1555,8 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement, HTMLDivElement,
  * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
  * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
- * HTMLDivElement, HTMLInputElement, HTMLDivElement, HTMLButtonElement
+ * HTMLDivElement, HTMLInputElement, HTMLDivElement, HTMLButtonElement, HTMLInputElement,
+ * HTMLSpanElement, HTMLInputElement, HTMLButtonElement
  * ]} **/
 const [
   pageBody,
@@ -1547,7 +1571,8 @@ const [
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
   commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
-  progressBar, enableLoggingCheckbox, logContainer, pauseVideoButton
+  progressBar, enableLoggingCheckbox, logContainer, pauseVideoButton, screenshotTime,
+  screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton
  ] = 
 getElementById([
   'pageBody',
@@ -1562,7 +1587,8 @@ getElementById([
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
   'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
-  'progressBar', 'enableLoggingCheckbox', 'logContainer', 'pauseVideoButton'
+  'progressBar', 'enableLoggingCheckbox', 'logContainer', 'pauseVideoButton', 'screenshotTime',
+  'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton'
 ]);
 
 let itemsPerPage = 15;
@@ -1579,6 +1605,7 @@ let videoTimestamp = {};
 let storeFrame = 'false';
 let autoCheck = 'false';
 let enableLogging = 'false';
+let muteWhenPlay = 'true';
 let onlyCheckBroken = 'false';
 let stopURL = null;
 
@@ -1714,7 +1741,11 @@ async function listStore(source) {
       const element = evt.target;
       /** @type {{ data: { id: string, m3u: string, source: string, type: string, time: number }, error: Error }} */
       const { data, error } = await database.readData(element.dataset['id']);
-      if(element.textContent === cachedM3uUrl || error) {
+      if(error) {
+        printLog('loadCurrentChannel.error', error.message);
+        return;
+      }
+      if(element.textContent === cachedM3uUrl) {
         return;
       }
 
@@ -1772,6 +1803,7 @@ async function loadLocalCache() {
 
   storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
   storeFrameCheckbox.checked = storeFrame === 'true';
+  screenshotTime.disabled = !storeFrameCheckbox.checked;
 
   autoCheck = window.localStorage.getItem('autoCheck') === 'true' ? 'true' : 'false';
   autoCheckCheckbox.checked = autoCheck === 'true';
@@ -1789,6 +1821,13 @@ async function loadLocalCache() {
   VARS.PING_TIMEOUT = parseInt(window.localStorage.getItem('PING_TIMEOUT')) || 10000;
   checkTimeout.value = Math.round(VARS.PING_TIMEOUT / 1000);
   checkTimeoutDisplay.textContent = checkTimeout.value;
+
+  VARS.SCREENSHOT_TIME = parseInt(window.localStorage.getItem('screenshotTime')) || 3;
+  screenshotTime.value = VARS.SCREENSHOT_TIME;
+  screenshotTimeDisplay.textContent = screenshotTime.value;
+  
+  muteWhenPlay = window.localStorage.getItem('muteWhenPlay') === 'false' ? 'false' : 'true';
+  muteWhenPlayCheckbox.checked = muteWhenPlay === 'true';
 }
 
 function initUI() {
@@ -2013,7 +2052,8 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
         processM3uData(type, x, cached, false, isBooting);
         listStore('fetch');
         gotoPage(1);
-      } else {
+      }
+      else {
         errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
         showM3uInput();
       }
@@ -2029,6 +2069,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
     const { data: payload, error } = await database.readData(id);
     if(error) {
       errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
+      printLog('loadM3uFile.fetchDataAndProcess.error', error.message);
       return;
     }
     if (payload && payload.m3u && fromCache) {
@@ -2171,6 +2212,29 @@ function playNow(li, item) {
   li.classList.add('active');
   playVideo(item);
 }
+
+/**
+ * @param {{ title: string, url: string, group: string }} item Play item
+ */
+async function loadFavorite(item) {
+  const id = database.encodeString(item.url);
+  favoriteButton.disabled = false;
+  favoriteButton.dataset['id'] = id;
+  favoriteButton.dataset['url'] = item.url;
+  favoriteButton.dataset['group'] = item.group;
+  favoriteButton.dataset['title'] = item.title;
+  refreshFavoriteButton(await isFavorite(id));
+}
+
+function loadReCapture(item) {
+  const id = database.encodeString(item.url);
+  reCaptureButton.disabled = false;
+  reCaptureButton.dataset['id'] = id;
+  reCaptureButton.dataset['url'] = item.url;
+  reCaptureButton.dataset['group'] = item.group;
+  reCaptureButton.dataset['title'] = item.title;
+}
+
 /**
  * @param {HTMLLIElement} li List item
  * @param {{ title: string, url: string, group: string }} item Play item
@@ -2183,14 +2247,8 @@ async function previewNow(li, item, frame) {
   li.classList.add('preview');
   stopVideo(frame);
   loadComments(database.encodeString(li.dataset['url']), li.dataset['title']);
-
-  const id = database.encodeString(item.url);
-  favoriteButton.disabled = false;
-  favoriteButton.dataset['id'] = id;
-  favoriteButton.dataset['url'] = item.url;
-  favoriteButton.dataset['group'] = item.group;
-  favoriteButton.dataset['title'] = item.title;
-  refreshFavoriteButton(await isFavorite(id));
+  loadFavorite(item);
+  loadReCapture(item);
 }
 
 /**
@@ -2258,6 +2316,10 @@ async function displayPlaylistPage(page, transaction) {
     const isFav = await isFavorite(id);
     /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, timeout: boolean } }, error: Error }} */
     const { data: playCache, error } = await database.readData(id, STA_STORE);
+    if(error) {
+      printLog('displayPlaylistPage.error', error.message);
+      return;
+    }
     if (playCache) {
       updateListItemStyle(li, playCache.result, lastPlayedItem, isFav);
     }
@@ -2546,6 +2608,7 @@ function saveLastPlayedVideo(playingItem) {
 async function isFavorite(id) {
   const { data, error } = await database.readData(id, FAV_STORE);
   if(error) {
+    printLog('isFavorite.error', error.message);
     return false;
   }
   return data ? true : false;
@@ -2599,9 +2662,12 @@ function playVideo(source, isUserAction = true) {
     shell.changeTitle();
   }
   loadComments(database.encodeString(source.url), source.title);
+  loadFavorite(source);
+  loadReCapture(source);
+
   if(isUserAction === false) { return; }
   window.localStorage.removeItem('lastPlayedItem');
-  muteOrUnmuteVideo(true);
+  muteOrUnmuteVideo(muteWhenPlay === 'true');
 
   currentTimeDisplay.textContent = getMinutes(0);
   totalTimeDisplay.textContent = getMinutes(0);
@@ -2642,9 +2708,10 @@ function printLog(...args) {
  * @param {HTMLVideoElement} video Video tag
  * @param {string} url URL
  * @param {Hls?} hls Hls instance
+ * @param {boolean} isRandom If the duration is random
  * @returns {string?} Returns frame URL
  */
-async function captureFrame(url, hls = null) {
+async function captureFrame(url, hls = null, isRandom = false) {
   if(storeFrame === 'false') { return null; }
 
   const frame = await new Promise((resolve) => {
@@ -2665,7 +2732,8 @@ async function captureFrame(url, hls = null) {
       canvas.width = frameVideo.videoWidth;
       canvas.height = frameVideo.videoHeight;
       frameVideo.play().then(() => {
-        frameVideo.currentTime = 3;
+        const captureTime = (isRandom ? Math.ceil(Math.random() * 300) : VARS.SCREENSHOT_TIME);
+        frameVideo.currentTime = captureTime;
       }).catch(error => {
         cleanupEvents(null);
       });
@@ -2675,7 +2743,9 @@ async function captureFrame(url, hls = null) {
       canvas.height = frameVideo.videoHeight;
       canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
       canvas.toBlob((blob) => {
-        cleanupEvents(blob);
+        if(frameVideo.currentTime > 0) {
+          cleanupEvents(blob);  
+        }
       });
     };
 
@@ -2701,7 +2771,7 @@ async function captureFrame(url, hls = null) {
  * @param {string} url URL
  * @returns {{ ok: boolean, duration: number, frame: string, timeout: boolean }}
  **/
-async function checkVideoPlayability(url) {
+async function checkVideoPlayability(url, isRandom = false) {
   const timestamp = new Date().getTime();
   return new Promise((resolve) => {
     let timeoutId = 0;
@@ -2718,7 +2788,7 @@ async function checkVideoPlayability(url) {
         hls.loadSource(url);
         hls.once(Hls.Events.MANIFEST_PARSED, async () => {
           const duration = new Date().getTime() - timestamp;
-          const frame = await captureFrame(url, hls);
+          const frame = await captureFrame(url, hls, isRandom);
           cleanup();
           resolve({ ok: true, duration, frame, timeout: false });
         });
@@ -2749,7 +2819,7 @@ async function checkVideoPlayability(url) {
 
       video.onloadedmetadata = async () => {
         const duration = new Date().getTime() - timestamp;
-        const frame = await captureFrame(url);
+        const frame = await captureFrame(url, null, isRandom);
         cleanup();
         resolve({ ok: true, duration, frame, timeout: false });
       };
@@ -2822,7 +2892,6 @@ async function addFavorite(id, url, title, group) {
   initializePlaylist();
 }
 
-// 事件监听器
 favoriteButton.addEventListener('click', async (evt) => {
   const id = favoriteButton.dataset['id'];
   const url = favoriteButton.dataset['url'];
@@ -2836,6 +2905,26 @@ favoriteButton.addEventListener('click', async (evt) => {
   else if(isDeletingData) {
     deleteFavorite(id);
   }
+});
+
+reCaptureButton.addEventListener('click', async (evt) => {
+  const url = reCaptureButton.dataset['url'];
+  const group = favoriteButton.dataset['group'];
+  const title = favoriteButton.dataset['title'];
+  const id = database.encodeString(url);
+  
+  reCaptureButton.disabled = true;
+  const result = await checkVideoPlayability(url, true);
+  await database.updateData({ id, result }, STA_STORE);
+  const isFav = await isFavorite(id);
+  for(const node of playlistItems.childNodes) {
+    if(node.dataset['url'] === url) {
+      updateListItemStyle(node, result, null, isFav);
+      changePoster(node.dataset['frame']);
+      break; 
+    }
+  }
+  reCaptureButton.disabled = false;
 });
 
 categorySelect.addEventListener('change', async (evt) => {
@@ -3196,6 +3285,7 @@ playListButton.addEventListener('click', (evt) => {
 storeFrameCheckbox.addEventListener('change', (evt) => {
   storeFrame = evt.target.checked ? 'true' : 'false';
   window.localStorage.setItem('storeFrame', storeFrame);
+  screenshotTime.disabled = !evt.target.checked;
 });
 autoCheckCheckbox.addEventListener('change', (evt) => {
   autoCheck = evt.target.checked ? 'true' : 'false';
@@ -3205,6 +3295,12 @@ checkTimeout.addEventListener('input', (evt) => {
   VARS.PING_TIMEOUT = parseInt(evt.target.value) * 1000;
   checkTimeoutDisplay.textContent = evt.target.value;
   window.localStorage.setItem('PING_TIMEOUT', VARS.PING_TIMEOUT);
+});
+
+screenshotTime.addEventListener('input', (evt) => {
+  VARS.SCREENSHOT_TIME = parseInt(evt.target.value);
+  screenshotTimeDisplay.textContent = evt.target.value;
+  window.localStorage.setItem('screenshotTime', VARS.SCREENSHOT_TIME);
 });
 
 onlyCheckBrokenCheckbox.addEventListener('change', (evt) => {
@@ -3221,6 +3317,11 @@ enableLoggingCheckbox.addEventListener('change', (evt) => {
   else {
     logContainer.classList.add('hidden');
   }
+});
+
+muteWhenPlayCheckbox.addEventListener('change', (evt) => {
+  muteWhenPlay = evt.target.checked ? 'true' : 'false';
+  window.localStorage.setItem('muteWhenPlay', muteWhenPlay);
 });
 
 logClearButton.addEventListener('click', (evt) => {
