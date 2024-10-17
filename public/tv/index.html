@@ -614,14 +614,13 @@ select:focus-visible {
 
 #playlistItems li {
   cursor: pointer;
-  background-position: -100px center;
   background-color: #f1f1f1;
   border-radius: 8px;
-  padding: 0px 0px 0px 0.9rem;
+  padding: 0px 0px 0px 0.5rem;
   height: 100%;
   min-height: 1rem;
   white-space: nowrap;
-  overflow: auto;
+  overflow: hidden;
   overflow-y: hidden;
   text-overflow: ellipsis;
   display: flex;
@@ -634,8 +633,11 @@ select:focus-visible {
   border-bottom: 1px solid #eee;
   user-select: none;
   position: relative;
+  background-position: -1rem center;
+  padding: 0px;
 }
-  #playlistItems li::-webkit-scrollbar { 
+  #playlistItems li::-webkit-scrollbar,
+  #playlistItems li label::-webkit-scrollbar {
     display: none;
   }
   #playlistItems li.good {
@@ -669,13 +671,11 @@ select:focus-visible {
     font-style: italic;
     color: #888;
     font-size: small;
-    text-indent: 1rem;
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M0%2010.5a.5.5%200%200%201%20.5-.5h15a.5.5%200%200%201%200%201H.5a.5.5%200%200%201-.5-.5M12%200H4a2%202%200%200%200-2%202v7h1V2a1%201%200%200%201%201-1h8a1%201%200%200%201%201%201v7h1V2a2%202%200%200%200-2-2m2%2012h-1v2a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1v-2H2v2a2%202%200%200%200%202%202h8a2%202%200%200%200%202-2z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
   }
   #playlistItems li.timeout {
     color: #888;
     font-size: small;
-    text-indent: 1rem;
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%203.5a.5.5%200%200%200-1%200V9a.5.5%200%200%200%20.252.434l3.5%202a.5.5%200%200%200%20.496-.868L8%208.71z%22%2F%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016m7-8A7%207%200%201%201%201%208a7%207%200%200%201%2014%200%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
   }
   #playlistItems li.broken:hover {
@@ -684,14 +684,12 @@ select:focus-visible {
   }
   #playlistItems li.frame {
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
-    text-indent: 1rem;
   }
   #playlistItems li.checking {
     color: #5c5c5c;
     border-left-color: #000;
     font-size: 0.8rem;
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23666%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%201.5a.5.5%200%200%201%20.5-.5h11a.5.5%200%200%201%200%201h-1v1a4.5%204.5%200%200%201-2.557%204.06c-.29.139-.443.377-.443.59v.7c0%20.213.154.451.443.59A4.5%204.5%200%200%201%2012.5%2013v1h1a.5.5%200%200%201%200%201h-11a.5.5%200%201%201%200-1h1v-1a4.5%204.5%200%200%201%202.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5%204.5%200%200%201%203.5%203V2h-1a.5.5%200%200%201-.5-.5m2.5.5v1a3.5%203.5%200%200%200%201.989%203.158c.533.256%201.011.791%201.011%201.491v.702c0%20.7-.478%201.235-1.011%201.491A3.5%203.5%200%200%200%204.5%2013v1h7v-1a3.5%203.5%200%200%200-1.989-3.158C8.978%209.586%208.5%209.052%208.5%208.351v-.702c0-.7.478-1.235%201.011-1.491A3.5%203.5%200%200%200%2011.5%203V2z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
-    text-indent: 1rem;
   }
   #playlistItems li:nth-of-type(even) {
     background-color: transparent;
@@ -703,12 +701,26 @@ select:focus-visible {
   #playlistItems li:hover {
     background-color: #e9ecef5c;
   }
-  #playlistItems li div {
+  #playlistItems li label {
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     flex: 1;
+    overflow: auto;
+    margin: 0px 0.5rem;
+    cursor: pointer;
+  }
+  #playlistItems li.timeout label,
+  #playlistItems li.broken label,
+  #playlistItems li.checking label,
+  #playlistItems li.frame label {
+    margin: 0px 0.5rem 0px 2rem;
+  }
+  #playlistItems li label i {
+    font-style: normal;
+    width: 100%;
+    user-select: none;
   }
   #playlistItems li .delete {
     cursor: pointer;
@@ -2277,9 +2289,11 @@ async function displayPlaylistPage(page, transaction) {
     /** @type {HTMLLIElement} **/
     const li = document.createElement('li');
     /** @type {HTMLDivElement} **/
-    const div = document.createElement('div');
-    div.className = 'label';
-    div.textContent = item.group === currentCategory ? item.title : `[${item.group}] ${item.title}`;
+    const label = document.createElement('label');
+    label.className = 'label';
+    const text = document.createElement('i');
+    text.textContent = item.group === currentCategory ? item.title : `[${item.group}] ${item.title}`;
+    label.append(text);
 
     if(item.url.startsWith(UNSAFE_HTTP) && VARS.IS_NATIVE === false) {
       li.dataset['http'] = true;
@@ -2305,7 +2319,7 @@ async function displayPlaylistPage(page, transaction) {
       }
     };
 
-    li.append(div);
+    li.append(label);
     playlistItems.appendChild(li);
   });
 
@@ -2316,6 +2330,7 @@ async function displayPlaylistPage(page, transaction) {
     const isFav = await isFavorite(id);
     /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, timeout: boolean } }, error: Error }} */
     const { data: playCache, error } = await database.readData(id, STA_STORE);
+
     if(error) {
       printLog('displayPlaylistPage.error', error.message);
       return;
