@@ -1,27 +1,28 @@
 const { app, BrowserWindow, ipcMain } = require('electron/main');
 const path = require('path');
-const os = require('os');
+// const os = require('os');
 
 // if (os.platform() === 'darwin' && os.arch() === 'x64') {
 //   app.disableHardwareAcceleration();
 // }
 
 app.commandLine.appendSwitch('enable-unsafe-webgpu');
+/** @type {BrowserWindow} */
+let win = null;
 
 const createWindow = () => {
-  const win = new BrowserWindow({
-    width: 1920,
-    height: 1080,
-    minWidth: 1280,
-    minHeight: 720,
+  win = new BrowserWindow({
+    width: 1280,
+    height: 806,
+    // minWidth: 1280,
+    // minHeight: 806,
     webPreferences: {
       nodeIntegration: true,
       preload: path.join(__dirname, 'preload.js'),
-      devTools: false
+      devTools: true
     },
     title: 'TV Browser'
   });
-
   win.loadFile('index.html');
 }
 
@@ -67,6 +68,10 @@ app.whenReady().then(() => {
     const webContents = event.sender;
     const win = BrowserWindow.fromWebContents(webContents);
     win.setTitle(title);
+  });
+
+  ipcMain.on('putOnTop', (event, isOnTop) => {
+    win.setAlwaysOnTop(isOnTop);
   });
 });
 

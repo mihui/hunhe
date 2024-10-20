@@ -40,7 +40,7 @@ import Typography from '@mui/joy/Typography';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { User, ChatPayload, ChatRecord, All, Kinds, ChatAttachment, MessageTypes, MessageStatus } from '@/components/models/user';
+import { User, ChatPayload, ChatRecord, All, Kinds, ChatAttachment, MessageTypes, MessageStatus, AI } from '@/components/models/user';
 import { ChatUserModal } from '@/components/widgets/modals/chat-user';
 import { Events, beeper, storage, utility } from '@/components/helpers/utility';
 import { CustomCodes, ROOMS, StorageKeys } from '@/components/config/vars';
@@ -520,7 +520,7 @@ export default function ChatRoom({ id, translate }) {
       // for(let i = 0; i < 100; i++) {
       //   uniqueUsers.push(new User(crypto.randomUUID(), 'Fake user', '/images/avatars/00.png'));
       // }
-      setChatUsers([ new All(translate) ].concat(uniqueUsers));
+      setChatUsers([ new All(translate), new AI(translate) ].concat(uniqueUsers));
     },
     /** @type {(id: string, fromUser: User, data: { to: User, type: number, message: string, attachment: ChatAttachment }) => void} */
     onUserMessage: (id, fromUser, data) => {

@@ -116,6 +116,14 @@ export class All extends User {
   }
 }
 
+export class AI extends User {
+  static __id = '__ai';
+  constructor(translate = (str) => str) {
+    super(AI.__id, translate('羊驼'), '/images/avatars/llama.png');
+    this.kind = Kinds.ROBOT;
+  }
+}
+
 export class ChatAttachment {
   /** @type {string} */
   url = '';

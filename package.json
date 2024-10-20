@@ -18,6 +18,7 @@
     "url": "https://github.com/mihui/hunhe.git"
   },
   "dependencies": {
+    "@baiducloud/qianfan": "^0.1.9",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
     "@mui/icons-material": "latest",

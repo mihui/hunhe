@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const response = ipcRenderer.sendSync('makeRequest', { url, options });
     return response;
   },
-  changeTitle: (title) => ipcRenderer.send('changeTitle', title)
+  changeTitle: (title) => ipcRenderer.send('changeTitle', title),
+  putOnTop: (isOnTop) => ipcRenderer.send('putOnTop', isOnTop),
 });

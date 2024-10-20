@@ -4,6 +4,7 @@ import { Server, Socket } from 'socket.io';
 import { ChatUser, Meeting } from '../models/chat.js';
 import { meetingService } from '../services/data.js';
 import { httpCodes } from '../http-manager.js';
+import { CHAT_ROLES, chatService } from '../services/chat.js';
 
 const { logger } = Logger('socket-manager');
 
@@ -52,10 +53,20 @@ const EVENTS = {
   MEETING_UPDATE_CALLBACK: 'client:meeting:update:callback'
 };
 
+const Kinds = {
+  PERSON: 1,
+  ROBOT: 2,
+  ALL: 3,
+};
+
 const MODES = {
   PUBLIC: 'Public',
   PRIVATE: 'Private'
 };
+
+class AI {
+  static __id = '__ai';
+}
 
 class SocketManager {
 
@@ -99,6 +110,9 @@ class SocketManager {
       this.#io.on('connection', (socket) => {
         this.#onConnected(socket);
       });
+      this.#io.on('disconnect', () => {
+        console.log('error')
+      })
     }
   }
 
@@ -167,7 +181,7 @@ class SocketManager {
    * @param {Socket} socket Socket instance
    */
   async #onConnected(socket) {
-
+    console.log('#onConnected');
     const setStatus = (value) => {
       socket.data['__status'] = Object.assign({}, socket.data['__status'], value);
     };
@@ -295,7 +309,7 @@ class SocketManager {
 
     socket.on('server:user:message',
       /**
-       * @param {{ id: string, to: ChatUser, mode: string }} data Chat data
+       * @param {{ id: string, to: ChatUser, mode: string, message: string, type: number }} data Chat data
        * @param {(error: boolean) => void} ack Ack
        */
       async (data, ack) => {
@@ -306,6 +320,33 @@ class SocketManager {
           const fromUser = socket.data;
           const rooms = this.getRooms(mode, to.id, fromUser.id, fromUser.room);
           this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, fromUser, data);
+
+          if(to.id === AI.__id) {
+            console.log('start chatting...', to, 'data--->', data);
+            data.id = crypto.randomUUID();
+            const chatStream = await chatService.chat([
+              { role: CHAT_ROLES.USER, content: data.message }
+            ], VARS.QIANFAN_DEFAULT_MODEL);
+
+            // for await (const chunk of chatStream) {
+            //   console.log(chunk);
+            // }
+
+            if(chatStream.result) {
+              data.message = chatStream.result;
+              data.to.__id = fromUser.__id;
+              data.to.avatar = fromUser.avatar;
+              data.to.name = fromUser.name;
+              data.to.id = fromUser.id;
+
+              fromUser.__id = AI.__id;
+              fromUser.avatar = to.avatar;
+              fromUser.name = to.name;
+              fromUser.kind = Kinds.ROBOT;
+
+              this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, data.id, fromUser, data);
+            }
+          }
           if(typeof ack === 'function') ack();
         }
       }

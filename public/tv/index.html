@@ -620,7 +620,7 @@ select:focus-visible {
   border-radius: 8px;
   padding: 0px 0px 0px 0.5rem;
   height: 100%;
-  min-height: 1rem;
+  min-height: 1.9rem;
   white-space: nowrap;
   overflow: hidden;
   overflow-y: hidden;
@@ -638,6 +638,7 @@ select:focus-visible {
   position: relative;
   background-position: -1rem center;
   padding: 0px;
+  font-size: 0.9rem;
 }
   #playlistItems li::-webkit-scrollbar,
   #playlistItems li label::-webkit-scrollbar {
@@ -702,7 +703,7 @@ select:focus-visible {
   }
   #playlistItems li.frame:hover,
   #playlistItems li:hover {
-    background-color: #e9ecef5c;
+    background-color: #cceeee5c;
   }
   #playlistItems li label {
     width: 100%;
@@ -713,6 +714,7 @@ select:focus-visible {
     overflow: auto;
     margin: 0px 0.5rem;
     cursor: pointer;
+    transition: 0.5s all;
   }
   #playlistItems li.timeout label,
   #playlistItems li.broken label,
@@ -801,6 +803,9 @@ button {
 }
 #playVideoButton.played {
   background-color: #e74c3c;
+}
+#pinButton.pinned {
+  background-color: orange;
 }
 
 #m3uList {
@@ -1339,6 +1344,14 @@ input:checked + .slider:before {
       <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
       <path d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445"/>
     </symbol>
+    <!-- PIN -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="pin" viewBox="0 0 16 16">
+      <path d="M4.146.146A.5.5 0 0 1 4.5 0h7a.5.5 0 0 1 .5.5c0 .68-.342 1.174-.646 1.479-.126.125-.25.224-.354.298v4.431l.078.048c.203.127.476.314.751.555C12.36 7.775 13 8.527 13 9.5a.5.5 0 0 1-.5.5h-4v4.5c0 .276-.224 1.5-.5 1.5s-.5-1.224-.5-1.5V10h-4a.5.5 0 0 1-.5-.5c0-.973.64-1.725 1.17-2.189A6 6 0 0 1 5 6.708V2.277a3 3 0 0 1-.354-.298C4.342 1.674 4 1.179 4 .5a.5.5 0 0 1 .146-.354m1.58 1.408-.002-.001zm-.002-.001.002.001A.5.5 0 0 1 6 2v5a.5.5 0 0 1-.276.447h-.002l-.012.007-.054.03a5 5 0 0 0-.827.58c-.318.278-.585.596-.725.936h7.792c-.14-.34-.407-.658-.725-.936a5 5 0 0 0-.881-.61l-.012-.006h-.002A.5.5 0 0 1 10 7V2a.5.5 0 0 1 .295-.458 1.8 1.8 0 0 0 .351-.271c.08-.08.155-.17.214-.271H5.14q.091.15.214.271a1.8 1.8 0 0 0 .37.282"/>
+    </symbol>
+    <!-- UNPIN -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="unpin" viewBox="0 0 16 16">
+      <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146m.122 2.112v-.002zm0-.002v.002a.5.5 0 0 1-.122.51L6.293 6.878a.5.5 0 0 1-.511.12H5.78l-.014-.004a5 5 0 0 0-.288-.076 5 5 0 0 0-.765-.116c-.422-.028-.836.008-1.175.15l5.51 5.509c.141-.34.177-.753.149-1.175a5 5 0 0 0-.192-1.054l-.004-.013v-.001a.5.5 0 0 1 .12-.512l3.536-3.535a.5.5 0 0 1 .532-.115l.096.022c.087.017.208.034.344.034q.172.002.343-.04L9.927 2.028q-.042.172-.04.343a1.8 1.8 0 0 0 .062.46z"/>
+    </symbol>
   </svg>
 
   <div class="container" id="pageContainer">
@@ -1466,6 +1479,7 @@ input:checked + .slider:before {
                 <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
                 <button id="pauseVideoButton" class="hidden"><svg width="20" height="20"><use xlink:href="#pause"/></svg></button>
                 <div class="divider"></div>
+                <button id="pinButton"><svg width="20" height="20"><use xlink:href="#unpin"/></svg></button>
                 <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
                 <button id="fullscreenButton" class="hidden" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
               </div>
@@ -1512,15 +1526,8 @@ const SITE_TITLE_WEB = 'Hunhe IPTV';
 const SITE_TITLE_NATIVE = 'Hunhe IPTV | v1.0';
 const DB_VERSION = 4;
 const UNSAFE_HTTP = 'http://';
-const TYPES = {
-  M3U: 'm3u', TXT: 'txt'
-};
-const SOURCES = {
-  URL: 'url', CONTENT: 'content'
-};
-
-const VARS = {
-  CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '',
+const CONSTS = {
+  IS_NATIVE: (typeof window.electronAPI !== 'undefined'),
   ICON_PLAY: '<svg width="20" height="20"><use xlink:href="#play"/></svg>',
   ICON_UNPAUSE: '<svg width="20" height="20"><use xlink:href="#unpause"/></svg>',
   ICON_PAUSE: '<svg width="20" height="20"><use xlink:href="#pause"/></svg>',
@@ -1533,17 +1540,28 @@ const VARS = {
   ICON_SPEAKER_OFF: '<svg width="20" height="20"><use xlink:href="#mute"/></svg>',
   ICON_READ_FROM_URL: '<svg width="20" height="20"><use xlink:href="#read-from-url"/></svg>',
   ICON_UPDATE_FROM_URL: '<svg width="20" height="20"><use xlink:href="#update-from-url"/></svg>',
+  ICON_PINNED: '<svg width="20" height="20"><use xlink:href="#pin"/></svg>',
+  ICON_UNPINNED: '<svg width="20" height="20"><use xlink:href="#unpin"/></svg>',
   POSTER: 'background.jpeg',
+  KILOBYTE: 1024,
+  MEGABYTE: 1048576,
+  /** @type {string} **/
+  BASE_URL: (typeof window.electronAPI === 'undefined') ? window.location.origin : 'https://mihui.net',
+};
+const TYPES = {
+  M3U: 'm3u', TXT: 'txt'
+};
+const SOURCES = {
+  URL: 'url', CONTENT: 'content'
+};
+const VARS = {
+  CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '',
   PING_TIMEOUT: 0,
   SCREENSHOT_TIME: 3,
   URLS: new Set(),
-  IS_NATIVE: (typeof window.electronAPI !== 'undefined'),
   /** @type {string} **/
   TRANSACTION: '',
-  /** @type {string} **/
-  BASE_URL: (typeof window.electronAPI === 'undefined') ? window.location.origin : 'https://mihui.net',
-  KILOBYTE: 1024,
-  MEGABYTE: 1048576
+  ALWAYS_ON_TOP: false
 };
 
 const database = new Database(DB_VERSION);
@@ -1574,7 +1592,7 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
  * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
  * HTMLDivElement, HTMLInputElement, HTMLDivElement, HTMLButtonElement, HTMLInputElement,
- * HTMLSpanElement, HTMLInputElement, HTMLButtonElement
+ * HTMLSpanElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement
  * ]} **/
 const [
   pageBody,
@@ -1590,7 +1608,7 @@ const [
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
   commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
   progressBar, enableLoggingCheckbox, logContainer, pauseVideoButton, screenshotTime,
-  screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton
+  screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton, pinButton
  ] = 
 getElementById([
   'pageBody',
@@ -1606,7 +1624,7 @@ getElementById([
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
   'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
   'progressBar', 'enableLoggingCheckbox', 'logContainer', 'pauseVideoButton', 'screenshotTime',
-  'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton'
+  'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton'
 ]);
 
 let itemsPerPage = 15;
@@ -1627,18 +1645,29 @@ let muteWhenPlay = 'true';
 let onlyCheckBroken = 'false';
 let stopURL = null;
 
-function generateBlankFrame() {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'darkblue';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  canvas.toBlob(blob => {
-    stopURL = URL.createObjectURL(blob);
-    printLog('generateBlankFrame.generated', stopURL);
-  }, 'video/mp4');
-}
+class AppShell {
+  initUI() {
+    const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
+    if(playListVisible === 'false') {
+      playlistContainer.className = 'back';
+      pageBody.classList.remove('play-list');
+    }
+    else {
+      playlistContainer.className = 'play-list';
+      pageBody.classList.add('play-list');
+    }
+    pageBody.classList.remove('settings');
 
-class WebShell {
+    if(displayPlayerControls()) {
+      fullscreenButton.classList.remove('hidden');
+    }
+  }
+
+  /**
+   * @param {string} url Request URL
+   * @param {Object} options Request options
+   * @returns {Promise<string>} Returns the response
+   */
   async makeRequest(url, options = {}) {
     return new Promise((resolve, reject) => {
       const response = fetch(url, options).then(response => {
@@ -1657,14 +1686,64 @@ class WebShell {
     });
   }
 
-  changeTitle(title = SITE_TITLE_WEB) {
-    document.title = title;
+  /**
+   * Generate a blank frame for the video
+   */
+  generateBlankFrame() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'darkblue';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    canvas.toBlob(blob => {
+      stopURL = URL.createObjectURL(blob);
+    }, 'video/mp4');
+  }
+
+  timeAgo(timestamp) {
+    if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp < 0) {
+      return '未知时间';
+    }
+    const now = new Date().getTime();
+    const secondsPast = Math.floor((now - timestamp) / 1000);
+    if (secondsPast < 5) {
+      return '刚刚';
+    }
+    if (secondsPast < 60) {
+      return Math.floor(secondsPast) + ' 秒前';
+    }
+    if (secondsPast < 3600) {
+      return Math.floor(secondsPast / 60) + ' 分钟前';
+    }
+    if (secondsPast < 86400) {
+      return Math.floor(secondsPast / 3600) + ' 小时前';
+    }
+    if (secondsPast < 30 * 86400) { // 30天
+      return Math.floor(secondsPast / 86400) + ' 天前';
+    }
+    if (secondsPast < 365 * 86400) { // 365天
+      return Math.floor(secondsPast / (30 * 86400)) + ' 月前';
+    }
+    return Math.floor(secondsPast / (365 * 86400)) + ' 年前';
+  }
+
+  /**
+   * Change the title of the page
+   * @param {string} title The title to set
+   */
+  changeTitle(title = SITE_TITLE_WEB) { document.title = title; }
+  putOnTop(isOnTop) {}
+}
+
+class WebShell extends AppShell {
+  initUI() {
+    super.initUI();
+    pinButton.remove();
   }
 }
 
-class ElectronShell {
+class ElectronShell extends AppShell {
+
   async makeRequest(url, options = {}) {
-    console.log('native.makeRequest');
     return new Promise((resolve, reject) => {
       const response = window['electronAPI'].makeRequest(url, options);
       if(response.error) {
@@ -1682,39 +1761,16 @@ class ElectronShell {
   changeTitle(title = SITE_TITLE_NATIVE) {
     window['electronAPI'].changeTitle(title);
   }
+
+  putOnTop(isOnTop) {
+    window['electronAPI'].putOnTop(isOnTop);
+  }
 }
 
-const shell = VARS.IS_NATIVE ? new ElectronShell() : new WebShell();
+/** @type {AppShell} **/
+const appShell = CONSTS.IS_NATIVE ? new ElectronShell() : new WebShell();
 
-function timeAgo(timestamp) {
-  // 检查 timestamp 是否为合法的时间戳
-  if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp < 0) {
-    return '未知时间';
-  }
-
-  const now = new Date().getTime();
-  const secondsPast = Math.floor((now - timestamp) / 1000);
-
-  if (secondsPast < 5) {
-    return '刚刚';
-  }
-  if (secondsPast < 60) {
-    return Math.floor(secondsPast) + ' 秒前';
-  }
-  if (secondsPast < 3600) {
-    return Math.floor(secondsPast / 60) + ' 分钟前';
-  }
-  if (secondsPast < 86400) {
-    return Math.floor(secondsPast / 3600) + ' 小时前';
-  }
-  if (secondsPast < 30 * 86400) { // 30天
-    return Math.floor(secondsPast / 86400) + ' 天前';
-  }
-  if (secondsPast < 365 * 86400) { // 365天
-    return Math.floor(secondsPast / (30 * 86400)) + ' 月前';
-  }
-  return Math.floor(secondsPast / (365 * 86400)) + ' 年前';
-}
+appShell.initUI();
 
 function getCachedM3uUrl() {
   return window.localStorage.getItem('cachedM3uUrl') || '';
@@ -1848,23 +1904,6 @@ async function loadLocalCache() {
   muteWhenPlayCheckbox.checked = muteWhenPlay === 'true';
 }
 
-function initUI() {
-  const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
-  if(playListVisible === 'false') {
-    playlistContainer.className = 'back';
-    pageBody.classList.remove('play-list');
-  }
-  else {
-    playlistContainer.className = 'play-list';
-    pageBody.classList.add('play-list');
-  }
-  pageBody.classList.remove('settings');
-
-  if(displayPlayerControls()) {
-    fullscreenButton.classList.remove('hidden');
-  }
-}
-
 function displayPlayerControls(showNativeControls = false, showCustomControls = false) {
   if (document.fullscreenEnabled) {
     if(showCustomControls) {
@@ -1917,7 +1956,7 @@ function changePoster(poster) {
   pageBody.style.background = `transparent url("${poster}") center center / cover no-repeat`;
 }
 
-function stopVideo(poster = VARS.POSTER) {
+function stopVideo(poster = CONSTS.POSTER) {
   printLog('stopVideo');
   videoPlayer.pause();
   if(stopURL) videoPlayer.src = stopURL;
@@ -1928,7 +1967,7 @@ function stopVideo(poster = VARS.POSTER) {
   totalTimeDisplay.textContent = getMinutes(0);
   progressControl.value = progressControl.max = '0';
 
-  shell.changeTitle();
+  appShell.changeTitle();
   showPlayButton();
   rewindButton.disabled = forwardButton.disabled = true;
   saveVideoTimestamp();
@@ -1936,8 +1975,8 @@ function stopVideo(poster = VARS.POSTER) {
 }
 
 function showPlayButton() {
-  playVideoButton.innerHTML = VARS.ICON_PLAY;
-  pauseVideoButton.innerHTML = VARS.ICON_UNPAUSE;
+  playVideoButton.innerHTML = CONSTS.ICON_PLAY;
+  pauseVideoButton.innerHTML = CONSTS.ICON_UNPAUSE;
   playVideoButton.className = 'stopped';
   displayPlayerControls();
   videoPlayer.className = 'paused';
@@ -1945,7 +1984,7 @@ function showPlayButton() {
 
 function onStopped() {
   showPlayButton();
-  shell.changeTitle();
+  appShell.changeTitle();
   saveVideoTimestamp();
   displayPlayerControls(false, true);
 }
@@ -1992,12 +2031,12 @@ function toSize(val) {
   }
 
   // 转换逻辑
-  if (val < VARS.KILOBYTE) {
+  if (val < CONSTS.KILOBYTE) {
     return `${val} B`;
-  } else if (val < VARS.MEGABYTE) {
-    return (val / VARS.KILOBYTE).toFixed(2) + ' KB';
+  } else if (val < CONSTS.MEGABYTE) {
+    return (val / CONSTS.KILOBYTE).toFixed(2) + ' KB';
   } else {
-    return (val / VARS.MEGABYTE).toFixed(2) + ' MB';
+    return (val / CONSTS.MEGABYTE).toFixed(2) + ' MB';
   }
 }
 
@@ -2054,11 +2093,9 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
   async function fetchDataAndProcess(id, payload, cached) {
     printLog('loadM3uFile.fetchDataAndProcess');
     m3uUrlInput.disabled = loadM3uButton.disabled = true;
-    const safeUrl = (m3uUrl.startsWith(UNSAFE_HTTP) && VARS.IS_NATIVE === false) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
+    const safeUrl = (m3uUrl.startsWith(UNSAFE_HTTP) && CONSTS.IS_NATIVE === false) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
     try {
-      const data = await shell.makeRequest(safeUrl, { cache: 'no-store' });
-
-      m3uUrlInput.disabled = loadM3uButton.disabled = false;
+      const data = await appShell.makeRequest(safeUrl, { cache: 'no-store' });
       if (data) {
         const time = new Date().getTime();
         const x = { id, m3u: data, source: SOURCES.URL, type, time };
@@ -2078,6 +2115,8 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
     } catch (error) {
       errorMessage.textContent = `加载 M3U 文件时出错，请检查 URL 是否正确。${error.message}`;
       showM3uInput();
+    }
+    finally {
       m3uUrlInput.disabled = loadM3uButton.disabled = false;
     }
   }
@@ -2195,7 +2234,7 @@ function initPlayData(type, data) {
     // [M3U] End - Process data
   }
   categories[originalChannels] = [...categories[allChannels]];
-  statisticsMessage.textContent = `{ ${playlistData.length}条，(${timeAgo(data.time)}) }`;
+  statisticsMessage.textContent = `{ ${playlistData.length}条，(${appShell.timeAgo(data.time)}) }`;
 }
 
 // 初始化分类
@@ -2301,7 +2340,7 @@ async function displayPlaylistPage(page, transaction) {
     text.textContent = item.group === currentCategory ? item.title : `[${item.group}] ${item.title}`;
     label.append(text);
 
-    if(item.url.startsWith(UNSAFE_HTTP) && VARS.IS_NATIVE === false) {
+    if(item.url.startsWith(UNSAFE_HTTP) && CONSTS.IS_NATIVE === false) {
       li.dataset['http'] = true;
       li.classList.add('http');
       li.classList.add('broken');
@@ -2315,9 +2354,9 @@ async function displayPlaylistPage(page, transaction) {
     li.onclick = (evt) => {
       evt.preventDefault();
       const { currentTarget } = evt;
-      const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : VARS.POSTER;
+      const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : CONSTS.POSTER;
       const isBroken = currentTarget.classList.contains('broken') === false;
-      if((videoPlayer.poster === frame || frame === VARS.POSTER) && isBroken) {
+      if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isBroken) {
         playNow(currentTarget, item);
       }
       else {
@@ -2398,7 +2437,7 @@ function updateListItemStyle(li, checkResult, lastPlayedItem, isFav) {
     }
     if(li.classList.contains('timeout')) {
       const deleteButton = document.createElement('span');
-      deleteButton.innerHTML = VARS.ICON_CANCEL;
+      deleteButton.innerHTML = CONSTS.ICON_CANCEL;
       deleteButton.className = 'delete';
       deleteButton.onclick = (evt) => {
         evt.stopPropagation();
@@ -2606,12 +2645,12 @@ function nativePlay(source) {
 
 function refreshFavoriteButton(hasFavorite) {
   if(hasFavorite) {
-    favoriteButton.innerHTML = VARS.ICON_UNFAVORITE;
+    favoriteButton.innerHTML = CONSTS.ICON_UNFAVORITE;
     favoriteButton.dataset['action'] = 'remove';
     favoriteButton.classList.add('remove');
   }
   else {
-    favoriteButton.innerHTML = VARS.ICON_FAVORITE;
+    favoriteButton.innerHTML = CONSTS.ICON_FAVORITE;
     favoriteButton.dataset['action'] = 'add';
     favoriteButton.classList.remove('remove');
   }
@@ -2660,8 +2699,8 @@ async function onPlay(playingItem, duration = '0', isLive = false) {
 }
 
 function onPlaying() {
-  playVideoButton.innerHTML = VARS.ICON_STOP;
-  pauseVideoButton.innerHTML = VARS.ICON_PAUSE;
+  playVideoButton.innerHTML = CONSTS.ICON_STOP;
+  pauseVideoButton.innerHTML = CONSTS.ICON_PAUSE;
   fullscreenButton.disabled = false;
   playVideoButton.className = 'played';
   errorMessage.textContent = '';
@@ -2678,9 +2717,9 @@ function onPlaying() {
  */
 function playVideo(source, isUserAction = true) {
   if (source) {
-    shell.changeTitle(source.title);
+    appShell.changeTitle(source.title);
   } else {
-    shell.changeTitle();
+    appShell.changeTitle();
   }
   loadComments(database.encodeString(source.url), source.title);
   loadFavorite(source);
@@ -2694,7 +2733,7 @@ function playVideo(source, isUserAction = true) {
   totalTimeDisplay.textContent = getMinutes(0);
   progressControl.value = progressControl.max = '0';
 
-  if (Hls.isSupported() && (source.url.startsWith(UNSAFE_HTTP) === false || VARS.IS_NATIVE)) {
+  if (Hls.isSupported() && (source.url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
     hlsPlay(source);
   }
   else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
@@ -2707,7 +2746,7 @@ function playVideo(source, isUserAction = true) {
 
 function muteOrUnmuteVideo(mute) {
   videoPlayer.muted = mute;
-  speakerButton.innerHTML = videoPlayer.muted ? VARS.ICON_SPEAKER_ON : VARS.ICON_SPEAKER_OFF;
+  speakerButton.innerHTML = videoPlayer.muted ? CONSTS.ICON_SPEAKER_ON : CONSTS.ICON_SPEAKER_OFF;
 }
 
 // 控制器隐藏的延迟时间 (毫秒)
@@ -2796,7 +2835,7 @@ async function checkVideoPlayability(url, isRandom = false) {
   const timestamp = new Date().getTime();
   return new Promise((resolve) => {
     let timeoutId = 0;
-    if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || VARS.IS_NATIVE)) {
+    if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
       try {
         const hls = new Hls();
         const cleanup = () => {
@@ -2878,7 +2917,7 @@ async function fetchFavorites() {
   return categories[favoriteChannels];
 }
 
-function setUrlInput(url, label = VARS.ICON_UPDATE_FROM_URL) {
+function setUrlInput(url, label = CONSTS.ICON_UPDATE_FROM_URL) {
   m3uUrlInput.value = url;
   loadM3uButton.innerHTML = label;
 }
@@ -2893,9 +2932,10 @@ async function startup() {
   gotoPage(currentPage);
   playLastVideo(false);
   listStore('startup');
-  initUI();
-  generateBlankFrame();
-  shell.changeTitle();
+  appShell.initUI();
+
+  appShell.generateBlankFrame();
+  appShell.changeTitle();
 }
 
 async function deleteFavorite(id) {
@@ -2946,6 +2986,19 @@ reCaptureButton.addEventListener('click', async (evt) => {
     }
   }
   reCaptureButton.disabled = false;
+});
+
+pinButton.addEventListener('click', async (evt) => {
+  VARS.ALWAYS_ON_TOP = !VARS.ALWAYS_ON_TOP;
+  appShell.putOnTop(VARS.ALWAYS_ON_TOP);
+  if(VARS.ALWAYS_ON_TOP) {
+    pinButton.innerHTML = CONSTS.ICON_PINNED;
+    pinButton.classList.add('pinned');
+  }
+  else {
+    pinButton.innerHTML = CONSTS.ICON_UNPINNED;
+    pinButton.classList.remove('pinned');
+  }
 });
 
 categorySelect.addEventListener('change', async (evt) => {
@@ -3012,7 +3065,7 @@ function resetPoster(evt) {
   }
   /** @type {HTMLVideoElement} */
   const player = evt.target;
-  if(player.poster !== VARS.POSTER) {
+  if(player.poster !== CONSTS.POSTER) {
     stopVideo(player.poster);
   }
 }
@@ -3021,10 +3074,10 @@ function detectM3uUrl() {
   loadM3uButton.disabled = !m3uUrlInput.checkValidity();
   const cachedM3uUrl = getCachedM3uUrl();
   if(cachedM3uUrl === m3uUrlInput.value) {
-    loadM3uButton.innerHTML = VARS.ICON_UPDATE_FROM_URL;
+    loadM3uButton.innerHTML = CONSTS.ICON_UPDATE_FROM_URL;
   }
   else {
-    loadM3uButton.innerHTML = VARS.ICON_READ_FROM_URL;
+    loadM3uButton.innerHTML = CONSTS.ICON_READ_FROM_URL;
   }
 }
 
@@ -3152,7 +3205,7 @@ videoPlayer.addEventListener("suspend", (evt) => {
 videoPlayer.addEventListener('waiting', (evt) => {
   printLog('videoPlayer.waiting');
   playVideoButton.className = 'playing';
-  playVideoButton.innerHTML = VARS.ICON_CANCEL;
+  playVideoButton.innerHTML = CONSTS.ICON_CANCEL;
 });
 videoPlayer.addEventListener('canplaythrough', (evt) => {
   printLog('videoPlayer.canplaythrough');
@@ -3352,7 +3405,7 @@ logClearButton.addEventListener('click', (evt) => {
 
 function loadComments(id, title, skip = 0) {
   commentsInput.placeholder = `评论：${title}`;
-  axios.get(`${VARS.BASE_URL}/api/tv/comments/${id}?skip=${skip}`)
+  axios.get(`${CONSTS.BASE_URL}/api/tv/comments/${id}?skip=${skip}`)
   .catch(error => {
     console.log('load.comments.error->', error);
   })
@@ -3371,7 +3424,7 @@ function loadComments(id, title, skip = 0) {
         commentContent.className = 'content';
         commentContent.textContent = comment.content;
         commentTime.className = 'time';
-        commentTime.textContent = timeAgo(new Date(comment.created_time).getTime());
+        commentTime.textContent = appShell.timeAgo(new Date(comment.created_time).getTime());
 
         commentItem.append(commentTime);
         commentItem.append(commentContent);
@@ -3388,7 +3441,7 @@ commentsForm.addEventListener('submit', async (evt) => {
   const lastPlayedItem = getLastVideoItem();
   if(lastPlayedItem) {
     const id = database.encodeString(lastPlayedItem.url);
-    axios.post(`${VARS.BASE_URL}/api/tv/comments/${id}`, {
+    axios.post(`${CONSTS.BASE_URL}/api/tv/comments/${id}`, {
       content: commentsInput.value
     })
     .catch(error => {

@@ -101,6 +101,10 @@ const VARS = {
   IOT_CLIENT_ID: process.env.IOT_CLIENT_ID ?? '',
   IOT_CLIENT_SECRET: process.env.IOT_CLIENT_SECRET ?? '',
   REMOTE_API_ENDPOINT: process.env.REMOTE_API_ENDPOINT ?? 'https://xiushengfang-86983-7-1323459498.sh.run.tcloudbase.com',
+  // AI
+  QIANFAN_ACCESS_KEY: process.env.QIANFAN_ACCESS_KEY || '',
+  QIANFAN_SECRET_KEY: process.env.QIANFAN_SECRET_KEY || '',
+  QIANFAN_DEFAULT_MODEL: process.env.QIANFAN_DEFAULT_MODEL || 'ERNIE-Speed-128K',
 };
 
 BigInt.prototype.toJSON = function() {
