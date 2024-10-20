@@ -273,6 +273,16 @@
           border-radius: var(--border-radius);
           border: 1px solid #ddd;
           box-shadow: var(--box-shadow-message);
+          > p {
+            &:last-child {
+              padding: 0px;
+              margin: 0px;
+            }
+            &:first-child {
+              padding-top: 0px;
+              margin-top: 0px;
+            }
+          }
         }
         .screenshot {
           cursor: pointer;
@@ -286,12 +296,6 @@
           .message, .screenshot {
             border-color: cornflowerblue;
             box-shadow: var(--box-shadow-target);
-          }
-        }
-        p {
-          &:last-child {
-            padding: 0px;
-            margin: 0px;
           }
         }
       }
