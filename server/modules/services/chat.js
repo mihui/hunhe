@@ -19,7 +19,7 @@ class ChatService {
   * 该函数用于与指定的AI模型进行异步聊天，根据传入的角色和消息历史，生成模型的回复
   * 
   * @param {Array<{ role: 'string', content: string }>} messages - 消息历史记录，用于构建聊天上下文
-  * @returns {Promise<Array<Promise<ChatStream>>|ChatStream>} - 返回一个Promise对象，解析为模型的回复
+  * @returns {Promise<Array<Promise<ChatStream>>>} - 返回一个Promise对象，解析为模型的回复
   */
   async chat(messages, model, system, stream = false) {
     try {

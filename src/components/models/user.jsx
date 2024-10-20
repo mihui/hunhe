@@ -187,6 +187,8 @@ export class ChatRecord {
   time;
   /** @type {number} */
   status;
+  /** @type {boolean} */
+  finished;
 }
 
 export class ChatMessage {

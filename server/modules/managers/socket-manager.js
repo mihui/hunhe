@@ -38,6 +38,7 @@ const EVENTS = {
   USER_USERS: 'client:users',
   // Message
   USER_MESSAGE_CALLBACK: 'client:user:message',
+  AI_MESSAGE_CALLBACK: 'client:ai:message',
   // Audio
   USER_AUDIO_START_CALLBACK: 'client:audio:start:callback',
   USER_AUDIO_HANGUP_CALLBACK: 'client:audio:hangup:callback',
@@ -309,42 +310,35 @@ class SocketManager {
 
     socket.on('server:user:message',
       /**
-       * @param {{ id: string, to: ChatUser, mode: string, message: string, type: number }} data Chat data
+       * @param {{ id: string, to: ChatUser, mode: string, message: string, type: number, messages: Array<{ content: string, role: 'user'|'assistant' }> }} data Chat data
        * @param {(error: boolean) => void} ack Ack
        */
       async (data, ack) => {
         // Request send
-        const { id, to, mode } = data;
+        const { id, to, mode, messages } = data;
         if(to) {
           /** @type {ChatUser} */
           const fromUser = socket.data;
           const rooms = this.getRooms(mode, to.id, fromUser.id, fromUser.room);
           this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, fromUser, data);
-
           if(to.id === AI.__id) {
-            console.log('start chatting...', to, 'data--->', data);
-            data.id = crypto.randomUUID();
-            const chatStream = await chatService.chat([
-              { role: CHAT_ROLES.USER, content: data.message }
-            ], VARS.QIANFAN_DEFAULT_MODEL);
+            const chatId = crypto.randomUUID();
+            const chatStream = await chatService.chat(messages, VARS.QIANFAN_DEFAULT_MODEL, '你叫羊驼，你是一个健谈的家伙，很会陪人聊天解闷儿。', true);
 
-            // for await (const chunk of chatStream) {
-            //   console.log(chunk);
-            // }
-
-            if(chatStream.result) {
-              data.message = chatStream.result;
-              data.to.__id = fromUser.__id;
-              data.to.avatar = fromUser.avatar;
-              data.to.name = fromUser.name;
-              data.to.id = fromUser.id;
-
-              fromUser.__id = AI.__id;
-              fromUser.avatar = to.avatar;
-              fromUser.name = to.name;
-              fromUser.kind = Kinds.ROBOT;
-
-              this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, data.id, fromUser, data);
+            for await (const chunk of chatStream) {
+              const aiUser = to;
+              const aiData = {
+                ...data,
+                id: chatId,
+                to: {
+                  ...fromUser,
+                },
+                mode,
+                message: chunk.result,
+                type: data.type,
+                finished: chunk.is_end
+              };
+              this.getSockets(rooms).emit(EVENTS.AI_MESSAGE_CALLBACK, chatId, aiUser, aiData);
             }
           }
           if(typeof ack === 'function') ack();

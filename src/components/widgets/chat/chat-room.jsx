@@ -53,6 +53,7 @@ import { ChatSettingsModal } from '../modals/chat-settings';
 import { ChatTarget } from './chat-target';
 import { ChatCopyPasteModal } from '../modals/chat-copy-paste';
 import { ChatPreviewImageModal } from '../modals/chat-preview-image';
+import { CHAT_ROLES } from '../../../../server/modules/services/chat';
 
 /**
  * Chatroom
@@ -148,6 +149,7 @@ export default function ChatRoom({ id, translate }) {
         .off('client:error', socketEvents.onClientError)
         .off('client:users', socketEvents.onDisplayingUsers)
         .off('client:user:message', socketEvents.onUserMessage)
+        .off('client:ai:message', socketEvents.onAIMessage)
         .off('client:meeting:update:callback', socketEvents.onMeetingUpdated)
         // Screen share
         .off('client:screen:join:callback', socketEvents.onClientJoinScreen)
@@ -172,6 +174,7 @@ export default function ChatRoom({ id, translate }) {
           .on('client:error', socketEvents.onClientError)
           .on('client:users', socketEvents.onDisplayingUsers)
           .on('client:user:message', socketEvents.onUserMessage)
+          .on('client:ai:message', socketEvents.onAIMessage)
           .on('client:meeting:update:callback', socketEvents.onMeetingUpdated)
           // Screen share
           .on('client:screen:join:callback', socketEvents.onClientJoinScreen)
@@ -346,8 +349,8 @@ export default function ChatRoom({ id, translate }) {
       setIsReconnect(false);
       notifyHeader(isReconnect ? '重新连接成功' : '');
   },
-  /** @type {(id: string, fromUser: User, data: { to: User, type: number, message: string, attachment: ChatAttachment }, status: number) => void} */
-  constructMessage = (id, fromUser, data, status) => {
+  /** @type {(id: string, fromUser: User, data: { to: User, type: number, message: string, attachment: ChatAttachment }, status: number, stream: boolean) => void} */
+  constructMessage = (id, fromUser, data, status, stream = false) => {
     /** @type {ChatRecord} */
     const chatRecord = {
       id, type: data.type,
@@ -358,25 +361,31 @@ export default function ChatRoom({ id, translate }) {
       status
     };
     if(chatRecord.to.id === me.id && chatRecord.from.id !== me.id) {
-      notifyUser(chatRecord.from.name, chatRecord.message, chatRecord.from.avatar);
+      if((stream && chatRecord.finished) || stream === false)
+        notifyUser(chatRecord.from.name, chatRecord.message, chatRecord.from.avatar);
     }
     if(utility.isBinary(chatRecord.type)) {
       const blob = new Blob([ chatRecord.attachment.binary ]);
       chatRecord.attachment.url = URL.createObjectURL(blob);
     }
-
     const isNewMessage = !chatHistoryRef.current.some(message => message.id === id);
     if(isNewMessage) {
       setChatHistory(x => {
         const updatedChatHistory = [...x, chatRecord];
         chatHistoryRef.current = updatedChatHistory;
         return updatedChatHistory;
-    });
+      });
     }
     else {
-      setChatHistory(prevChatHistory => {
+      setChatHistory(
+        /** @type {(prevChatHistory: Array<ChatRecord>) => void} prevChatHistory */
+        prevChatHistory => {
         const newHistory = prevChatHistory.map(x => {
           if(x.id === id) {
+            if(stream) {
+              const streamMesage = x.message.concat(chatRecord.message);
+              return { ...x, message: streamMesage, status: MessageStatus.Sent, time: new Date() };
+            }
             return { ...x, status: MessageStatus.Sent, time: new Date() };
           }
           return x;
@@ -525,6 +534,9 @@ export default function ChatRoom({ id, translate }) {
     /** @type {(id: string, fromUser: User, data: { to: User, type: number, message: string, attachment: ChatAttachment }) => void} */
     onUserMessage: (id, fromUser, data) => {
       constructMessage(id, fromUser, data, MessageStatus.Sent);
+    },
+    onAIMessage: (id, fromUser, data) => {
+      constructMessage(id, fromUser, data, MessageStatus.Sent, true);
     },
     /** @type {(user: User, newMeeting: Meeting) => void} */
     onMeetingUpdated: (user, newMeeting) => {
@@ -732,13 +744,14 @@ export default function ChatRoom({ id, translate }) {
     return id.replace(prefix, '');
   },
   generateMessage = async () => {
-    /** @type {{ id: string, type: number, message: string, mode: string, to: User, attachment: { note: string, binary: ArrayBuffer } }} */
+    /** @type {{ id: string, type: number, message: string, mode: string, to: User, attachment: { note: string, binary: ArrayBuffer }, messages: Array<string> }} */
     const payload = {
       id: crypto.randomUUID(),
       type: chat.type,
       message: chat.input.trim(),
       mode: chat.mode,
-      to: chat.to
+      to: chat.to,
+      messages: []
     };
 
     if(utility.isBinary(chat.type)) {
@@ -748,10 +761,24 @@ export default function ChatRoom({ id, translate }) {
         note: chat.attachment.note
       };
     }
+    if(payload.to.id === AI.__id) {
+      payload.messages = chatHistory.filter(x => x.to.id === AI.__id || x.from.id === AI.__id).map(x => {
+        return { content: x.message, role: x.from.id === AI.__id ? CHAT_ROLES.ASSISTANT : CHAT_ROLES.USER };
+      });
+      payload.messages.push({ content: payload.message, role: CHAT_ROLES.USER });
+    }
     return payload;
   },
+  analyzeMessage = () => {
+    if(chat.input.toLowerCase().includes('/new')) {
+      setChatHistory([]);
+      setChat({ ...chat, input: '', attachment: { base64: '', note: '' }, type: MessageTypes.Text });
+      return false;
+    }
+    return isChatting === false && isSocketReady;
+  },
   sendChatMessage = async () => {
-    if((chat.input.length > 0 || utility.isBase64StringValid(chat.attachment.base64)) && isChatting === false && isSocketReady) {
+    if((chat.input.length > 0 || utility.isBase64StringValid(chat.attachment.base64)) && analyzeMessage()) {
       setIsChatting(true);
       if(streamService.getWebSocket().disconnected) {
         streamService.getWebSocket().connect();
