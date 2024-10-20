@@ -762,7 +762,7 @@ export default function ChatRoom({ id, translate }) {
       };
     }
     if(payload.to.id === AI.__id) {
-      payload.messages = chatHistory.filter(x => x.to.id === AI.__id || x.from.id === AI.__id).map(x => {
+      payload.messages = chatHistory.filter(x => (x.to.id === AI.__id || x.from.id === AI.__id) && (x.to.id === me.id || x.from.id === me.id)).map(x => {
         return { content: x.message, role: x.from.id === AI.__id ? CHAT_ROLES.ASSISTANT : CHAT_ROLES.USER };
       });
       payload.messages.push({ content: payload.message, role: CHAT_ROLES.USER });
