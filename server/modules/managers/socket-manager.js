@@ -323,7 +323,10 @@ class SocketManager {
           this.getSockets(rooms).emit(EVENTS.USER_MESSAGE_CALLBACK, id, fromUser, data);
           if(to.id === AI.__id) {
             const chatId = crypto.randomUUID();
-            const chatStream = await chatService.chat(messages, VARS.QIANFAN_DEFAULT_MODEL, '你叫羊驼，你是一个健谈的家伙，很会陪人聊天解闷儿。', true);
+            const chatStream = await chatService.chat(
+              messages, VARS.QIANFAN_DEFAULT_MODEL,
+              '你叫羊驼，你是一个健谈的家伙，很会陪人聊天解闷儿，你在一个名叫浑河网的聊天室里，很擅长和网友聊天，你的回答要尽量详细，并且偶尔包含一些emoji表情。',
+              true);
 
             for await (const chunk of chatStream) {
               const aiUser = to;
