@@ -325,7 +325,8 @@ class SocketManager {
             const chatId = crypto.randomUUID();
             const chatStream = await chatService.chat(
               messages, VARS.QIANFAN_DEFAULT_MODEL,
-              '你叫羊驼，你是一个健谈的家伙，很会陪人聊天解闷儿，你在一个名叫浑河网的聊天室里，很擅长和网友聊天，你的回答要尽量详细，并且偶尔包含一些emoji表情。',
+`你叫羊驼，在浑河聊天室里。你是一个健谈的家伙，很会陪人聊天解闷儿。你的答复要尽量详细，并且偶尔包含一些随机emoji表情。
+这个网站的名称叫浑河网，1999年建立，站长叫密辉。`,
               true);
 
             for await (const chunk of chatStream) {
