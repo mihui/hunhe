@@ -25,6 +25,8 @@ class Database {
   dbName;
   /** @type {number} */
   dbVersion;
+  /** @type {number} */
+  retries = 0;
   /**
    * 构造函数，初始化数据库版本和名称
    * @param {number} dbVersion - 数据库版本，默认为1
@@ -36,20 +38,38 @@ class Database {
     this.db = null; // 数据库实例
   }
 
+  closeDB() {
+    try {
+      this.db?.close();
+      this.db = null;
+    }
+    catch(error) {}
+  }
+
+  async reconnect() {
+    for (; this.retries < 3; this.retries++) {
+      this.closeDB();
+      this.retries++;
+      const result = await this.openDB();
+      if(result.db) {
+        this.db = result.db;
+        break;
+      }
+    }
+    return { error: new Error('重连失败'), db: this.db };
+  }
+
   /**
    * 打开数据库方法
-   * @returns {Promise} - 返回一个Promise对象，解析为数据库实例
+   * @returns {Promise<{ db: IDBDatabase, error: Error }>} - 返回一个Promise对象，解析为数据库实例
    */
   async openDB() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion); // 创建打开数据库的请求
-      request.onblocked = (event) => {
-        // 如果其他标签页已经加载了数据库，则需要先关闭它
-        try {
-          this.db.close();
-        }
-        catch(error) {}
-        reject(error);
+      request.onblocked = async (event) => {
+        this.closeDB();
+        const { error, db } = await this.reconnect();
+        resolve({ error, db });
       };
 
       request.onupgradeneeded = (event) => {
@@ -73,11 +93,12 @@ class Database {
 
       request.onsuccess = (event) => {
         this.db = event.target.result; // 在成功时，保存数据库实例
-        resolve(this.db); // 解析Promise为数据库实例
+        resolve({ db: this.db }); // 解析Promise为数据库实例
       };
 
-      request.onerror = (event) => {
-        reject(event.target.error); // 在错误时，拒绝Promise为错误
+      request.onerror = async (event) => {
+        const { error, db } = await this.reconnect();
+        resolve({ error, db });
       };
     });
   }
@@ -89,25 +110,22 @@ class Database {
    * @returns {Promise} - 返回一个Promise对象，解析为添加操作的结果
    */
   async addData(data, storeName = M3U_STORE) {
-    try {
-      const db = await this.openDB(); // 打开数据库
-      const transaction = db.transaction(storeName, "readwrite"); // 创建事务
-      const store = transaction.objectStore(storeName); // 获取存储对象
-      const request = store.add(data); // 添加数据
+    const { db, error } = await this.openDB();
+    if(error) { return { error }; }
 
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-          resolve({ data: request.result }); // 在成功时，解析Promise为结果
-        };
+    const transaction = db.transaction(storeName, "readwrite"); // 创建事务
+    const store = transaction.objectStore(storeName); // 获取存储对象
+    const request = store.add(data); // 添加数据
 
-        request.onerror = () => {
-          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
-        };
-      });
-    }
-    catch(error) {
-      return { error };
-    }
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve({ data: request.result }); // 在成功时，解析Promise为结果
+      };
+
+      request.onerror = () => {
+        resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+      };
+    });
   }
 
   /**
@@ -117,25 +135,21 @@ class Database {
    * @returns {Promise<{ data: any, error: Error }>} - 返回一个Promise对象，解析为读取到的数据对象
    */
   async readData(id, storeName = M3U_STORE) {
-    try {
-      const db = await this.openDB(); // 打开数据库
-      const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
-      const store = transaction.objectStore(storeName); // 获取存储对象
-      const request = store.get(id); // 获取数据
+    const { db, error } = await this.openDB();
+    if(error) { return { error }; }
+    const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
+    const store = transaction.objectStore(storeName); // 获取存储对象
+    const request = store.get(id); // 获取数据
 
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-          resolve({ data: request.result }); // 在成功时，解析Promise为结果
-        };
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve({ data: request.result }); // 在成功时，解析Promise为结果
+      };
 
-        request.onerror = () => {
-          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
-        };
-      });
-    }
-    catch(error) {
-      return { error };
-    }
+      request.onerror = () => {
+        resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+      };
+    });
   }
 
   /**
@@ -145,25 +159,21 @@ class Database {
    * @returns {Promise<{ data: any, error: Error }>} - 返回一个Promise对象，解析为更新操作的结果
    */
   async updateData(data, storeName = M3U_STORE) {
-    try {
-      const db = await this.openDB(); // 打开数据库
-      const transaction = db.transaction(storeName, "readwrite"); // 创建事务
-      const store = transaction.objectStore(storeName); // 获取存储对象
-      const request = store.put(data); // 更新数据
+    const { db, error } = await this.openDB();
+    if(error) { return { error }; }
+    const transaction = db.transaction(storeName, "readwrite"); // 创建事务
+    const store = transaction.objectStore(storeName); // 获取存储对象
+    const request = store.put(data); // 更新数据
 
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-          resolve({ data: request.result }); // 在成功时，解析Promise为结果
-        };
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve({ data: request.result }); // 在成功时，解析Promise为结果
+      };
 
-        request.onerror = () => {
-          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
-        };
-      });
-    }
-    catch(error) {
-      return { error };
-    }
+      request.onerror = () => {
+        resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+      };
+    });
   }
 
   /**
@@ -173,25 +183,21 @@ class Database {
    * @returns {Promise<{ data: any, error: Error }>} - 返回一个Promise对象，解析为删除操作的结果
    */
   async deleteData(id, storeName = M3U_STORE) {
-    try {
-      const db = await this.openDB(); // 打开数据库
-      const transaction = db.transaction(storeName, "readwrite"); // 创建事务
-      const store = transaction.objectStore(storeName); // 获取存储对象
-      const request = store.delete(id); // 删除数据
+    const { db, error } = await this.openDB();
+    if(error) { return { error }; }
+    const transaction = db.transaction(storeName, "readwrite"); // 创建事务
+    const store = transaction.objectStore(storeName); // 获取存储对象
+    const request = store.delete(id); // 删除数据
 
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-          resolve({ data: request.result }); // 在成功时，解析Promise为结果
-        };
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve({ data: request.result }); // 在成功时，解析Promise为结果
+      };
 
-        request.onerror = () => {
-          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
-        };
-      });
-    }
-    catch(error) {
-      return { error };
-    }
+      request.onerror = () => {
+        resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+      };
+    });
   }
 
   /**
@@ -200,30 +206,26 @@ class Database {
    * @returns {Promise<{ data: [], error: Error }>} - 返回一个Promise对象，解析为数据列表
    */
   async listData(storeName = M3U_STORE) {
-    try {
-      const db = await this.openDB(); // 打开数据库
-      const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
-      const store = transaction.objectStore(storeName); // 获取存储对象
-      let request = store.openCursor(); // 打开游标
-      const list = []; // 保存数据列表
-      return new Promise((resolve, reject) => {
-        request.onsuccess = (evt) => {
-          const cursor = evt.target.result; // 获取游标
-          if (cursor) {
-            list.push(cursor.value); // 将数据添加到列表中
-            cursor.continue(); // 继续遍历
-          } else {
-            resolve({ data: list }); // 在遍历完成后，解析Promise为列表
-          }
-        };
-        request.onerror = () => {
-          resolve({ data: [], error: request.error }); // 在错误时，拒绝Promise为错误
-        };
-      });
-    }
-    catch(error) {
-      return { data: [], error };
-    }
+    const { db, error } = await this.openDB();
+    if(error) { return { error }; }
+    const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
+    const store = transaction.objectStore(storeName); // 获取存储对象
+    let request = store.openCursor(); // 打开游标
+    const list = []; // 保存数据列表
+    return new Promise((resolve, reject) => {
+      request.onsuccess = (evt) => {
+        const cursor = evt.target.result; // 获取游标
+        if (cursor) {
+          list.push(cursor.value); // 将数据添加到列表中
+          cursor.continue(); // 继续遍历
+        } else {
+          resolve({ data: list }); // 在遍历完成后，解析Promise为列表
+        }
+      };
+      request.onerror = () => {
+        resolve({ data: [], error: request.error }); // 在错误时，拒绝Promise为错误
+      };
+    });
   }
 
   /**
@@ -232,25 +234,21 @@ class Database {
    * @returns {Promise} - 返回一个Promise对象，解析为清空操作的结果
    */
   async purgeData(storeName = FAV_STORE) {
-    try {
-      const db = await this.openDB(); // 打开数据库
-      const transaction = db.transaction(storeName, "readwrite"); // 创建事务
-      const store = transaction.objectStore(storeName); // 获取存储对象
-      const request = store.clear(); // 清空数据
+    const { db, error } = await this.openDB();
+    if(error) { return { error }; }
+    const transaction = db.transaction(storeName, "readwrite"); // 创建事务
+    const store = transaction.objectStore(storeName); // 获取存储对象
+    const request = store.clear(); // 清空数据
 
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-          resolve({ data: request.result }); // 在成功时，解析Promise为结果
-        };
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve({ data: request.result }); // 在成功时，解析Promise为结果
+      };
 
-        request.onerror = () => {
-          resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
-        };
-      });
-    }
-    catch(error) {
-      return { error };
-    }
+      request.onerror = () => {
+        resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+      };
+    });
   }
 
   /**
@@ -260,39 +258,35 @@ class Database {
   async totalSize() {
     let totalSize = 0; // 总大小
     let storeSize = {}; // 各存储对象大小
-    
     try {
-      const db = await this.openDB(); // 打开数据库
-      const transaction = db.transaction(db.objectStoreNames, "readonly"); // 创建只读事务
+      const { db, error } = await this.openDB();
+      if(db) {
+        const transaction = db.transaction(db.objectStoreNames, "readonly"); // 创建只读事务
+        const promises = [];
+        for (const objectStoreName of db.objectStoreNames) { // 遍历所有存储对象
+          const objectStore = transaction.objectStore(objectStoreName); // 获取存储对象
+          storeSize[objectStoreName] = 0; // 初始化存储对象大小
 
-      const promises = [];
-
-      for (const objectStoreName of db.objectStoreNames) { // 遍历所有存储对象
-        const objectStore = transaction.objectStore(objectStoreName); // 获取存储对象
-        storeSize[objectStoreName] = 0; // 初始化存储对象大小
-
-        const getAllRequest = objectStore.getAll(); // 获取所有数据的请求
-        promises.push(new Promise((resolve) => {
-          getAllRequest.onsuccess = (event) => {
-            const items = event.target.result; // 获取所有数据
-            for (const item of items) {
-              const size = new Blob([JSON.stringify(item)]).size; // 计算数据大小
-              totalSize += size; // 累加到总大小
-              storeSize[objectStoreName] += size; // 累加到存储对象大小
-            }
-            resolve();
-          };
-          getAllRequest.onerror = (event) => {
-            resolve();
-          };
-        }));
+          const getAllRequest = objectStore.getAll(); // 获取所有数据的请求
+          promises.push(new Promise((resolve) => {
+            getAllRequest.onsuccess = (event) => {
+              const items = event.target.result; // 获取所有数据
+              for (const item of items) {
+                const size = new Blob([JSON.stringify(item)]).size; // 计算数据大小
+                totalSize += size; // 累加到总大小
+                storeSize[objectStoreName] += size; // 累加到存储对象大小
+              }
+              resolve();
+            };
+            getAllRequest.onerror = (event) => {
+              resolve();
+            };
+          }));
+        }
+        await Promise.all(promises);
       }
-
-      await Promise.all(promises);
     }
-    catch(error) {
-      
-    }
+    catch(error) { }
 
     return { totalSize, storeSize };
   }
@@ -426,7 +420,7 @@ body {
       bottom: 0px;
       left: 0px;
       width: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(0, 0, 0, 0.3);
       z-index: 20;
       padding: 0.5rem;
       box-sizing: border-box;
@@ -778,6 +772,9 @@ button {
 #settingsButton {
   background-color: #606060;
   border-radius: 0px;
+}
+#reCaptureButton {
+  background-color: darkorchid;
 }
 #favoriteButton {
   background-color: darkslategrey;
@@ -3180,11 +3177,12 @@ videoPlayer.addEventListener('play', (evt) => {
   onPlaying();
 });
 videoPlayer.addEventListener('loadeddata', (evt) => {
-  printLog('videoPlayer.loadeddata');
-  displayPlayerControls(true, true);
+  printLog(`videoPlayer.loadeddata - ${videoPlayer.readyState}`);
+  if(videoPlayer.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA)
+    displayPlayerControls(true, true);
 });
 videoPlayer.addEventListener('playing', (evt) => {
-  printLog('videoPlayer.playing');
+  printLog(`videoPlayer.playing - ${videoPlayer.networkState}`);
 });
 videoPlayer.addEventListener('emptied', (evt) => {
   printLog('videoPlayer.emptied');
@@ -3328,11 +3326,11 @@ fullscreenButton.addEventListener('click', (evt) => {
 });
 
 rewindButton.addEventListener('click', (evt) => {
-  videoPlayer.currentTime -= 30;
+  videoPlayer.currentTime -= evt.detail || 30;
 });
 
 forwardButton.addEventListener('click', (evt) => {
-  videoPlayer.currentTime += 30;
+  videoPlayer.currentTime += evt.detail || 30;
 });
 
 function displaySideMenu(show = false) {
@@ -3472,11 +3470,11 @@ window.swipe(bottomControls).on('swipeRight', (evt) => {
 });
 
 window.swipe(videoPlayer).on('swipeRight', (evt) => {
-  forwardButton.dispatchEvent(new Event('click'));
+  forwardButton.dispatchEvent(new CustomEvent('click', { detail: 30 }));
 });
 
 window.swipe(videoPlayer).on('swipeLeft', (evt) => {
-  rewindButton.dispatchEvent(new Event('click'));
+  rewindButton.dispatchEvent(new CustomEvent('click', { detail: 30 }));
 });
 
 let isHidden = false;
@@ -3495,11 +3493,19 @@ document.addEventListener('keydown', function (event) {
   }
   else if(event.key === 'ArrowLeft' || event.keyCode === 37) {
     event.preventDefault();
-    rewindButton.dispatchEvent(new Event('click'));
+    rewindButton.dispatchEvent(new CustomEvent('click', { detail: 30 }));
   }
   else if(event.key === 'ArrowRight' || event.keyCode === 39) {
     event.preventDefault();
-    forwardButton.dispatchEvent(new Event('click'));
+    forwardButton.dispatchEvent(new CustomEvent('click', { detail: 30 }));
+  }
+  else if (event.key === 'ArrowUp' || event.keyCode === 38) {
+    event.preventDefault();
+    forwardButton.dispatchEvent(new CustomEvent('click', { detail: 60 }));
+  }
+  else if (event.key === 'ArrowDown' || event.keyCode === 40) {
+    event.preventDefault();
+    rewindButton.dispatchEvent(new CustomEvent('click', { detail: 60 }));
   }
 });
 
