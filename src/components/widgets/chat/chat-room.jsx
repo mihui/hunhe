@@ -358,7 +358,8 @@ export default function ChatRoom({ id, translate }) {
       attachment: data.attachment,
       from: fromUser, to: data.to,
       time: new Date(),
-      status
+      status, finished: data.finished,
+      end: data.end
     };
     if(chatRecord.to.id === me.id && chatRecord.from.id !== me.id) {
       if((stream && chatRecord.finished) || stream === false)
@@ -383,8 +384,8 @@ export default function ChatRoom({ id, translate }) {
         const newHistory = prevChatHistory.map(x => {
           if(x.id === id) {
             if(stream) {
-              const streamMesage = x.message.concat(chatRecord.message);
-              return { ...x, message: streamMesage, status: MessageStatus.Sent, time: new Date() };
+              const partialMesage = x.message.concat(chatRecord.message);
+              return { ...x, message: partialMesage, status: chatRecord.finished ? MessageStatus.Sent : MessageStatus.Sending, time: new Date() };
             }
             return { ...x, status: MessageStatus.Sent, time: new Date() };
           }
@@ -536,7 +537,7 @@ export default function ChatRoom({ id, translate }) {
       constructMessage(id, fromUser, data, MessageStatus.Sent);
     },
     onAIMessage: (id, fromUser, data) => {
-      constructMessage(id, fromUser, data, MessageStatus.Sent, true);
+      constructMessage(id, fromUser, data, MessageStatus.Sending, true);
     },
     /** @type {(user: User, newMeeting: Meeting) => void} */
     onMeetingUpdated: (user, newMeeting) => {

@@ -325,8 +325,13 @@ class SocketManager {
             const chatId = crypto.randomUUID();
             const chatStream = await chatService.chat(
               messages, VARS.QIANFAN_DEFAULT_MODEL,
-`你叫羊驼，在浑河聊天室里。你是一个健谈的家伙，很会陪人聊天解闷儿。你的答复要尽量详细，并且偶尔包含一些随机emoji表情。
-这个网站的名称叫浑河网，1999年建立，站长叫密辉。`,
+`你叫羊驼，在浑河聊天室里。你是一个健谈的家伙，很会陪人聊天解闷儿。你的答复要尽量详细，并且你会灵活的使用emoji表情。
+这个网站的名称叫浑河网，1999年建立，版本号是 VII，用的是罗马数字，所以当前是第7个版本了，站长叫密辉。一下是浑河网的一些寄语：
+浑河网又回来了，这里还是我们的个人主页。你还记得它最初的样子吗？
+我们上一次更新还是在 2004 年，那时的版本代号停留在了 VI，那是一个我们这些老去的开发者头上还挂着“闪客”名头的时代，那是一个我们曾经的这些网吧小混混们还在当网管的时代。
+我们回归的日子是2023年4月8日夜，版本代号 VII。
+我们只想做最简单的网虫，存粹得一塌糊涂。
+感谢啊Q们，感谢金冠（我在的网吧），感谢超越（啊Q们的据点），感谢派网吧（啊Q2000在的网吧）。`,
               true);
 
             for await (const chunk of chatStream) {
@@ -340,7 +345,8 @@ class SocketManager {
                 mode,
                 message: chunk.result,
                 type: data.type,
-                finished: chunk.is_end
+                finished: chunk.is_end,
+                end: chunk.need_clear_history
               };
               this.getSockets(rooms).emit(EVENTS.AI_MESSAGE_CALLBACK, chatId, aiUser, aiData);
             }
