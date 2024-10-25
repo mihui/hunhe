@@ -350,7 +350,7 @@ export default function ChatRoom({ id, translate }) {
       notifyHeader(isReconnect ? '重新连接成功' : '');
   },
   /** @type {(id: string, fromUser: User, data: { to: User, type: number, message: string, attachment: ChatAttachment }, status: number, stream: boolean) => void} */
-  constructMessage = (id, fromUser, data, status, stream = false) => {
+  constructMessage = useCallback((id, fromUser, data, status, stream = false) => {
     /** @type {ChatRecord} */
     const chatRecord = {
       id, type: data.type,
@@ -358,8 +358,9 @@ export default function ChatRoom({ id, translate }) {
       attachment: data.attachment,
       from: fromUser, to: data.to,
       time: new Date(),
-      status, finished: data.finished,
-      end: data.end
+      status,
+      finished: data.finished || false,
+      end: data.end || false
     };
     if(chatRecord.to.id === me.id && chatRecord.from.id !== me.id) {
       if((stream && chatRecord.finished) || stream === false)
@@ -369,11 +370,15 @@ export default function ChatRoom({ id, translate }) {
       const blob = new Blob([ chatRecord.attachment.binary ]);
       chatRecord.attachment.url = URL.createObjectURL(blob);
     }
+    if(isProcessingRef.current) {
+      return;
+    }
     const isNewMessage = !chatHistoryRef.current.some(message => message.id === id);
     if(isNewMessage) {
       setChatHistory(x => {
         const updatedChatHistory = [...x, chatRecord];
         chatHistoryRef.current = updatedChatHistory;
+        isProcessingRef.current = false;
         return updatedChatHistory;
       });
     }
@@ -392,10 +397,11 @@ export default function ChatRoom({ id, translate }) {
           return x;
         });
         chatHistoryRef.current = newHistory;
+        isProcessingRef.current = false;
         return newHistory;
       });
     }
-  };
+  }, []);
 
   const socketEvents = {
     /** @type {() => void} */
@@ -684,7 +690,8 @@ export default function ChatRoom({ id, translate }) {
   /** @type {[ chatHistory: Array<ChatRecord>, setChatHistory: (chatHistory: Array<ChatRecord>) => void ]} */
   const [ chatHistory, setChatHistory ] = useState([]);
   /** @type {{ current: Array<ChatRecord> }} */
-  const chatHistoryRef = useRef(chatHistory);
+  const chatHistoryRef = useRef([]);
+  const isProcessingRef = useRef(false);
 
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
   const [ chatUsers, setChatUsers ] = useState([]);
@@ -763,7 +770,7 @@ export default function ChatRoom({ id, translate }) {
       };
     }
     if(payload.to.id === AI.__id) {
-      payload.messages = chatHistory.filter(x => (x.to.id === AI.__id || x.from.id === AI.__id) && (x.to.id === me.id || x.from.id === me.id)).map(x => {
+      payload.messages = chatHistory.slice(chatHistory.findLastIndex(x => x.end) + 1).filter(x => (x.to.id === AI.__id || x.from.id === AI.__id) && (x.to.id === me.id || x.from.id === me.id)).map(x => {
         return { content: x.message, role: x.from.id === AI.__id ? CHAT_ROLES.ASSISTANT : CHAT_ROLES.USER };
       });
       payload.messages.push({ content: payload.message, role: CHAT_ROLES.USER });

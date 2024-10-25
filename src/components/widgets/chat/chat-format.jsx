@@ -23,7 +23,10 @@ export const ChatFormat = ({ payload, isMe, isToMe, hasTime, displayTime, select
   if(isToMe) {
     classes = classes.concat(' ').concat(styles['target']);
   }
-  if(payload.status === MessageStatus.Sending) {
+  if(payload.end) {
+    classes = classes.concat(' ').concat(styles['end']);
+  }
+  else if(payload.status === MessageStatus.Sending) {
     classes = classes.concat(' ').concat(styles['sending']);
   }
 

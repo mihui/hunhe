@@ -189,6 +189,8 @@ export class ChatRecord {
   status;
   /** @type {boolean} */
   finished;
+  /** @type {boolean} */
+  end;
 }
 
 export class ChatMessage {

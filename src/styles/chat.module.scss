@@ -292,6 +292,9 @@
         &.sending {
           opacity: 0.5;
         }
+        &.end {
+          border-color: rgb(237, 184, 100);
+        }
         &.target {
           .message, .screenshot {
             border-color: cornflowerblue;
