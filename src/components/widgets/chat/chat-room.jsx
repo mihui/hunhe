@@ -350,7 +350,7 @@ export default function ChatRoom({ id, translate }) {
       notifyHeader(isReconnect ? '重新连接成功' : '');
   },
   /** @type {(id: string, fromUser: User, data: { to: User, type: number, message: string, attachment: ChatAttachment }, status: number, stream: boolean) => void} */
-  constructMessage = useCallback((id, fromUser, data, status, stream = false) => {
+  constructMessage = (id, fromUser, data, status, stream = false) => {
     /** @type {ChatRecord} */
     const chatRecord = {
       id, type: data.type,
@@ -370,22 +370,14 @@ export default function ChatRoom({ id, translate }) {
       const blob = new Blob([ chatRecord.attachment.binary ]);
       chatRecord.attachment.url = URL.createObjectURL(blob);
     }
-    if(isProcessingRef.current) {
-      return;
-    }
-    const isNewMessage = !chatHistoryRef.current.some(message => message.id === id);
-    if(isNewMessage) {
-      setChatHistory(x => {
-        const updatedChatHistory = [...x, chatRecord];
-        chatHistoryRef.current = updatedChatHistory;
-        isProcessingRef.current = false;
-        return updatedChatHistory;
-      });
-    }
-    else {
-      setChatHistory(
-        /** @type {(prevChatHistory: Array<ChatRecord>) => void} prevChatHistory */
-        prevChatHistory => {
+
+    setChatHistory(
+      /** @type {(prevChatHistory: Array<ChatRecord>) => void} prevChatHistory */
+      prevChatHistory => {
+        const isNewMessage = prevChatHistory.findIndex(message => message.id === id) === -1;
+        if(isNewMessage) {
+          return [...prevChatHistory, chatRecord];
+        }
         const newHistory = prevChatHistory.map(x => {
           if(x.id === id) {
             if(stream) {
@@ -396,12 +388,10 @@ export default function ChatRoom({ id, translate }) {
           }
           return x;
         });
-        chatHistoryRef.current = newHistory;
-        isProcessingRef.current = false;
         return newHistory;
-      });
-    }
-  }, []);
+      }
+    );
+  };
 
   const socketEvents = {
     /** @type {() => void} */
@@ -689,9 +679,6 @@ export default function ChatRoom({ id, translate }) {
   const [ uiProperty, setUiProperty ] = useState(new UIProperty().toJSON());
   /** @type {[ chatHistory: Array<ChatRecord>, setChatHistory: (chatHistory: Array<ChatRecord>) => void ]} */
   const [ chatHistory, setChatHistory ] = useState([]);
-  /** @type {{ current: Array<ChatRecord> }} */
-  const chatHistoryRef = useRef([]);
-  const isProcessingRef = useRef(false);
 
   /** @type {[ chatUsers: Array<User>, setChatUsers: (users: Array<User>) => void ]} */
   const [ chatUsers, setChatUsers ] = useState([]);
