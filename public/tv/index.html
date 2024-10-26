@@ -677,15 +677,26 @@ select:focus-visible {
   -ms-overflow-style: none;
   border-left: 3px solid gray;
   transition: 0.5s all;
-  column-gap: 0.5rem;
   border-bottom: 1px solid #eee;
   user-select: none;
   -webkit-user-select: none;
   position: relative;
   background-position: -1rem center;
   padding: 0px;
-  font-size: 0.9rem;
+  font-size: 0.72rem;
 }
+  #playlistItems li::after {
+    content: attr(data-duration);
+    display: flex;
+    font-size: 0.6rem;
+    color: #555;
+    text-align: right;
+    justify-content: end;
+    flex: 0;
+    padding: 0.2rem;
+    border-radius: 4px;
+    width: auto;
+  }
   #playlistItems li::-webkit-scrollbar,
   #playlistItems li label::-webkit-scrollbar {
     display: none;
@@ -766,25 +777,13 @@ select:focus-visible {
   #playlistItems li.broken label,
   #playlistItems li.checking label,
   #playlistItems li.frame label {
-    margin: 0px 0.5rem 0px 2rem;
+    margin: 0px 0.3rem 0px 2rem;
   }
   #playlistItems li label i {
     font-style: normal;
     width: 100%;
     user-select: none;
     -webkit-user-select: none;
-  }
-  #playlistItems li::after {
-    content: attr(data-duration);
-    display: flex;
-    position: absolute;
-    font-size: 0.6rem;
-    right: 0.5rem;
-    top: 0px;
-    color: #555;
-    text-align: right;
-    justify-content: end;
-    width: 100%;
   }
   #playlistItems li .delete {
     cursor: pointer;
@@ -3260,7 +3259,7 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
     const player = evt.target;
     progressControl.value = player.currentTime;
     setVideoTimestamp(player.currentTime);
-    if (progressControl.max === '0') {
+    if (progressControl.max === '0' && player.duration) {
       progressControl.max = player.duration;
       totalTimeDisplay.textContent = getMinutes(player.duration);
     }
