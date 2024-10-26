@@ -774,6 +774,17 @@ select:focus-visible {
     user-select: none;
     -webkit-user-select: none;
   }
+  #playlistItems li::after {
+    content: attr(data-duration);
+    width: 1rem;
+    display: flex;
+    height: 1rem;
+    position: absolute;
+    font-size: 0.75rem;
+    right: 1.5rem;
+    top: 0px;
+    color: #555;
+  }
   #playlistItems li .delete {
     cursor: pointer;
     display: flex;
@@ -2438,6 +2449,8 @@ async function displayPlaylistPage(page, transaction) {
     li.dataset['title'] = item.title;
     li.dataset['url'] = processUrl(item.url);
     li.dataset['group'] = item.group;
+    li.dataset['duration'] = '';
+
     li.title = item.title;
 
     li.onclick = (evt) => {
@@ -2462,7 +2475,7 @@ async function displayPlaylistPage(page, transaction) {
     const videoUrl = li.dataset['url'];
     const id = database.encodeString(videoUrl);
     const isFav = await isFavorite(id);
-    /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, timeout: boolean } }, error: Error }} */
+    /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, latency: number, timeout: boolean } }, error: Error }} */
     const { data: playCache, error } = await database.readData(id, STA_STORE);
 
     if(error) {
@@ -2486,17 +2499,17 @@ async function displayPlaylistPage(page, transaction) {
 
 /**
  * @param {HTMLLIElement} li List item
- * @param {{ ok: boolean, duration: number, frame: string, timeout: boolean }} checkResult List item
+ * @param {{ ok: boolean, duration: number, frame: string, latency: number, timeout: boolean }} checkResult List item
  * @param {{ url: string, group: string, title: string }} lastPlayedItem Last played data
  * @param {boolean} isFav If it is favorite
  */
 function updateListItemStyle(li, checkResult, lastPlayedItem, isFav) {
   li.className = '';
   if (checkResult.ok) {
-    if(checkResult.duration < 300) {
+    if(checkResult.latency < 300) {
       li.classList.add('good');
     }
-    else if (checkResult.duration >= 300 && checkResult.duration <= 1000) {
+    else if (checkResult.latency >= 300 && checkResult.latency <= 1000) {
       li.classList.add('average');
     }
     else {
@@ -2506,6 +2519,7 @@ function updateListItemStyle(li, checkResult, lastPlayedItem, isFav) {
       li.dataset['frame'] = URL.createObjectURL(checkResult.frame);
       li.classList.add('frame');
     }
+    li.dataset['duration'] = getMinutes(checkResult.duration);
   }
   else {
     if(checkResult.timeout) {
@@ -2858,7 +2872,7 @@ function printLog(...args) {
  * @param {string} url URL
  * @param {Hls?} hls Hls instance
  * @param {boolean} isRandom If the duration is random
- * @returns {string?} Returns frame URL
+ * @returns {{ frame: string, duration: number }?} Returns frame URL
  */
 async function captureFrame(url, hls = null, isRandom = false) {
   if(storeFrame === 'false') { return null; }
@@ -2893,21 +2907,21 @@ async function captureFrame(url, hls = null, isRandom = false) {
       canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
       canvas.toBlob((blob) => {
         if(frameVideo.currentTime > 0) {
-          cleanupEvents(blob);  
+          cleanupEvents({ frame: blob, duration: evt.target.duration });
         }
       });
     };
 
-    const cleanupEvents = (data) => {
+    const cleanupEvents = (payload) => {
       frameVideo.removeEventListener('seeked', onSeeked);
       frameVideo.removeEventListener('loadedmetadata', onLoadedMetaData);
       clearTimeout(timer);
-      resolve(data);
+      resolve(payload);
     };
 
     frameVideo.addEventListener('seeked', onSeeked);
     frameVideo.addEventListener('loadedmetadata', onLoadedMetaData);
-
+    
     timer = setTimeout(() => {
       cleanupEvents(null);
     }, VARS.PING_TIMEOUT - 1000);
@@ -2918,7 +2932,7 @@ async function captureFrame(url, hls = null, isRandom = false) {
 /**
  * 检查视频可播放性
  * @param {string} url URL
- * @returns {{ ok: boolean, duration: number, frame: string, timeout: boolean }}
+ * @returns {{ ok: boolean, duration: number, frame: string, latency: 0, timeout: boolean }}
  **/
 async function checkVideoPlayability(url, isRandom = false) {
   const timestamp = new Date().getTime();
@@ -2936,20 +2950,20 @@ async function checkVideoPlayability(url, isRandom = false) {
 
         hls.loadSource(url);
         hls.once(Hls.Events.MANIFEST_PARSED, async () => {
-          const duration = new Date().getTime() - timestamp;
-          const frame = await captureFrame(url, hls, isRandom);
+          const latency = new Date().getTime() - timestamp;
+          const { frame = null, duration = 0 } = await captureFrame(url, hls, isRandom);
           cleanup();
-          resolve({ ok: true, duration, frame, timeout: false });
+          resolve({ ok: true, duration, frame, latency, timeout: false });
         });
 
         hls.once(Hls.Events.ERROR, () => {
           cleanup();
-          resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: false });
+          resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
         });
 
         timeoutId = setTimeout(() => {
           cleanup();
-          resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: true });
+          resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: true });
         }, VARS.PING_TIMEOUT);
       }
       catch(error) {
@@ -2966,25 +2980,25 @@ async function checkVideoPlayability(url, isRandom = false) {
         video.remove();
       };
 
-      video.onloadedmetadata = async () => {
-        const duration = new Date().getTime() - timestamp;
-        const frame = await captureFrame(url, null, isRandom);
+      video.onloadedmetadata = async (evt) => {
+        const latency = new Date().getTime() - timestamp;
+        const { frame, duration } = await captureFrame(url, null, isRandom);
         cleanup();
-        resolve({ ok: true, duration, frame, timeout: false });
+        resolve({ ok: true, duration, frame, latency, timeout: false });
       };
 
       video.onerror = () => {
         cleanup();
-        resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: false });
+        resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
       };
 
       timeoutId = setTimeout(() => {
         cleanup();
-        resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: true });
+        resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: true });
       }, VARS.PING_TIMEOUT);
     }
     else {
-      resolve({ ok: false, duration: new Date().getTime() - timestamp, timeout: false });
+      resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
     }
   });
 }
