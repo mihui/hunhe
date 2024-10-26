@@ -776,14 +776,15 @@ select:focus-visible {
   }
   #playlistItems li::after {
     content: attr(data-duration);
-    width: 1rem;
     display: flex;
-    height: 1rem;
     position: absolute;
-    font-size: 0.75rem;
-    right: 1.5rem;
+    font-size: 0.6rem;
+    right: 0.5rem;
     top: 0px;
     color: #555;
+    text-align: right;
+    justify-content: end;
+    width: 100%;
   }
   #playlistItems li .delete {
     cursor: pointer;
@@ -2519,7 +2520,7 @@ function updateListItemStyle(li, checkResult, lastPlayedItem, isFav) {
       li.dataset['frame'] = URL.createObjectURL(checkResult.frame);
       li.classList.add('frame');
     }
-    li.dataset['duration'] = getMinutes(checkResult.duration);
+    li.dataset['duration'] = `[${getMinutes(checkResult.duration)}]`;
   }
   else {
     if(checkResult.timeout) {
