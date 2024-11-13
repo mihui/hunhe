@@ -1,5 +1,5 @@
 {
-  "name": "tv",
+  "name": "mihui.net.tv",
   "version": "1.0.0",
   "description": "Hunhe TV",
   "main": "main.js",
@@ -24,10 +24,16 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.5.0",
     "@electron-forge/plugin-fuses": "^7.5.0",
     "@electron/fuses": "^1.8.0",
+    "cordova-ios": "^7.1.1",
     "electron": "^32.1.2"
   },
   "dependencies": {
     "@electron/universal": "^2.0.1",
     "electron-squirrel-startup": "^1.0.1"
+  },
+  "cordova": {
+    "platforms": [
+      "ios"
+    ]
   }
 }

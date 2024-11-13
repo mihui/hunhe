@@ -4,7 +4,9 @@
 <head>
   <title>Hunhe IPTV</title>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
   <script src="js-hls.js"></script>
   <script src="js-swipe.js?v=1"></script>
   <script src="js-simple-peer.js"></script>
@@ -54,8 +56,11 @@ class Database {
       const result = await this.openDB();
       if(result.db) {
         this.db = result.db;
-        break;
+        return { error: null, db: this.db };
       }
+    }
+    if(this.db === null) {
+      window.location.reload();
     }
     return { error: new Error('重连失败'), db: this.db };
   }
@@ -877,6 +882,9 @@ button {
 .container .video-container #videoContainer #videoControls .buttons .group #magnetInput {
   display: none;
 }
+.container .video-container #videoContainer #videoControls .buttons #magnetGroup {
+  display: none;
+}
 
 #speakerButton {
   background-color: rgb(43, 89, 226);
@@ -1330,6 +1338,7 @@ input:checked + .slider:before {
     border-top-left-radius: 0px;
     border-bottom-left-radius: 0px;
   }
+  
   </style>
 </head>
 
@@ -2949,11 +2958,11 @@ async function checkVideoPlayability(url, isRandom = false) {
         };
 
         hls.loadSource(url);
-        hls.once(Hls.Events.MANIFEST_PARSED, async () => {
+        hls.once(Hls.Events.MANIFEST_PARSED, async (evt, data) => {
           const latency = new Date().getTime() - timestamp;
-          const { frame = null, duration = 0 } = await captureFrame(url, hls, isRandom);
+          const captured = await captureFrame(url, hls, isRandom);
           cleanup();
-          resolve({ ok: true, duration, frame, latency, timeout: false });
+          resolve({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, timeout: false });
         });
 
         hls.once(Hls.Events.ERROR, () => {
@@ -2982,9 +2991,9 @@ async function checkVideoPlayability(url, isRandom = false) {
 
       video.onloadedmetadata = async (evt) => {
         const latency = new Date().getTime() - timestamp;
-        const { frame, duration } = await captureFrame(url, null, isRandom);
+        const captured = await captureFrame(url, null, isRandom);
         cleanup();
-        resolve({ ok: true, duration, frame, latency, timeout: false });
+        resolve({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, timeout: false });
       };
 
       video.onerror = () => {
@@ -3749,6 +3758,13 @@ magnetUrlButton.addEventListener('click', async (evt) => {
   }
 });
 
+document.addEventListener('deviceready', () => {
+  // Cordova is now initialized. Have fun!
+  console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
+  pageBody.classList.add('ready');
+}, false);
+
 </script>
+<script src="cordova.js"></script>
 </body>
 </html>
