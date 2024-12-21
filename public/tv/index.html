@@ -1588,7 +1588,9 @@ const CONSTS = {
   MEGABYTE: 1048576,
   /** @type {string} **/
   BASE_URL: (typeof window.electronAPI === 'undefined') ? window.location.origin : 'https://mihui.net',
+  CONTROL_DISPLAY_TIMEOUT: 1500
 };
+
 const TYPES = {
   M3U: 'm3u', TXT: 'txt'
 };
@@ -1602,7 +1604,7 @@ const VARS = {
   URLS: new Set(),
   /** @type {string} **/
   TRANSACTION: '',
-  ALWAYS_ON_TOP: false,
+  ALWAYS_ON_TOP: false
 };
 
 const database = new Database(DB_VERSION);
@@ -2752,7 +2754,7 @@ function onPlaying() {
   rewindButton.disabled = forwardButton.disabled = false;
 
   clearTimeout(hideTimer);
-  hideTimer = setTimeout(displayPlayerControls, hideDelay);
+  hideTimer = setTimeout(displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
 }
 
 /**
@@ -2793,8 +2795,6 @@ function muteOrUnmuteVideo(mute) {
   speakerButton.innerHTML = videoPlayer.muted ? CONSTS.ICON_SPEAKER_ON : CONSTS.ICON_SPEAKER_OFF;
 }
 
-// 控制器隐藏的延迟时间 (毫秒)
-const hideDelay = 2000;
 // 设置一个定时器变量
 let hideTimer = 0;
 
@@ -3284,14 +3284,14 @@ videoPlayer.addEventListener('error', (evt) => {
   [videoPlayer, videoControls].forEach(element => {
     element.addEventListener(eventType, () => {
       clearTimeout(hideTimer);
-      hideTimer = setTimeout(displayPlayerControls, hideDelay);
+      hideTimer = setTimeout(displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
     });
   });
 });
 [videoPlayer, videoControls].forEach(element => {
   element.addEventListener('touchcancel', () => {
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(displayPlayerControls, hideDelay);
+    hideTimer = setTimeout(displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
   });
 });
 videoPlayer.addEventListener('click', (evt) => {
