@@ -530,7 +530,6 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
 #loadContentuButton, #m3uContentKey, #settingsButton,
 .m3u-controls #loadM3uButton, .m3u-controls #closeM3uButton {
   width: 100%;
-  padding: 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
@@ -575,11 +574,20 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
     background-color: white;
   }
 
-#searchInput, #categorySelect {
+
+#categorySelect, #searchInput {
+  padding: 12px;
+}
+#categorySelect {
   flex-grow: 1;
   border-right: none;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+  
+}
+#searchInput {
+  flex-grow: 1;
+  border-radius: 0;
 }
 
 textarea:focus-visible,
@@ -601,10 +609,15 @@ select:focus-visible {
   white-space: nowrap;
 }
 
-#closeButton, #playlistContent .category #listCheckButton {
+#playlistContent .category #listCheckButton {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   background-color: #db6634;
+}
+#closeButton {
+  background-color: #db6634;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 #playlistItems {
@@ -798,8 +811,10 @@ button {
 
 #settingsButton {
   background-color: #606060;
-  border-radius: 0px;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
 }
+
 #reCaptureButton {
   background-color: darkorchid;
 }
@@ -1467,13 +1482,13 @@ input:checked + .slider:before {
         </div>
         <div id="playlistContent">
           <form id="searchContainer">
+            <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
             <div class="search">
               <input type="text" id="searchInput" required placeholder="搜索...">
               <button type="reset" id="clearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
             </div>
             <button type="submit" id="searchButton" class="hidden"><svg width="20" height="20"><use xlink:href="#search"/></svg></button>
             <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
-            <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
           </form>
           <div class="category">
             <select id="categorySelect"></select>
@@ -1587,7 +1602,7 @@ const VARS = {
   URLS: new Set(),
   /** @type {string} **/
   TRANSACTION: '',
-  ALWAYS_ON_TOP: false
+  ALWAYS_ON_TOP: false,
 };
 
 const database = new Database(DB_VERSION);
@@ -3554,13 +3569,6 @@ window.addEventListener('DOMContentLoaded', (evt) => {
   startup();
 });
 
-document.addEventListener('deviceready', () => {
-  // Cordova is now initialized. Have fun!
-  console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
-  pageBody.classList.add('ready');
-}, false);
-
 </script>
-<script src="cordova.js"></script>
 </body>
 </html>
