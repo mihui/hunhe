@@ -29,12 +29,12 @@
     "dotenv": "16.4.7",
     "ejs": "latest",
     "express": "latest",
-    "glob": "latest",
-    "jose": "latest",
-    "mongodb": "latest",
+    "glob": "11.0.0",
+    "jose": "5.9.6",
+    "mongodb": "6.12.0",
     "next": "latest",
     "peer": "^1.0.1",
-    "peerjs": "latest",
+    "peerjs": "1.5.4",
     "qs": "6.13.1",
     "react": "latest",
     "react-markdown": "latest",
@@ -46,7 +46,7 @@
   "devDependencies": {
     "eslint": "latest",
     "eslint-config-next": "latest",
-    "nodemon": "latest",
+    "nodemon": "3.1.9",
     "sass": "latest"
   }
 }
