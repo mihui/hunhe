@@ -84,13 +84,6 @@ class Database {
 
         this.request.onupgradeneeded = async (event) => {
           console.log('数据库版本号从 ' + event.oldVersion + ' 升级到 ' + event.newVersion);
-          fetchFavorites().then(data => {
-            for (const item of data) {
-              item.code = CONSTS.CODES.LIKE;
-              item.id = database.encodeString(item.url);
-              this.updateData(item, FAV_STORE);
-            }
-          });
           /** @type {IDBDatabase} */
           const db = event.target.result;
           try {
@@ -3054,6 +3047,13 @@ async function startup() {
 
   appShell.generateBlankFrame();
   appShell.changeTitle();
+  fetchFavorites().then(data => {
+            for (const item of data) {
+              item.code = CONSTS.CODES.LIKE;
+              item.id = database.encodeString(item.url);
+              this.updateData(item, FAV_STORE);
+            }
+          });
 }
 
 async function deleteFavorite(id) {
