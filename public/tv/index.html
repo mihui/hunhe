@@ -3016,8 +3016,9 @@ function gotoPage(p) {
 }
 
 async function fetchFavorites(itemCode = CONSTS.CODES.LIKE) {
+  /** @type {{ data: Array<{ id: string, code: string }> }} */
   const { data } = await database.listData(FAV_STORE);
-  categories[favoriteChannels] = data;
+  categories[favoriteChannels] = data.filter(x => x.code === itemCode);
   return categories[favoriteChannels];
 }
 
@@ -3047,13 +3048,13 @@ async function startup() {
 
   appShell.generateBlankFrame();
   appShell.changeTitle();
-  fetchFavorites().then(data => {
-            for (const item of data) {
-              item.code = CONSTS.CODES.LIKE;
-              item.id = database.encodeString(item.url);
-              this.updateData(item, FAV_STORE);
-            }
-          });
+
+  const { data } = await database.listData(FAV_STORE);
+  for (const item of data) {
+    item.code = CONSTS.CODES.LIKE;
+    item.id = database.encodeString(item.url);
+    this.updateData(item, FAV_STORE);
+  }
 }
 
 async function deleteFavorite(id) {
