@@ -2610,6 +2610,7 @@ async function refreshCurrentPage(transaction) {
     }
     li.className = 'checking';
     const itemUrl = li.dataset['url'];
+    const itemId = li.dataset['id'];
 
     if (itemUrl) {
       if(transaction === VARS.TRANSACTION) {
@@ -2749,7 +2750,6 @@ function refreshFavoriteButton(itemCode) {
 }
 
 function refreshDislikeButton(itemCode) {
-  console.log('refreshDislikeButton', itemCode);
   if(itemCode === CONSTS.CODES.DISLIKE) {
     dislikeButton.innerHTML = CONSTS.ICON_UNDISLIKE;
     dislikeButton.dataset['action'] = 'remove';
@@ -3026,7 +3026,6 @@ async function fetchDislikes(itemCode = CONSTS.CODES.DISLIKE) {
   /** @type {{ data: Array<{ id: string, code: string }> }} */
   const { data } = await database.listData(FAV_STORE);
   VARS.DISLIKES = data.filter(x => x.code === itemCode).map(x => x.id);
-  console.log(' DISLIKES:', VARS.DISLIKES.length);
 }
 
 function setUrlInput(url, label = CONSTS.ICON_UPDATE_FROM_URL) {
