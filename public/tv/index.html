@@ -3018,7 +3018,7 @@ function gotoPage(p) {
 async function fetchFavorites(itemCode = CONSTS.CODES.LIKE) {
   /** @type {{ data: Array<{ id: string, code: string }> }} */
   const { data } = await database.listData(FAV_STORE);
-  categories[favoriteChannels] = data.filter(x => x.code === itemCode);
+  categories[favoriteChannels] = data.filter(x => x.code === itemCode || typeof x.code === 'undefined');
   return categories[favoriteChannels];
 }
 
@@ -3045,7 +3045,7 @@ async function startup() {
   for (const item of data) {
     item.code = CONSTS.CODES.LIKE;
     item.id = database.encodeString(item.url);
-    database.updateData(item, FAV_STORE);
+    await database.updateData(item, FAV_STORE);
   }
 
   await loadLocalCache();
