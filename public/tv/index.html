@@ -3024,7 +3024,7 @@ function gotoPage(p) {
 
 async function fetchFavorites(itemCode = CONSTS.CODES.LIKE) {
   const { data } = await database.listData(FAV_STORE);
-  categories[favoriteChannels] = data.filter(x => x.code === itemCode);
+  categories[favoriteChannels] = data;
   return categories[favoriteChannels];
 }
 
