@@ -24,6 +24,8 @@ const STA_STORE = 'sta-store';
 class Database {
   /** @type {IDBDatabase} */
   db;
+  /** @type {IDBOpenDBRequest} */
+  request;
   /** @type {string} */
   dbName;
   /** @type {number} */
@@ -71,41 +73,55 @@ class Database {
    */
   async openDB() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.dbVersion); // 创建打开数据库的请求
-      request.onblocked = async (event) => {
-        this.closeDB();
-        const { error, db } = await this.reconnect();
-        resolve({ error, db });
-      };
+      if(this.db === null) {
+        this.request = window.indexedDB.open(this.dbName, this.dbVersion);
 
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result; // 获取数据库实例
-        try {
-          db.createObjectStore(M3U_STORE, { keyPath: "id" }); // 创建存储对象
-        } catch (error) {}
-
-        try {
-          db.createObjectStore(FAV_STORE, { keyPath: "id" }); // 创建存储对象
-        } catch (error) {}
-
-        try {
-          db.createObjectStore(STA_STORE, { keyPath: "id" }); // 创建存储对象
-        } catch (error) {}
-
-        db.onversionchange = (event) => {
-          db.close(); // 当版本变化时，关闭数据库
+        this.request.onblocked = async (event) => {
+          this.closeDB();
+          const { error, db } = await this.reconnect();
+          resolve({ error, db });
         };
-      };
 
-      request.onsuccess = (event) => {
-        this.db = event.target.result; // 在成功时，保存数据库实例
-        resolve({ db: this.db }); // 解析Promise为数据库实例
-      };
+        this.request.onupgradeneeded = async (event) => {
+          console.log('数据库版本号从 ' + event.oldVersion + ' 升级到 ' + event.newVersion);
+          fetchFavorites().then(data => {
+            for (const item of data) {
+              item.code = CONSTS.CODES.LIKE;
+              item.id = database.encodeString(item.url);
+              this.updateData(item, FAV_STORE);
+            }
+          });
+          /** @type {IDBDatabase} */
+          const db = event.target.result;
+          try {
+            db.createObjectStore(M3U_STORE, { keyPath: "id" });
+          } catch (error) {}
 
-      request.onerror = async (event) => {
-        const { error, db } = await this.reconnect();
-        resolve({ error, db });
-      };
+          try {
+            db.createObjectStore(FAV_STORE, { keyPath: "id" });
+          } catch (error) {}
+
+          try {
+            db.createObjectStore(STA_STORE, { keyPath: "id" });
+          } catch (error) {}
+
+          db.onversionchange = (event) => {
+            console.log("The version of this database has changed");
+          };
+        };
+        this.request.onsuccess = (event) => {
+          this.db = event.target.result;
+          resolve({ db: this.db });
+        };
+
+        this.request.onerror = async (event) => {
+          const { error, db } = await this.reconnect();
+          resolve({ error, db });
+        };
+      }
+      else {
+        resolve({ db: this.db });
+      }
     });
   }
 
@@ -574,7 +590,6 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
     background-color: white;
   }
 
-
 #categorySelect, #searchInput, #m3uUrlInput {
   padding: 12px;
 }
@@ -823,6 +838,12 @@ button {
 }
   #favoriteButton.remove {
     background-color: #cc2e68;
+  }
+#dislikeButton {
+  background-color: #ff0000;
+}
+  #dislikeButton.remove {
+    background-color: #000;
   }
 
 #playListButton {
@@ -1335,6 +1356,13 @@ input:checked + .slider:before {
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="unfavorite" viewBox="0 0 16 16">
       <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
     </symbol>
+    <!-- DISLIKE -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="dislike" viewBox="0 0 16 16">
+      <path d="M8.864 15.674c-.956.24-1.843-.484-1.908-1.42-.072-1.05-.23-2.015-.428-2.59-.125-.36-.479-1.012-1.04-1.638-.557-.624-1.282-1.179-2.131-1.41C2.685 8.432 2 7.85 2 7V3c0-.845.682-1.464 1.448-1.546 1.07-.113 1.564-.415 2.068-.723l.048-.029c.272-.166.578-.349.97-.484C6.931.08 7.395 0 8 0h3.5c.937 0 1.599.478 1.934 1.064.164.287.254.607.254.913 0 .152-.023.312-.077.464.201.262.38.577.488.9.11.33.172.762.004 1.15.069.13.12.268.159.403.077.27.113.567.113.856s-.036.586-.113.856c-.035.12-.08.244-.138.363.394.571.418 1.2.234 1.733-.206.592-.682 1.1-1.2 1.272-.847.283-1.803.276-2.516.211a10 10 0 0 1-.443-.05 9.36 9.36 0 0 1-.062 4.51c-.138.508-.55.848-1.012.964zM11.5 1H8c-.51 0-.863.068-1.14.163-.281.097-.506.229-.776.393l-.04.025c-.555.338-1.198.73-2.49.868-.333.035-.554.29-.554.55V7c0 .255.226.543.62.65 1.095.3 1.977.997 2.614 1.709.635.71 1.064 1.475 1.238 1.977.243.7.407 1.768.482 2.85.025.362.36.595.667.518l.262-.065c.16-.04.258-.144.288-.255a8.34 8.34 0 0 0-.145-4.726.5.5 0 0 1 .595-.643h.003l.014.004.058.013a9 9 0 0 0 1.036.157c.663.06 1.457.054 2.11-.163.175-.059.45-.301.57-.651.107-.308.087-.67-.266-1.021L12.793 7l.353-.354c.043-.042.105-.14.154-.315.048-.167.075-.37.075-.581s-.027-.414-.075-.581c-.05-.174-.111-.273-.154-.315l-.353-.354.353-.354c.047-.047.109-.176.005-.488a2.2 2.2 0 0 0-.505-.804l-.353-.354.353-.354c.006-.005.041-.05.041-.17a.9.9 0 0 0-.121-.415C12.4 1.272 12.063 1 11.5 1"/>
+    </symbol>
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="undislike" viewBox="0 0 16 16">
+      <path d="M6.956 14.534c.065.936.952 1.659 1.908 1.42l.261-.065a1.38 1.38 0 0 0 1.012-.965c.22-.816.533-2.512.062-4.51q.205.03.443.051c.713.065 1.669.071 2.516-.211.518-.173.994-.68 1.2-1.272a1.9 1.9 0 0 0-.234-1.734c.058-.118.103-.242.138-.362.077-.27.113-.568.113-.856 0-.29-.036-.586-.113-.857a2 2 0 0 0-.16-.403c.169-.387.107-.82-.003-1.149a3.2 3.2 0 0 0-.488-.9c.054-.153.076-.313.076-.465a1.86 1.86 0 0 0-.253-.912C13.1.757 12.437.28 11.5.28H8c-.605 0-1.07.08-1.466.217a4.8 4.8 0 0 0-.97.485l-.048.029c-.504.308-.999.61-2.068.723C2.682 1.815 2 2.434 2 3.279v4c0 .851.685 1.433 1.357 1.616.849.232 1.574.787 2.132 1.41.56.626.914 1.28 1.039 1.638.199.575.356 1.54.428 2.591"/>
+    </symbol>
     <!-- LIST CHECK -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="list" viewBox="0 0 16 16">
       <path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2"/>
@@ -1554,6 +1582,7 @@ input:checked + .slider:before {
           <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
           <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
           <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
+          <button id="dislikeButton" disabled><svg width="20" height="20"><use xlink:href="#dislike"/></svg></button>
           <button id="reCaptureButton" disabled><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
           <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
         </div>
@@ -1565,7 +1594,7 @@ input:checked + .slider:before {
 <script>
 const SITE_TITLE_WEB = 'Hunhe IPTV';
 const SITE_TITLE_NATIVE = 'Hunhe IPTV | v1.0';
-const DB_VERSION = 4;
+const DB_VERSION = 6;
 const UNSAFE_HTTP = 'http://';
 const CONSTS = {
   IS_NATIVE: (typeof window.electronAPI !== 'undefined'),
@@ -1577,6 +1606,8 @@ const CONSTS = {
   ICON_FULLSCREEN: '<svg width="20" height="20"><use xlink:href="#fullscreen"/></svg>',
   ICON_UNFAVORITE: '<svg width="20" height="20"><use xlink:href="#unfavorite"/></svg>',
   ICON_FAVORITE: '<svg width="20" height="20"><use xlink:href="#favorite"/></svg>',
+  ICON_DISLIKE: '<svg width="20" height="20"><use xlink:href="#dislike"/></svg>',
+  ICON_UNDISLIKE: '<svg width="20" height="20"><use xlink:href="#undislike"/></svg>',
   ICON_SPEAKER_ON: '<svg width="20" height="20"><use xlink:href="#unmute"/></svg>',
   ICON_SPEAKER_OFF: '<svg width="20" height="20"><use xlink:href="#mute"/></svg>',
   ICON_READ_FROM_URL: '<svg width="20" height="20"><use xlink:href="#read-from-url"/></svg>',
@@ -1588,7 +1619,12 @@ const CONSTS = {
   MEGABYTE: 1048576,
   /** @type {string} **/
   BASE_URL: (typeof window.electronAPI === 'undefined') ? window.location.origin : 'https://mihui.net',
-  CONTROL_DISPLAY_TIMEOUT: 1500
+  CONTROL_DISPLAY_TIMEOUT: 1500,
+  CODES: {
+    NONE: 0,
+    LIKE: 1,
+    DISLIKE: 2
+  }
 };
 
 const TYPES = {
@@ -1598,13 +1634,14 @@ const SOURCES = {
   URL: 'url', CONTENT: 'content'
 };
 const VARS = {
-  CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '',
+  CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '', CURRENT_ID: '',
   PING_TIMEOUT: 0,
   SCREENSHOT_TIME: 3,
   URLS: new Set(),
   /** @type {string} **/
   TRANSACTION: '',
-  ALWAYS_ON_TOP: false
+  ALWAYS_ON_TOP: false,
+  DISLIKES: []
 };
 
 const database = new Database(DB_VERSION);
@@ -1636,6 +1673,7 @@ function getElementById(idList = []) {
  * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
  * HTMLDivElement, HTMLInputElement, HTMLDivElement, HTMLButtonElement, HTMLInputElement,
  * HTMLSpanElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement,
+ * HTMLButtonElement
  * ]} **/
 const [
   pageBody,
@@ -1651,7 +1689,8 @@ const [
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
   commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
   progressBar, enableLoggingCheckbox, logContainer, pauseVideoButton, screenshotTime,
-  screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton, pinButton
+  screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton, pinButton,
+  dislikeButton
  ] = 
 getElementById([
   'pageBody',
@@ -1667,7 +1706,8 @@ getElementById([
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
   'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
   'progressBar', 'enableLoggingCheckbox', 'logContainer', 'pauseVideoButton', 'screenshotTime',
-  'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton'
+  'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton',
+  'dislikeButton'
 ]);
 
 let itemsPerPage = 15;
@@ -1875,7 +1915,7 @@ async function listStore(source) {
         setUrlInput(database.decodeString(m3uItem.id));
       }
       gotoPage(1);
-      processM3uData(data.type || TYPES.M3U, data);
+      await processM3uData(data.type || TYPES.M3U, data);
     };
     divItem.append(aItem);
     if(isCurrent) {
@@ -2116,8 +2156,8 @@ async function showM3uInput() {
   }
 }
 
-function processM3uData(type, data, fromCache = false, isBooting = false) {
-  initPlayData(type, data);
+async function processM3uData(type, data, fromCache = false, isBooting = false) {
+  await initPlayData(type, data);
   initializeCategories(isBooting);
   initializePlaylist();
   showPlaylistContent();
@@ -2147,7 +2187,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
         } else {
           await database.addData(x);
         }
-        processM3uData(type, x, cached, false, isBooting);
+        await processM3uData(type, x, cached, false, isBooting);
         listStore('fetch');
         gotoPage(1);
       }
@@ -2173,7 +2213,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
       return;
     }
     if (payload && payload.m3u && fromCache) {
-      processM3uData(type, payload, true, isBooting, false);
+      await processM3uData(type, payload, true, isBooting, false);
     } else {
       fetchDataAndProcess(id, payload, fromCache);
     }
@@ -2202,16 +2242,21 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
  * 处理 M3U 文件单行
  * @param {string} line Line
  */
-function processM3uLine(line) { 
+function processM3uLine(line) {
   if (line.startsWith('#EXTINF:')) {
     const infoLine = line.substring(8);
     const groupMatch = infoLine.match(/group-title="([^"]+)"/);
     VARS.CURRENT_GROUP = groupMatch ? groupMatch[1] : allChannels;
     VARS.CURRENT_TITLE = infoLine.split(',').pop().trim();
   } else if (line && !line.startsWith('#')) {
-    if (!VARS.URLS.has(line)) {
-      VARS.URLS.add(line);
-      const item = { title: VARS.CURRENT_TITLE || line, url: line, group: VARS.CURRENT_GROUP };
+    const processedUrl = processUrl(line);
+    VARS.CURRENT_ID = database.encodeString(processedUrl);
+    if(VARS.DISLIKES.includes(VARS.CURRENT_ID)) {
+      return;
+    }
+    if (!VARS.URLS.has(processedUrl)) {
+      VARS.URLS.add(processedUrl);
+      const item = { id: VARS.CURRENT_ID, title: VARS.CURRENT_TITLE || processedUrl, url: processedUrl, group: VARS.CURRENT_GROUP };
       playlistData.push(item);
       categories[allChannels].push(item);
       if (VARS.CURRENT_GROUP !== allChannels) {
@@ -2228,21 +2273,23 @@ function processM3uLine(line) {
  * 处理 TXT 文件单行
  * @param {string} line Text line
  */
-function processTxtLine(line) {
+async function processTxtLine(line) {
   if (line.endsWith('#genre#')) {
     const infoLine = line.replace(',#genre#', '');
     VARS.CURRENT_GROUP = infoLine ? infoLine : allChannels;
   } else if (line && !line.endsWith('#genre#')) {
     const lineArray = line.split(',');
     if(lineArray.length < 2) return;
-
-    VARS.CURRENT_URL = lineArray.pop().trim();
+    VARS.CURRENT_URL = processUrl(lineArray.pop().trim());
+    VARS.CURRENT_ID = database.encodeString(VARS.CURRENT_URL);
     VARS.CURRENT_TITLE = lineArray.pop().trim();
-
+    if(VARS.DISLIKES.includes(VARS.CURRENT_ID)) {
+      return;
+    }
     if (!VARS.URLS.has(VARS.CURRENT_URL)) {
       VARS.URLS.add(VARS.CURRENT_URL);
       const group = VARS.CURRENT_GROUP || allChannels;
-      const item = { title: VARS.CURRENT_TITLE, url: VARS.CURRENT_URL, group };
+      const item = { id: VARS.CURRENT_ID, title: VARS.CURRENT_TITLE, url: VARS.CURRENT_URL, group };
       playlistData.push(item);
       categories[allChannels].push(item);
       if (group !== allChannels) {
@@ -2256,12 +2303,14 @@ function processTxtLine(line) {
 }
 
 // 解析 M3U 数据
-function initPlayData(type, data) {
+async function initPlayData(type, data) {
   // Data for all
   playlistData = [];
   // Data in categories
   categories = { [allChannels]: [], [favoriteChannels]: [] };
   VARS.URLS.clear();
+
+  await fetchDislikes();
 
   const lines = data.m3u.split('\n');
 
@@ -2317,19 +2366,20 @@ function playNow(li, item) {
  * @param {{ title: string, url: string, group: string }} item Play item
  */
 async function loadFavorite(item) {
-  const id = database.encodeString(item.url);
-  favoriteButton.disabled = false;
-  favoriteButton.dataset['id'] = id;
-  favoriteButton.dataset['url'] = item.url;
-  favoriteButton.dataset['group'] = item.group;
-  favoriteButton.dataset['title'] = item.title;
-  refreshFavoriteButton(await isFavorite(id));
+  dislikeButton.disabled = favoriteButton.disabled = false;
+  dislikeButton.dataset['id'] = favoriteButton.dataset['id'] = item.id;
+  dislikeButton.dataset['url'] = favoriteButton.dataset['url'] = item.url;
+  dislikeButton.dataset['group'] = favoriteButton.dataset['group'] = item.group;
+  dislikeButton.dataset['title'] = favoriteButton.dataset['title'] = item.title;
+
+  const itemCode = await fetchPlayItemCode(item.id);
+  refreshFavoriteButton(itemCode);
+  refreshDislikeButton(itemCode);
 }
 
 function loadReCapture(item) {
-  const id = database.encodeString(item.url);
   reCaptureButton.disabled = false;
-  reCaptureButton.dataset['id'] = id;
+  reCaptureButton.dataset['id'] = item.id;
   reCaptureButton.dataset['url'] = item.url;
   reCaptureButton.dataset['group'] = item.group;
   reCaptureButton.dataset['title'] = item.title;
@@ -2341,12 +2391,12 @@ function loadReCapture(item) {
  * @param {string} frame Poster
  */
 async function previewNow(li, item, frame) {
-  favoriteButton.disabled = true;
+  dislikeButton.disabled = favoriteButton.disabled = true;
   if(li.dataset['broken']) return;
   resetListStyle('preview');
   li.classList.add('preview');
   stopVideo(frame);
-  loadComments(database.encodeString(li.dataset['url']), li.dataset['title']);
+  loadComments(li.dataset['id'], li.title);
   loadFavorite(item);
   loadReCapture(item);
 }
@@ -2389,11 +2439,10 @@ async function displayPlaylistPage(page, transaction) {
       li.classList.add('broken');
     }
 
-    li.dataset['title'] = item.title;
-    li.dataset['url'] = processUrl(item.url);
+    li.dataset['id'] = item.id;
+    li.dataset['url'] = item.url;
     li.dataset['group'] = item.group;
     li.dataset['duration'] = '';
-
     li.title = item.title;
 
     li.onclick = (evt) => {
@@ -2416,8 +2465,9 @@ async function displayPlaylistPage(page, transaction) {
   // Update styles
   for (const li of playlistItems.childNodes) {
     const videoUrl = li.dataset['url'];
-    const id = database.encodeString(videoUrl);
-    const isFav = await isFavorite(id);
+    const id = li.dataset['id'];
+
+    const itemCode = await fetchPlayItemCode(id);
     /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, latency: number, timeout: boolean } }, error: Error }} */
     const { data: playCache, error } = await database.readData(id, STA_STORE);
 
@@ -2426,7 +2476,7 @@ async function displayPlaylistPage(page, transaction) {
       return;
     }
     if (playCache) {
-      updateListItemStyle(li, playCache.result, lastPlayedItem, isFav);
+      updateListItemStyle(li, playCache.result, lastPlayedItem, itemCode);
     }
     else if (autoCheck === 'true' && transaction === VARS.TRANSACTION) {
       // No cache or cleaned
@@ -2434,7 +2484,7 @@ async function displayPlaylistPage(page, transaction) {
       li.className = 'checking';
       const result = await checkVideoPlayability(videoUrl);
       await database.addData({ id, result }, STA_STORE);
-      updateListItemStyle(li, result, lastPlayedItem, isFav);
+      updateListItemStyle(li, result, lastPlayedItem, itemCode);
     }
   }
   listCheckButton.disabled = false;
@@ -2444,9 +2494,9 @@ async function displayPlaylistPage(page, transaction) {
  * @param {HTMLLIElement} li List item
  * @param {{ ok: boolean, duration: number, frame: string, latency: number, timeout: boolean }} checkResult List item
  * @param {{ url: string, group: string, title: string }} lastPlayedItem Last played data
- * @param {boolean} isFav If it is favorite
+ * @param {number} itemCode If it is favorite
  */
-function updateListItemStyle(li, checkResult, lastPlayedItem, isFav) {
+function updateListItemStyle(li, checkResult, lastPlayedItem, itemCode) {
   li.className = '';
   if (checkResult.ok) {
     if(checkResult.latency < 300) {
@@ -2477,7 +2527,7 @@ function updateListItemStyle(li, checkResult, lastPlayedItem, isFav) {
   if(lastPlayedItem?.url === li.dataset['url']) {
     li.classList.add('active');
   }
-  if(isFav) {
+  if(itemCode === CONSTS.CODES.LIKE) {
     if(currentCategory !== favoriteChannels) {
       li.classList.add('favorite'); 
     }
@@ -2487,7 +2537,7 @@ function updateListItemStyle(li, checkResult, lastPlayedItem, isFav) {
       deleteButton.className = 'delete';
       deleteButton.onclick = (evt) => {
         evt.stopPropagation();
-        const id = database.encodeString(li.dataset['url']);
+        const id = li.dataset['id'];
         deleteFavorite(id);
       };
       li.append(deleteButton);
@@ -2518,7 +2568,10 @@ function updatePaginationControls() {
 // 初始化播放列表
 async function initializePlaylist() {
   await fetchFavorites();
-  filteredPlaylistData = categories[currentCategory] || playlistData;
+  await fetchDislikes();
+
+  filteredPlaylistData = (categories[currentCategory] || playlistData).filter(x => VARS.DISLIKES.includes(x.id) === false);
+
   displayPlaylistPage(currentPage, VARS.TRANSACTION).catch(error => {
     printLog('initializePlaylist.displayPlaylistPage.error', error.message);
   });
@@ -2567,11 +2620,11 @@ async function refreshCurrentPage(transaction) {
 
     if (itemUrl) {
       if(transaction === VARS.TRANSACTION) {
-        const id = database.encodeString(itemUrl);
         const result = await checkVideoPlayability(itemUrl);
-        const isFav = await isFavorite(id);
+        const itemCode = await fetchPlayItemCode(itemId);
+        const id = li.dataset['id'];
         await database.updateData({ id, result }, STA_STORE);
-        updateListItemStyle(li, result, lastPlayedItem, isFav);
+        updateListItemStyle(li, result, lastPlayedItem, itemCode);
       }
       else {
         li.className = '';
@@ -2689,8 +2742,8 @@ function nativePlay(source) {
   videoPlayer.addEventListener('loadedmetadata', onLoadedMetadata);
 }
 
-function refreshFavoriteButton(hasFavorite) {
-  if(hasFavorite) {
+function refreshFavoriteButton(itemCode) {
+  if(itemCode === CONSTS.CODES.LIKE) {
     favoriteButton.innerHTML = CONSTS.ICON_UNFAVORITE;
     favoriteButton.dataset['action'] = 'remove';
     favoriteButton.classList.add('remove');
@@ -2702,6 +2755,20 @@ function refreshFavoriteButton(hasFavorite) {
   }
 }
 
+function refreshDislikeButton(itemCode) {
+  console.log('refreshDislikeButton', itemCode);
+  if(itemCode === CONSTS.CODES.DISLIKE) {
+    dislikeButton.innerHTML = CONSTS.ICON_UNDISLIKE;
+    dislikeButton.dataset['action'] = 'remove';
+    dislikeButton.classList.add('remove');
+  }
+  else {
+    dislikeButton.innerHTML = CONSTS.ICON_DISLIKE;
+    dislikeButton.dataset['action'] = 'add';
+    dislikeButton.classList.remove('remove');
+  }
+}
+
 function saveLastPlayedVideo(playingItem) {
   window.localStorage.setItem('lastPlayedItem', JSON.stringify(playingItem));
 }
@@ -2709,15 +2776,15 @@ function saveLastPlayedVideo(playingItem) {
 /**
  * If the URL is favorite
  * @param {string} id ID
- * @returns {Promise<boolean>} Returns true or false
+ * @returns {Promise<number>} Returns true or false
  */
-async function isFavorite(id) {
+async function fetchPlayItemCode(id) {
   const { data, error } = await database.readData(id, FAV_STORE);
   if(error) {
-    printLog('isFavorite.error', error.message);
-    return false;
+    printLog('fetchPlayItemCode.error', error.message);
+    return CONSTS.CODES.NONE;
   }
-  return data ? true : false;
+  return data ? data.code : CONSTS.CODES.NONE;
 }
 
 /**
@@ -2955,10 +3022,17 @@ function gotoPage(p) {
   saveDataToCache();
 }
 
-async function fetchFavorites() {
+async function fetchFavorites(itemCode = CONSTS.CODES.LIKE) {
   const { data } = await database.listData(FAV_STORE);
-  categories[favoriteChannels] = data;
+  categories[favoriteChannels] = data.filter(x => x.code === itemCode);
   return categories[favoriteChannels];
+}
+
+async function fetchDislikes(itemCode = CONSTS.CODES.DISLIKE) {
+  /** @type {{ data: Array<{ id: string, code: string }> }} */
+  const { data } = await database.listData(FAV_STORE);
+  VARS.DISLIKES = data.filter(x => x.code === itemCode).map(x => x.id);
+  console.log(' DISLIKES:', VARS.DISLIKES.length);
 }
 
 function setUrlInput(url, label = CONSTS.ICON_UPDATE_FROM_URL) {
@@ -2987,13 +3061,15 @@ async function deleteFavorite(id) {
   if(error) {
     printLog('deleteFavorite.error', error);
   }
-  refreshFavoriteButton(false);
+  refreshFavoriteButton(CONSTS.CODES.NONE);
+  refreshDislikeButton(CONSTS.CODES.NONE);
   initializePlaylist();
 }
 
-async function addFavorite(id, url, title, group) {
-  await database.addData({ id, url, title, group }, FAV_STORE);
-  refreshFavoriteButton(true);
+async function addFavorite(id, url, title, group, code = CONSTS.CODES.LIKE) {
+  await database.addData({ id, url, title, group, code }, FAV_STORE);
+  refreshFavoriteButton(code);
+  refreshDislikeButton(code);
   initializePlaylist();
 }
 
@@ -3005,7 +3081,22 @@ favoriteButton.addEventListener('click', async (evt) => {
   const isAddingData = favoriteButton.dataset['action'] === 'add';
   const isDeletingData = favoriteButton.dataset['action'] === 'remove';
   if(isAddingData) {
-    addFavorite(id, url, title, group);
+    addFavorite(id, url, title, group, CONSTS.CODES.LIKE);
+  }
+  else if(isDeletingData) {
+    deleteFavorite(id);
+  }
+});
+
+dislikeButton.addEventListener('click', async (evt) => {
+  const id = dislikeButton.dataset['id'];
+  const url = dislikeButton.dataset['url'];
+  const group = dislikeButton.dataset['group'];
+  const title = dislikeButton.dataset['title'];
+  const isAddingData = dislikeButton.dataset['action'] === 'add';
+  const isDeletingData = dislikeButton.dataset['action'] === 'remove';
+  if(isAddingData) {
+    addFavorite(id, url, title, group, CONSTS.CODES.DISLIKE);
   }
   else if(isDeletingData) {
     deleteFavorite(id);
@@ -3016,15 +3107,15 @@ reCaptureButton.addEventListener('click', async (evt) => {
   const url = reCaptureButton.dataset['url'];
   const group = favoriteButton.dataset['group'];
   const title = favoriteButton.dataset['title'];
-  const id = database.encodeString(url);
-  
+  const id = favoriteButton.dataset['id'];
+
   reCaptureButton.disabled = true;
   const result = await checkVideoPlayability(url, true);
   await database.updateData({ id, result }, STA_STORE);
-  const isFav = await isFavorite(id);
+  const itemCode = await fetchPlayItemCode(id);
   for(const node of playlistItems.childNodes) {
     if(node.dataset['url'] === url) {
-      updateListItemStyle(node, result, null, isFav);
+      updateListItemStyle(node, result, null, itemCode);
       changePoster(node.dataset['frame']);
       break; 
     }
