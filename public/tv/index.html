@@ -3040,6 +3040,14 @@ function setFullscreenData(state) {
 
 // 加载缓存的数据
 async function startup() {
+
+  const { data } = await database.listData(FAV_STORE);
+  for (const item of data) {
+    item.code = CONSTS.CODES.LIKE;
+    item.id = database.encodeString(item.url);
+    database.updateData(item, FAV_STORE);
+  }
+
   await loadLocalCache();
   gotoPage(currentPage);
   playLastVideo(false);
@@ -3049,12 +3057,6 @@ async function startup() {
   appShell.generateBlankFrame();
   appShell.changeTitle();
 
-  const { data } = await database.listData(FAV_STORE);
-  for (const item of data) {
-    item.code = CONSTS.CODES.LIKE;
-    item.id = database.encodeString(item.url);
-    this.updateData(item, FAV_STORE);
-  }
 }
 
 async function deleteFavorite(id) {
