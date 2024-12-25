@@ -431,7 +431,7 @@ body {
       align-items: center;
       justify-content: space-between;
       flex-flow: row;
-      column-gap: 1rem;
+      column-gap: 0.5rem;
       flex: 0 0;
     }
     .container .video-container #videoContainer #videoControls {
@@ -512,6 +512,10 @@ body {
         opacity: 0;
         pointer-events: none;
       }
+      #pageBody.settings .video-container {
+        min-width: 0px;
+        flex: 0;
+      }
 
     .container #playlistContainer {
       min-width: 300px;
@@ -522,11 +526,9 @@ body {
       z-index: 10;
       background: #ffffff99;
       box-shadow: 2px 0px 6px 1px #ccc;
-      transition: all 0.3s;
+      transition: all 0.2s;
     }
-    .container #playlistContainer.settings {
-      flex: 3;
-    }
+
     .container #playlistContainer.back {
       width: 0px;
       flex: 0 0;
@@ -648,7 +650,7 @@ select:focus-visible {
 #playlistItems li {
   cursor: pointer;
   background-color: #f1f1f1;
-  border-radius: 8px;
+  border-radius: 0px;
   padding: 0px 0px 0px 0.5rem;
   height: 100%;
   min-height: 1.9rem;
@@ -865,7 +867,6 @@ button {
   display: flex;
   column-gap: 1rem;
   flex-flow: column;
-  height: 15rem;
   overflow: auto;
   padding: 0.5rem 0.8rem;
   scrollbar-width: none;
@@ -888,6 +889,15 @@ button {
   cursor: pointer;
   padding: 0.5rem 0.8rem;
   border-radius: 4px;
+  cursor: pointer;
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    display: flex;
+    height: 100%;
+    align-items: center;
+    box-sizing: border-box;
+    justify-content: flex-start;
+    margin: 2px 0px;
 }
   #m3uList div a:hover {
     background-color: #eee;
@@ -899,10 +909,26 @@ button {
     white-space: nowrap;
     font-size: 0.85rem;
   }
+    #m3uList div::before {
+      content: attr(title);
+      font-size: 0.75rem;
+      padding: 0.5rem 0.8rem;
+      width: 4rem;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
   #m3uList div a.delete {
     color: #e74c3c;
     opacity: 0.6;
     transition: all 1s;
+  }
+  #m3uList div a.refresh {
+    color: #5c5c5c;
+    transition: all 1s;
+  }
+  #m3uList div a.refresh.disabled {
+    opacity: 0.2;
   }
   #m3uList div a.ready,
   #m3uList div a.delete:hover {
@@ -1226,7 +1252,7 @@ input:checked + .slider:before {
   }
 }
 
-@media only screen and (max-width: 400px) {
+@media only screen and (max-width: 300px) {
   #bottomButtons {
     column-gap: 0.5rem; 
   }
@@ -1777,7 +1803,7 @@ class AppShell {
 
   timeAgo(timestamp) {
     if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp < 0) {
-      return '未知时间';
+      return '未知';
     }
     const now = new Date().getTime();
     const secondsPast = Math.floor((now - timestamp) / 1000);
@@ -1868,6 +1894,8 @@ async function listStore(source) {
     const divItem = document.createElement('div');
     const aItem = document.createElement('a');
     const dItem = document.createElement('a');
+    const rItem = document.createElement('a');
+
     dItem.innerText = '删';
     dItem.className = 'delete';
     dItem.dataset['id'] = m3uItem.id;
@@ -1882,6 +1910,26 @@ async function listStore(source) {
       else {
         deleteButton.classList.add('ready');
       }
+    };
+    rItem.innerText = '刷';
+    rItem.className = 'refresh';
+    rItem.dataset['id'] = m3uItem.id;
+    rItem.onclick = async (evt) => {
+      evt.preventDefault();
+      const element = evt.target;
+      if(element.classList.contains('disabled')) {
+        return;
+      }
+
+      loadM3uUrl({ m3uUrl: url, fromCache: false, isBooting: false, onStart: () => {
+        m3uUrlInput.disabled = loadM3uButton.disabled = true;
+        element.classList.add('disabled');
+      }, onSuccess: async (type, data, cached, isBooting) => {
+        await listStore('fetch');
+      }, onCompleted: () => {
+        m3uUrlInput.disabled = loadM3uButton.disabled = false;
+        element.classList.remove('disabled');
+      } });
     };
     aItem.textContent = url;
     aItem.className = 'load';
@@ -1910,7 +1958,9 @@ async function listStore(source) {
       gotoPage(1);
       await processM3uData(data.type || TYPES.M3U, data);
     };
+    divItem.title = appShell.timeAgo(m3uItem.time);
     divItem.append(aItem);
+    divItem.append(rItem);
     if(isCurrent) {
       divItem.classList.add('active');
     }
@@ -2160,15 +2210,35 @@ async function processM3uData(type, data, fromCache = false, isBooting = false) 
   errorMessage.textContent = '';
 }
 
-// 加载 M3U 文件
 async function loadM3uFile(fromCache = false, isBooting = false) {
   /** @type {string} **/
   const m3uUrl = m3uUrlInput.value.trim();
-  const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
+  loadM3uUrl({ m3uUrl, fromCache, isBooting, onStart: () => {
+    m3uUrlInput.disabled = loadM3uButton.disabled = true;
+  }, onSuccess: async (type, data, cached, isBooting) => {
+    await processM3uData(type, data, cached, false, isBooting);
+    await listStore('fetch');
+    gotoPage(1);
+  }, onCompleted: () => {
+    m3uUrlInput.disabled = loadM3uButton.disabled = false;
+  } });
+}
 
+/**
+ * 加载 M3U 文件
+ * @param {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} options 参数对象
+ */
+async function loadM3uUrl(options) {
+  const { m3uUrl, fromCache = false, isBooting = false, onStart = () => {}, onSuccess = async (type, data, cached, isBooting) => {}, onCompleted = () => {} } = options;
+  const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
+  /**
+   * @param {string} id ID
+   * @param {boolean} payload Data
+   * @param {boolean} cached Cached or not
+   */
   async function fetchDataAndProcess(id, payload, cached) {
     printLog('loadM3uFile.fetchDataAndProcess');
-    m3uUrlInput.disabled = loadM3uButton.disabled = true;
+    onStart();
     const safeUrl = (m3uUrl.startsWith(UNSAFE_HTTP) && CONSTS.IS_NATIVE === false) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
     try {
       const data = await appShell.makeRequest(safeUrl, { cache: 'no-store' });
@@ -2180,9 +2250,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
         } else {
           await database.addData(x);
         }
-        await processM3uData(type, x, cached, false, isBooting);
-        listStore('fetch');
-        gotoPage(1);
+        await onSuccess(type, x, cached, isBooting);
       }
       else {
         errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
@@ -2193,7 +2261,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
       showM3uInput();
     }
     finally {
-      m3uUrlInput.disabled = loadM3uButton.disabled = false;
+      onCompleted();
     }
   }
 
@@ -2492,10 +2560,10 @@ async function displayPlaylistPage(page, transaction) {
 function updateListItemStyle(li, checkResult, lastPlayedItem, itemCode) {
   li.className = '';
   if (checkResult.ok) {
-    if(checkResult.latency < 300) {
+    if(checkResult.latency < 500) {
       li.classList.add('good');
     }
-    else if (checkResult.latency >= 300 && checkResult.latency <= 1000) {
+    else if (checkResult.latency >= 500 && checkResult.latency <= 1500) {
       li.classList.add('average');
     }
     else {
