@@ -104,6 +104,10 @@ class Database {
         };
         this.request.onsuccess = (event) => {
           this.db = event.target.result;
+          db.onclose = (evt) => {
+            console.log('The database has been closed');
+            this.db = null;
+          };
           resolve({ db: this.db });
         };
 
