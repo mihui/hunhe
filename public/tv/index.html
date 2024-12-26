@@ -959,6 +959,9 @@ button {
 #playlistContent .category #listCheckButton {
   background-color: #3471db;
 }
+  #playlistContent .category #listCheckButton.checking {
+    background-color: #db6634;
+  }
   #playlistContent .page-controls {
     flex: 0 0;
     user-select: none;
@@ -1543,7 +1546,7 @@ input:checked + .slider:before {
           </form>
           <div class="category">
             <select id="categorySelect"></select>
-            <button id="listCheckButton"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
+            <button id="listCheckButton" data-checking="false"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
           </div>
           <ul id="playlistItems"></ul>
           <div class="page-controls">
@@ -1637,6 +1640,7 @@ const CONSTS = {
   ICON_UPDATE_FROM_URL: '<svg width="20" height="20"><use xlink:href="#update-from-url"/></svg>',
   ICON_PINNED: '<svg width="20" height="20"><use xlink:href="#pin"/></svg>',
   ICON_UNPINNED: '<svg width="20" height="20"><use xlink:href="#unpin"/></svg>',
+  ICON_CHECK: '<svg width="20" height="20"><use xlink:href="#list-check"/></svg>',
   POSTER: 'background.jpeg',
   KILOBYTE: 1024,
   MEGABYTE: 1048576,
@@ -2652,47 +2656,55 @@ function performSearch() {
 }
 
 // 刷新当前页面
-async function refreshCurrentPage(transaction) {
-  listCheckButton.disabled = true;
-  const lastPlayedItem = getLastVideoItem();
-
-  const items = playlistItems.childNodes;
-  for (let i = 0; i < items.length; i++) {
-    /** @type {HTMLLIElement} */
-    const li = items[i];
-    if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
-      continue;
-    }
-    li.className = '';
+async function refreshCurrentPage(transaction, isChecking = false) {
+  if(isChecking) {
+    //
   }
+  else {
+    listCheckButton.classList.add('checking');
+    listCheckButton.innerHTML = CONSTS.ICON_CANCEL;
+    const lastPlayedItem = getLastVideoItem();
 
-  for (let i = 0; i < items.length; i++) {
-    /** @type {HTMLLIElement} */
-    const li = items[i];
-    if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
-      continue;
+    const items = playlistItems.childNodes;
+    for (let i = 0; i < items.length; i++) {
+      /** @type {HTMLLIElement} */
+      const li = items[i];
+      if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
+        continue;
+      }
+      li.className = '';
     }
-    li.className = 'checking';
-    const itemUrl = li.dataset['url'];
-    const itemId = li.dataset['id'];
 
-    if (itemUrl) {
-      if(transaction === VARS.TRANSACTION) {
-        const result = await checkVideoPlayability(itemUrl);
-        const itemCode = await fetchPlayItemCode(itemId);
-        const id = li.dataset['id'];
-        await database.updateData({ id, result }, STA_STORE);
-        updateListItemStyle(li, result, lastPlayedItem, itemCode);
+    for (let i = 0; i < items.length; i++) {
+      /** @type {HTMLLIElement} */
+      const li = items[i];
+      if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
+        continue;
+      }
+      li.className = 'checking';
+      const itemUrl = li.dataset['url'];
+      const itemId = li.dataset['id'];
+
+      if (itemUrl) {
+        if(transaction === VARS.TRANSACTION) {
+          const result = await checkVideoPlayability(itemUrl);
+          const itemCode = await fetchPlayItemCode(itemId);
+          const id = li.dataset['id'];
+          await database.updateData({ id, result }, STA_STORE);
+          updateListItemStyle(li, result, lastPlayedItem, itemCode);
+        }
+        else {
+          li.className = '';
+        }
       }
       else {
-        li.className = '';
+        li.classList.add('broken');
       }
     }
-    else {
-      li.classList.add('broken');
-    }
   }
-  listCheckButton.disabled = false;
+
+  listCheckButton.classList.remove('checking');
+  listCheckButton.innerHTML = CONSTS.ICON_CHECK;
 }
 
 /**
@@ -3336,7 +3348,7 @@ closeButton.addEventListener('click', (evt) => {
 });
 
 listCheckButton.addEventListener('click', (evt) => {
-  refreshCurrentPage(VARS.TRANSACTION = crypto.randomUUID());
+  refreshCurrentPage(VARS.TRANSACTION = crypto.randomUUID(), listCheckButton.classList.contains('checking'));
 });
 
 videoPlayer.addEventListener('timeupdate', (evt) => {
