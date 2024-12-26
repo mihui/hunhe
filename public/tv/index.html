@@ -1981,15 +1981,11 @@ function loadCurrentChannel(isBooting = false, source = '') {
   currentCategory = allChannels;
   if(isBooting) {
     const category = window.localStorage.getItem('currentCategory');
-    if(category) {
-      currentCategory = category;
+    if(category && category !== currentCategory) {
+      saveCategoryToCache(category);
     }
   }
   return currentCategory;
-}
-
-function saveCurrentChannel() {
-  window.localStorage.setItem('currentCategory', currentCategory);
 }
 
 async function loadLocalCache() {
@@ -2133,11 +2129,9 @@ function resetVideoTimestamp() {
   }
 }
 
-// 保存数据到缓存
-function saveDataToCache() {
-  window.localStorage.setItem('cachedM3uUrl', m3uUrlInput.value);
-  window.localStorage.setItem('currentPage', currentPage);
-  saveCurrentChannel();
+function saveCategoryToCache(category) {
+  currentCategory = category;
+  window.localStorage.setItem('currentCategory', category);
 }
 
 // 显示播放列表内容
@@ -2208,9 +2202,6 @@ async function processM3uData(type, data, fromCache = false, isBooting = false) 
   initializeCategories(isBooting);
   initializePlaylist();
   showPlaylistContent();
-  if (!fromCache) {
-    saveDataToCache();
-  }
   errorMessage.textContent = '';
 }
 
@@ -2220,6 +2211,7 @@ async function loadM3uFile(fromCache = false, isBooting = false) {
   loadM3uUrl({ m3uUrl, fromCache, isBooting, onStart: () => {
     m3uUrlInput.disabled = loadM3uButton.disabled = true;
   }, onSuccess: async (type, data, cached, isBooting) => {
+    console.log(type, data, cached, isBooting);
     await processM3uData(type, data, cached, false, isBooting);
     await listStore('fetch');
     gotoPage(1);
@@ -2701,7 +2693,6 @@ async function refreshCurrentPage(transaction) {
     }
   }
   listCheckButton.disabled = false;
-  saveDataToCache();
 }
 
 /**
@@ -3078,13 +3069,13 @@ async function checkVideoPlayability(url, isRandom = false) {
 
 function gotoPage(p) {
   currentPage = p;
+  window.localStorage.setItem('currentPage', p);
 
   displayPlaylistPage(currentPage, VARS.TRANSACTION = crypto.randomUUID()).catch(error => {
     printLog('gotoPage.error', error.message);
   });
 
   updatePaginationControls();
-  saveDataToCache();
 }
 
 async function fetchFavorites(itemCode = CONSTS.CODES.LIKE) {
@@ -3103,6 +3094,7 @@ async function fetchDislikes(itemCode = CONSTS.CODES.DISLIKE) {
 function setUrlInput(url, label = CONSTS.ICON_UPDATE_FROM_URL) {
   m3uUrlInput.value = url;
   loadM3uButton.innerHTML = label;
+  window.localStorage.setItem('cachedM3uUrl', url);
 }
 
 function setFullscreenData(state) {
@@ -3202,7 +3194,7 @@ pinButton.addEventListener('click', async (evt) => {
 });
 
 categorySelect.addEventListener('change', async (evt) => {
-  currentCategory = evt.target.value;
+  saveCategoryToCache(evt.target.value);
   // 重置搜索
   searchInput.value = '';
   // 更新当前类别的数据
