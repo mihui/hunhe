@@ -2522,6 +2522,9 @@ async function displayPlaylistPage(page, transaction) {
     li.append(label);
     playlistItems.appendChild(li);
   });
+  listCheckButton.disabled = false;
+
+  const isAutoCheck = autoCheck === 'true';
 
   // Update styles
   for (const li of playlistItems.childNodes) {
@@ -2539,7 +2542,8 @@ async function displayPlaylistPage(page, transaction) {
     if (playCache) {
       updateListItemStyle(li, playCache.result, lastPlayedItem, itemCode);
     }
-    else if (autoCheck === 'true' && transaction === VARS.TRANSACTION) {
+    else if (isAutoCheck && transaction === VARS.TRANSACTION) {
+      showCheckButton(isAutoCheck);
       // No cache or cleaned
       // Check video playability
       li.className = 'checking';
@@ -2548,7 +2552,7 @@ async function displayPlaylistPage(page, transaction) {
       updateListItemStyle(li, result, lastPlayedItem, itemCode);
     }
   }
-  listCheckButton.disabled = false;
+  showCheckButton(false);
 }
 
 /**
@@ -2655,14 +2659,24 @@ function performSearch() {
   gotoPage(1);
 }
 
+async function showCheckButton(isChecking) {
+  if(isChecking) {
+    listCheckButton.classList.add('checking');
+    listCheckButton.innerHTML = CONSTS.ICON_CANCEL;
+  }
+  else {
+    listCheckButton.classList.remove('checking');
+    listCheckButton.innerHTML = CONSTS.ICON_CHECK;
+  }
+}
+
 // 刷新当前页面
 async function refreshCurrentPage(transaction, isChecking = false) {
   if(isChecking) {
     //
   }
   else {
-    listCheckButton.classList.add('checking');
-    listCheckButton.innerHTML = CONSTS.ICON_CANCEL;
+    showCheckButton(true);
     const lastPlayedItem = getLastVideoItem();
 
     const items = playlistItems.childNodes;
@@ -2703,8 +2717,7 @@ async function refreshCurrentPage(transaction, isChecking = false) {
     }
   }
 
-  listCheckButton.classList.remove('checking');
-  listCheckButton.innerHTML = CONSTS.ICON_CHECK;
+  showCheckButton(false);
 }
 
 /**
