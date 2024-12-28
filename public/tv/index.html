@@ -516,10 +516,6 @@ body {
         opacity: 0;
         pointer-events: none;
       }
-      #pageBody.settings .video-container {
-        min-width: 0px;
-        flex: 0;
-      }
 
     .container #playlistContainer {
       min-width: 300px;
@@ -532,8 +528,48 @@ body {
       box-shadow: 2px 0px 6px 1px #ccc;
       transition: all 0.2s;
     }
+      #pageBody .container .player-interface {
+        display: flex;
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+      #pageBody .container #m3uInputContainer {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        overflow: hidden;
+        z-index: 0;
+        justify-content: center;
+        display: flex;
+        align-items: center;
+        background: #ffffffbd;
+        transition: all 0.3s;
+      }
+        #pageBody .container #m3uInputContainer .box {
+          justify-content: flex-start;
+          margin: 0px auto;
+          max-height: 0%;
+          flex: 0 0 0%;
+          box-shadow: 0px 0px 4px #999;
+          transition: all 0.3s;
+          opacity: 0;
+          border-radius: 6px;
+        }
 
-    .container #playlistContainer.back {
+      #pageBody.settings .container #m3uInputContainer {
+        width: 100%;
+        z-index: 40;
+      }
+        #pageBody.settings .container #m3uInputContainer .box {
+          flex: 0 0 80%;
+          max-height: 80%;
+          opacity: 1;
+        }
+
+    #pageBody.menu .container #playlistContainer {
       width: 0px;
       flex: 0 0;
       min-width: 0px;
@@ -595,13 +631,12 @@ textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButt
 #categorySelect {
   flex-grow: 1;
   border-right: none;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  
+  border-radius: 0px;
 }
 #searchInput {
   flex-grow: 1;
-  border-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 textarea:focus-visible,
@@ -629,7 +664,7 @@ select:focus-visible {
   background-color: #db6634;
 }
 #closeButton {
-  background-color: #db6634;
+  background-color: #3471db;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -773,7 +808,8 @@ select:focus-visible {
   #playlistItems li.timeout label,
   #playlistItems li.broken label,
   #playlistItems li.checking label,
-  #playlistItems li.frame label {
+  #playlistItems li.frame label,
+  #playlistItems li.preview label {
     margin: 0px 0.3rem 0px 2rem;
   }
   #playlistItems li label i {
@@ -877,7 +913,6 @@ button {
   display: flex;
   column-gap: 1rem;
   flex-flow: column;
-  overflow: auto;
   padding: 0.5rem 0.8rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -1058,7 +1093,7 @@ button {
   flex-flow: row;
   align-items: center;
   justify-content: flex-end;
-  padding: 0.5rem 0.8rem;
+  padding: 0.5rem;
 }
   .m3u-controls #closeM3uButton {
     background-color: #db6634;
@@ -1098,10 +1133,12 @@ button {
   .tools #databaseCategories {
     display: flex;
     column-gap: 0.5rem;
+    row-gap: 0.5rem;
     justify-content: space-evenly;
     align-items: center;
     width: 100%;
     flex: 1;
+    flex-wrap: wrap;
   }
   .tools #databaseCategories button {
     flex: 1;
@@ -1248,6 +1285,10 @@ input:checked + .slider:before {
     top: 0px;
     left: 0px;
   }
+  #pageBody.settings .container #m3uInputContainer .box {
+    flex: 1;
+    max-height: 100%;
+  }
   .container #commentsLayout, .container #bottomControls {
     display: flex;
   }
@@ -1284,7 +1325,7 @@ input:checked + .slider:before {
   flex: 1;
 }
 
-.play-list #commentsLayout, .play-list #bottomControls {
+.play-list #bottomControls {
   display: flex;
   justify-content: flex-start;
 }
@@ -1401,7 +1442,7 @@ input:checked + .slider:before {
     </symbol>
     <!-- CLOSE -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="close" viewBox="0 0 16 16">
-      <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+      <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/>
     </symbol>
     <!-- SEARCH -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="search" viewBox="0 0 16 16">
@@ -1418,11 +1459,6 @@ input:checked + .slider:before {
     <!-- UNMUTE -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="unmute" viewBox="0 0 16 16">
       <path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06M6 5.04 4.312 6.39A.5.5 0 0 1 4 6.5H2v3h2a.5.5 0 0 1 .312.11L6 10.96zm7.854.606a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0"/>
-    </symbol>
-    <!-- BACK -->
-    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="goback" viewBox="0 0 16 16">
-      <path d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
-      <path d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
     </symbol>
     <!-- READ FROM URL -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="read-from-url" viewBox="0 0 16 16">
@@ -1453,168 +1489,171 @@ input:checked + .slider:before {
   </svg>
 
   <div class="container" id="pageContainer">
-    <div id="playlistContainer" class="back">
+    <div id="m3uInputContainer">
       <div class="box">
-        <div id="m3uInputContainer">
-          <div class="m3u-controls">
-            <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
-            <button id="loadM3uButton"><svg width="20" height="20"><use xlink:href="#read-from-url"/></svg></button>
-            <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#goback"/></svg></button>
-          </div>
-
-          <div id="m3uList"></div>
-
-          <!-- <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
-          -->
-
-          <div class="tools">
-            <div class="settings-row">
-              <label class="label">自动检查可用性</label>
-              <label class="switch">
-                <input type="checkbox" id="autoCheckCheckbox">
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="settings-row">
-              <label class="label">检查缩略图</label>
-              <label class="switch">
-                <input type="checkbox" id="storeFrameCheckbox">
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="settings-row">
-              <label class="label">截图时间 (<span id="screenshotTimeDisplay">0</span>s)</label>
-              <input type="range" id="screenshotTime" class="range" min="1" max="300" step="1">
-            </div>
-
-            <div class="settings-row">
-              <label class="label">跳过可用缩略图</label>
-              <label class="switch">
-                <input type="checkbox" id="onlyCheckBrokenCheckbox">
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="settings-row">
-              <label class="label">播放时静音</label>
-              <label class="switch">
-                <input type="checkbox" id="muteWhenPlayCheckbox">
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="settings-row">
-              <label class="label">检查超时 (<span id="checkTimeoutDisplay">0</span>ms)</label>
-              <input type="range" id="checkTimeout" class="range" min="5" max="60" step="1">
-            </div>
-
-            <div class="settings-row settings-usage hidden">
-              <label class="label">数据使用情况</label>
-              <div id="databaseSize"></div>
-            </div>
-
-            <div class="settings-row settings-usage hidden">
-              <div id="databaseCategories"></div>
-            </div>
-  
-            <div class="settings-row">
-              <label class="label">启用日志</label>
-              <label class="switch">
-                <input type="checkbox" id="enableLoggingCheckbox">
-                <span class="slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div id="logContainer" class="tools hidden">
-            <div class="debug">
-              <button id="logClearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
-              <code id="debugLogs">&gt; 日志</code>
-            </div>
-          </div>
-
+        <div class="m3u-controls">
+          <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
+          <button id="loadM3uButton"><svg width="20" height="20"><use xlink:href="#read-from-url"/></svg></button>
+          <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
         </div>
-        <div id="playlistContent">
-          <form id="searchContainer">
-            <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
-            <div class="search">
-              <input type="text" id="searchInput" required placeholder="搜索...">
-              <button type="reset" id="clearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
-            </div>
-            <button type="submit" id="searchButton" class="hidden"><svg width="20" height="20"><use xlink:href="#search"/></svg></button>
-            <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
-          </form>
-          <div class="category">
-            <select id="categorySelect"></select>
-            <button id="listCheckButton" data-checking="false"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
+  
+        <div id="m3uList"></div>
+  
+        <div class="tools">
+          <div class="settings-row">
+            <label class="label">自动检查可用性</label>
+            <label class="switch">
+              <input type="checkbox" id="autoCheckCheckbox">
+              <span class="slider"></span>
+            </label>
           </div>
-          <ul id="playlistItems"></ul>
-          <div class="page-controls">
-            <div id="pagination">
-              <button id="prevPage" disabled>上页</button>
-              <div class="page-information">
-                <input id="pageControl" class="range" min="1" type="range">
-                <div id="pageInfo"></div>
+  
+          <div class="settings-row">
+            <label class="label">检查缩略图</label>
+            <label class="switch">
+              <input type="checkbox" id="storeFrameCheckbox">
+              <span class="slider"></span>
+            </label>
+          </div>
+  
+          <div class="settings-row">
+            <label class="label">截图时间 (<span id="screenshotTimeDisplay">0</span>s)</label>
+            <input type="range" id="screenshotTime" class="range" min="1" max="300" step="1">
+          </div>
+  
+          <div class="settings-row">
+            <label class="label">跳过可用缩略图</label>
+            <label class="switch">
+              <input type="checkbox" id="onlyCheckBrokenCheckbox">
+              <span class="slider"></span>
+            </label>
+          </div>
+  
+          <div class="settings-row">
+            <label class="label">播放时静音</label>
+            <label class="switch">
+              <input type="checkbox" id="muteWhenPlayCheckbox">
+              <span class="slider"></span>
+            </label>
+          </div>
+  
+          <div class="settings-row">
+            <label class="label">检查超时 (<span id="checkTimeoutDisplay">0</span>ms)</label>
+            <input type="range" id="checkTimeout" class="range" min="5" max="60" step="1">
+          </div>
+  
+          <div class="settings-row settings-usage hidden">
+            <label class="label">数据使用情况</label>
+            <div id="databaseSize"></div>
+          </div>
+  
+          <div class="settings-row settings-usage hidden">
+            <div id="databaseCategories"></div>
+          </div>
+  
+          <div class="settings-row">
+            <label class="label">启用日志</label>
+            <label class="switch">
+              <input type="checkbox" id="enableLoggingCheckbox">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+  
+        <div id="logContainer" class="tools hidden">
+          <div class="debug">
+            <button id="logClearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
+            <code id="debugLogs">&gt; 日志</code>
+          </div>
+        </div>
+  
+      </div>
+    </div>
+    <div class="player-interface">
+      <div id="playlistContainer">
+        <div class="box">
+          <div id="playlistContent">
+            <div class="category">
+              <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
+              <select id="categorySelect"></select>
+              <button id="listCheckButton" data-checking="false"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
+            </div>
+
+            <form id="searchContainer">
+              <div class="search">
+                <input type="text" id="searchInput" required placeholder="搜索...">
+                <button type="reset" id="clearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
               </div>
-              <button id="nextPage" disabled>下页</button>
+              <button type="submit" id="searchButton" class="hidden"><svg width="20" height="20"><use xlink:href="#search"/></svg></button>
+              <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
+            </form>
+            
+            <ul id="playlistItems"></ul>
+            <div class="page-controls">
+              <div id="pagination">
+                <button id="prevPage" disabled>上页</button>
+                <div class="page-information">
+                  <input id="pageControl" class="range" min="1" type="range">
+                  <div id="pageInfo"></div>
+                </div>
+                <button id="nextPage" disabled>下页</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="video-container">
-      <div class="box">
-        <div class="video-wrapper">
+      <div class="video-container">
+        <div class="box">
+          <div class="video-wrapper">
 
-          <figure id="videoContainer">
-            <video id="videoPlayer" playsinline poster="background.jpeg"></video>
-            <div id="videoControls" class="user-controls controls transparent">
-              <div class="buttons">
-                <button id="playVideoButton" class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
-                <button id="pauseVideoButton" class="hidden"><svg width="20" height="20"><use xlink:href="#pause"/></svg></button>
-                <div class="divider"></div>
-                <button id="pinButton"><svg width="20" height="20"><use xlink:href="#unpin"/></svg></button>
-                <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
-                <button id="fullscreenButton" class="hidden" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
+            <figure id="videoContainer">
+              <video id="videoPlayer" playsinline poster="background.jpeg"></video>
+              <div id="videoControls" class="user-controls controls transparent">
+                <div class="buttons">
+                  <button id="playVideoButton" disabled class="stopped"><svg width="20" height="20"><use xlink:href="#play"/></svg></button>
+                  <button id="pauseVideoButton" class="hidden"><svg width="20" height="20"><use xlink:href="#pause"/></svg></button>
+                  <div class="divider"></div>
+                  <button id="pinButton"><svg width="20" height="20"><use xlink:href="#unpin"/></svg></button>
+                  <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
+                  <button id="fullscreenButton" class="hidden" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
+                </div>
+                <div id="progressBar" class="progress">
+                  <span id="currentTimeDisplay" class="time">00:00</span>
+                  <input id="progressControl" class="range" type="range" value="0" min="0" max="0">
+                  <span id="totalTimeDisplay" class="time">00:00</span>
+                </div>
               </div>
-              <div id="progressBar" class="progress">
-                <span id="currentTimeDisplay" class="time">00:00</span>
-                <input id="progressControl" class="range" type="range" value="0" min="0" max="0">
-                <span id="totalTimeDisplay" class="time">00:00</span>
-              </div>
+            </figure>
+
+            <video id="frameVideo" playsinline muted></video>
+          </div>
+
+          <div id="bottomControls" class="bottom-controls">
+            <div class="user-controls" id="errorControl">
+              <div id="statisticsMessage"></div>
+              <div id="errorMessage"></div>
             </div>
-          </figure>
 
-          <video id="frameVideo" playsinline muted></video>
-        </div>
-
-        <div id="bottomControls" class="bottom-controls">
-          <div class="user-controls" id="errorControl">
-            <div id="statisticsMessage"></div>
-            <div id="errorMessage"></div>
+            <div id="commentsLayout">
+              <div id="commentsList" class="comments-container"></div>
+              <form id="commentsForm" class="comments-form">
+                <input type="text" id="commentsInput" placeholder="评论" />
+                <input type="submit" id="commentsButton" value="发送" disabled />
+              </form>
+            </div>
           </div>
 
-          <div id="commentsLayout">
-            <div id="commentsList" class="comments-container"></div>
-            <form id="commentsForm" class="comments-form">
-              <input type="text" id="commentsInput" placeholder="评论" />
-              <input type="submit" id="commentsButton" value="发送" disabled />
-            </form>
+          <div id="bottomButtons" class="user-controls">
+            <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
+            <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
+            <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
+            <button id="dislikeButton" disabled><svg width="20" height="20"><use xlink:href="#dislike"/></svg></button>
+            <button id="reCaptureButton" disabled><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
+            <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
-        </div>
 
-        <div id="bottomButtons" class="user-controls">
-          <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
-          <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
-          <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
-          <button id="dislikeButton" disabled><svg width="20" height="20"><use xlink:href="#dislike"/></svg></button>
-          <button id="reCaptureButton" disabled><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
-          <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
         </div>
-
       </div>
     </div>
   </div>
@@ -1685,7 +1724,7 @@ function getElementById(idList = []) {
  * HTMLBodyElement,
  * HTMLVideoElement, HTMLDivElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement, HTMLVideoElement,
- * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLFormElement, HTMLButtonElement,
+ * HTMLButtonElement, HTMLDivElement, HTMLFormElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLButtonElement,
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
@@ -1701,7 +1740,7 @@ const [
   pageBody,
   videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
   loadM3uButton, settingsButton, m3uInputContainer, playlistContent, bottomControls,
-  playlistContainer, playVideoButton, m3uList, searchContainer, speakerButton,
+  playVideoButton, m3uList, searchContainer, speakerButton,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
   fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
   pageControl, clearButton, closeButton, m3uContentKey,
@@ -1717,7 +1756,7 @@ getElementById([
   'pageBody',
   'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent', 'bottomControls',
-  'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer', 'speakerButton',
+  'playVideoButton', 'm3uList', 'searchContainer', 'speakerButton',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
   'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
   'pageControl', 'clearButton', 'closeButton', 'm3uContentKey',
@@ -1772,14 +1811,11 @@ class AppShell {
   initUI() {
     const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
     if(playListVisible === 'false') {
-      playlistContainer.className = 'back';
-      pageBody.classList.remove('play-list');
+      pageBody.classList.remove('menu');
     }
     else {
-      playlistContainer.className = 'play-list';
-      pageBody.classList.add('play-list');
+      pageBody.classList.add('menu');
     }
-    pageBody.classList.remove('settings');
 
     if(this.displayPlayerControls()) {
       fullscreenButton.classList.remove('hidden');
@@ -1959,12 +1995,12 @@ class AppShell {
       dislikeButton.dataset['action'] = 'add';
       dislikeButton.classList.remove('remove');
     }
+    dislikeButton.disabled = false;
   }
   /**
    * @param {{ title: string, url: string, group: string }} item Play item
    */
   async loadFavorite(item) {
-    dislikeButton.disabled = favoriteButton.disabled = false;
     dislikeButton.dataset['id'] = favoriteButton.dataset['id'] = item.id;
     dislikeButton.dataset['url'] = favoriteButton.dataset['url'] = item.url;
     dislikeButton.dataset['group'] = favoriteButton.dataset['group'] = item.group;
@@ -2108,6 +2144,7 @@ class AppShell {
       favoriteButton.dataset['action'] = 'add';
       favoriteButton.classList.remove('remove');
     }
+    favoriteButton.disabled = false;
   }
 
   getMinutes(duration) {
@@ -2137,17 +2174,28 @@ class AppShell {
     } else {
       this.resetTitle();
     }
+    if(isUserAction === false) { return; }
+    this.loadVideoTimestamp();
     this.loadComments(database.encodeString(source.url), source.title);
     this.loadFavorite(source);
     this.loadReCapture(source);
 
-    if(isUserAction === false) { return; }
     window.localStorage.removeItem('lastPlayedItem');
     this.muteOrUnmuteVideo(muteWhenPlay === 'true');
 
     currentTimeDisplay.textContent = this.getMinutes(0);
     totalTimeDisplay.textContent = this.getMinutes(0);
     progressControl.value = progressControl.max = '0';
+
+    this.resetListStyle('active');
+    this.resetListStyle('preview');
+    playlistItems.childNodes.forEach((li) => {
+      if(li.dataset['url'] === source.url) {
+        li.classList.add('active');
+        li.classList.add('preview');
+        return;
+      }
+    });
 
     if (Hls.isSupported() && (source.url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
       this.hlsPlay(source);
@@ -2163,7 +2211,6 @@ class AppShell {
   playLastVideo(isUserAction = true) {
     const lastPlayedItem = this.getLastVideoItem();
     if (lastPlayedItem) {
-      this.loadVideoTimestamp();
       this.playVideo(lastPlayedItem, isUserAction);
     }
   }
@@ -2179,8 +2226,6 @@ class AppShell {
    */
   playNow(li, item) {
     if(li.dataset['broken']) return;
-    this.resetListStyle('active');
-    li.classList.add('active');
     this.playVideo(item);
   }
 
@@ -2207,7 +2252,7 @@ class AppShell {
     return videoPlayer.paused === false || playVideoButton.className === 'played' || playVideoButton.className === 'playing';
   }
 
-  stopVideo(poster = CONSTS.POSTER) {
+  stopVideo(isReset = false, poster = CONSTS.POSTER) {
     printLog('stopVideo');
     videoPlayer.pause();
     if(stopURL) videoPlayer.src = stopURL;
@@ -2220,9 +2265,10 @@ class AppShell {
 
     this.resetTitle();
     this.showPlayButton();
-    rewindButton.disabled = forwardButton.disabled = true;
+    this.resetControlButtons(false, isReset);
     this.saveVideoTimestamp();
     this.changePoster(poster);
+    //
     this.resetListStyle('preview');
     this.resetListStyle('active');
   }
@@ -2232,13 +2278,14 @@ class AppShell {
    * @param {string} frame Poster
    */
   async previewNow(li, item, frame) {
-    dislikeButton.disabled = favoriteButton.disabled = true;
+    printLog('previewNow');
+    this.stopVideo(false, frame);
     if(li.dataset['broken']) return;
-    this.stopVideo(frame);
     li.classList.add('preview');
     this.loadComments(li.dataset['id'], li.title);
     this.loadFavorite(item);
     this.loadReCapture(item);
+    this.saveLastPlayedVideo(item);
   }
   /**
    * @param {HTMLLIElement} li List item
@@ -2275,13 +2322,14 @@ class AppShell {
       li.title = `此视频源可能无法播放`;
     }
     if(lastPlayedItem?.url === li.dataset['url']) {
-      li.classList.add('preview');
-      if(this.isPlaying()) {
-        li.classList.add('active');
-      }
-      if(li.classList.contains('frame')) {
-        this.changePoster(li.dataset['frame']);
-      }
+      appShell.previewNow(li, lastPlayedItem, li.dataset['frame']);
+      // li.classList.add('preview');
+      // if(this.isPlaying()) {
+      //   li.classList.add('active');
+      // }
+      // if(li.classList.contains('frame')) {
+      //   this.changePoster(li.dataset['frame']);
+      // }
     }
     if(itemCode === CONSTS.CODES.LIKE) {
       if(this.currentCategory !== CONSTS.CHANNELS.FAVORITE) {
@@ -2305,15 +2353,40 @@ class AppShell {
    * @param {string} url URL
    * @param {Hls?} hls Hls instance
    * @param {boolean} isRandom If the duration is random
-   * @returns {{ frame: string, duration: number }?} Returns frame URL
+   * @returns {Promise<{ frame: string, duration: number }?>} Returns frame URL
    */
   async captureFrame(url, hls = null, isRandom = false) {
     if(storeFrame === 'false') { return null; }
+    const canvas = document.createElement('canvas');
+    const canvasContext = canvas.getContext('2d');
 
+    /**
+     * @type {(videoTag: HTMLVideoElement) => Promise<{ frame: string, duration: number }>} Draw video frame
+     */
+    const drawVideo = (videoTag) => {
+      return new Promise((resolve, reject) => {
+        canvas.width = videoTag.videoWidth;
+        canvas.height = videoTag.videoHeight;
+        canvasContext.drawImage(videoTag, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if(videoTag.currentTime > 0) {
+            return resolve({ frame: blob, duration: videoTag.duration });
+          }
+          return reject(null);
+        });
+      });
+    };
+
+    if(isRandom) {
+      try {
+        return await drawVideo(videoPlayer);
+      }
+      catch(error) {
+        return await this.captureFrame(url, hls, false);
+      }
+    }
     const frame = await new Promise((resolve) => {
       let timer = 0;
-      const canvas = document.createElement('canvas');
-      const canvasContext = canvas.getContext('2d');
 
       if(hls) {
         hls.attachMedia(frameVideo);
@@ -2324,14 +2397,12 @@ class AppShell {
       else {
         return resolve(null);
       }
-
       const cleanupEvents = (payload) => {
         frameVideo.removeEventListener('seeked', onSeeked);
         frameVideo.removeEventListener('loadedmetadata', onLoadedMetaData);
         clearTimeout(timer);
         resolve(payload);
       };
-
       const onLoadedMetaData = (evt) => {
         canvas.width = frameVideo.videoWidth;
         canvas.height = frameVideo.videoHeight;
@@ -2343,13 +2414,10 @@ class AppShell {
         });
       },
       onSeeked = (evt) => {
-        canvas.width = frameVideo.videoWidth;
-        canvas.height = frameVideo.videoHeight;
-        canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-          if(frameVideo.currentTime > 0) {
-            cleanupEvents({ frame: blob, duration: evt.target.duration });
-          }
+        drawVideo(frameVideo).then(data => {
+          cleanupEvents(data);
+        }).catch(error => {
+          cleanupEvents(null);
         });
       };
 
@@ -2546,9 +2614,7 @@ class AppShell {
 
   // 显示播放列表内容
   showPlaylistContent() {
-    m3uInputContainer.classList.add('hidden');
-    playlistContent.classList.remove('hidden');
-    playlistContainer.className = 'play-list';
+    printLog('showPlaylistContent');
     pageBody.classList.remove('settings');
     this.displayPlayerControls();
   }
@@ -2847,17 +2913,13 @@ class AppShell {
    * Show m3u input box
    */
   async showM3uInput() {
-    window.localStorage.setItem('playListVisible', 'true');
-    if(m3uInputContainer.classList.contains('hidden')) {
-      await this.listStore('showM3uInput');
-      playlistContainer.className = 'settings';
-      pageBody.classList.add('settings')
-      m3uInputContainer.classList.remove('hidden');
-      playlistContent.classList.add('hidden');
-      this.displayPlayerControls(true, true);
+    if(pageBody.classList.contains('settings')) {
+      this.showPlaylistContent();
     }
     else {
-      this.showPlaylistContent();
+      await this.listStore('showM3uInput');
+      pageBody.classList.add('settings');
+      this.displayPlayerControls(true, true);
     }
 
     const { totalSize, storeSize } = await database.totalSize();
@@ -2976,6 +3038,17 @@ class AppShell {
     }
   }
 
+  resetControlButtons(isPlaying, isReset = false) {
+    if(isPlaying) {
+      rewindButton.disabled = forwardButton.disabled = false;
+    }
+    else {
+      rewindButton.disabled = forwardButton.disabled = true;
+    }
+    reCaptureButton.disabled = isReset;
+    playVideoButton.disabled = dislikeButton.disabled = favoriteButton.disabled = isReset || false;
+  }
+
   onPlaying() {
     playVideoButton.innerHTML = CONSTS.ICON_STOP;
     pauseVideoButton.innerHTML = CONSTS.ICON_PAUSE;
@@ -2983,8 +3056,7 @@ class AppShell {
     playVideoButton.className = 'played';
     errorMessage.textContent = '';
     videoPlayer.className = '';
-    rewindButton.disabled = forwardButton.disabled = false;
-
+    this.resetControlButtons(true);
     clearTimeout(VARS.CONTROL_TIMER);
     VARS.CONTROL_TIMER = setTimeout(this.displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
   }
@@ -3002,8 +3074,8 @@ class AppShell {
       return;
     }
     if(node.poster !== CONSTS.POSTER) {
-      this.stopVideo(node.poster);
       window.localStorage.removeItem('lastPlayedItem');
+      this.stopVideo(true, node.poster);
     }
   }
 
@@ -3182,13 +3254,11 @@ class AppShell {
     // Hide playlist
     if(show) {
       this.showPlaylistContent();
-      pageBody.classList.add('play-list');
+      pageBody.classList.add('menu');
     }
     // Show playlist
     else {
-      playlistContainer.className = 'back';
-      pageBody.classList.remove('settings');
-      pageBody.classList.remove('play-list');
+      pageBody.classList.remove('menu');
       this.displayPlayerControls();
     }
     window.localStorage.setItem('playListVisible', show ? 'true' : 'false');
@@ -3346,6 +3416,7 @@ closeM3uButton.addEventListener('click', (evt) => {
 
 settingsButton.addEventListener('click', (evt) => {
   appShell.showM3uInput();
+  appShell.muteOrUnmuteVideo(true);
 });
 
 prevButton.addEventListener('click', (evt) => {
@@ -3436,6 +3507,11 @@ clearButton.addEventListener('click', (evt) => {
 closeButton.addEventListener('click', (evt) => {
   playListButton.dispatchEvent(new Event('click'));
 });
+m3uInputContainer.addEventListener('click', (evt) => {
+  if(evt.target.id === 'm3uInputContainer') {
+    closeM3uButton.dispatchEvent(new Event('click'));
+  }
+});
 
 listCheckButton.addEventListener('click', (evt) => {
   appShell.refreshCurrentPage(VARS.TRANSACTION = crypto.randomUUID(), listCheckButton.classList.contains('checking'));
@@ -3505,6 +3581,7 @@ videoPlayer.addEventListener('waiting', (evt) => {
   printLog('videoPlayer.waiting');
   playVideoButton.className = 'playing';
   playVideoButton.innerHTML = CONSTS.ICON_CANCEL;
+  playVideoButton.disabled = false;
 });
 videoPlayer.addEventListener('canplaythrough', (evt) => {
   printLog('videoPlayer.canplaythrough');
@@ -3627,8 +3704,7 @@ forwardButton.addEventListener('click', (evt) => {
 });
 
 playListButton.addEventListener('click', (evt) => {
-  let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
-  appShell.displaySideMenu(playListVisible === 'false');
+  appShell.displaySideMenu(pageBody.classList.contains('menu') === false);
 });
 
 storeFrameCheckbox.addEventListener('change', (evt) => {
@@ -3721,11 +3797,11 @@ window.swipe(videoPlayer).on('swipeLeft', (evt) => {
   appShell.seekVideo(-30);
 });
 
-let isHidden = false;
+let isGloballyHidden = false;
 document.addEventListener('keydown', function (event) {
   if (event.key === 'Escape' || event.keyCode === 27) {
     event.preventDefault();
-    if(isHidden) {
+    if(isGloballyHidden) {
       pageContainer.className = 'container';
     }
     else {
@@ -3733,7 +3809,7 @@ document.addEventListener('keydown', function (event) {
       appShell.muteOrUnmuteVideo(true);
       videoPlayer.pause();
     }
-    isHidden = !isHidden;
+    isGloballyHidden = !isGloballyHidden;
   }
   else if(event.key === 'ArrowLeft' || event.keyCode === 37) {
     event.preventDefault();
