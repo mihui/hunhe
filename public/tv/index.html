@@ -2164,6 +2164,26 @@ class AppShell {
     // 使用模板字符串拼接结果
     return `${formattedMinutes}:${formattedSeconds}`;
   }
+
+  /**
+   * 重置列表样式
+   * @param {string} videoUrl 视频地址
+   * @param {Array<string>} classList 样式列表
+   */
+   resetListStyles(videoUrl, classList = []) {
+    classList.forEach(style => {
+      this.resetListStyle(style);
+    });
+    playlistItems.childNodes.forEach((li) => {
+      if(li.dataset['url'] === videoUrl) {
+        classList.forEach(style => {
+          li.classList.add(style);
+        });
+        return;
+      }
+    });
+  }
+
   /**
    * @param {{ title: string, group: string, url: string }} source Play item
    * @param {boolean} isUserAction If it is controled by user
@@ -2187,15 +2207,7 @@ class AppShell {
     totalTimeDisplay.textContent = this.getMinutes(0);
     progressControl.value = progressControl.max = '0';
 
-    this.resetListStyle('active');
-    this.resetListStyle('preview');
-    playlistItems.childNodes.forEach((li) => {
-      if(li.dataset['url'] === source.url) {
-        li.classList.add('active');
-        li.classList.add('preview');
-        return;
-      }
-    });
+    this.resetListStyles(source.url, ['preview', 'active']);
 
     if (Hls.isSupported() && (source.url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
       this.hlsPlay(source);
