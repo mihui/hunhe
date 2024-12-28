@@ -390,14 +390,14 @@ body {
     .play-list .container .video-container .video-wrapper {
       max-height: calc(100vh - 4rem);
     }
-      .container .video-container .video-wrapper #videoContainer {
+      .container #videoContainer {
         display: flex;
         width: 100%;
         flex: 1;
         margin: 0px;
         padding: 0px;
       }
-      .container .video-container .video-wrapper #videoContainer #videoPlayer {
+      .container #videoContainer #videoPlayer {
         width: 100%;
         max-height: 100%;
         height: auto;
@@ -438,7 +438,7 @@ body {
       column-gap: 0.5rem;
       flex: 0 0;
     }
-    .container .video-container #videoContainer #videoControls {
+    .container #videoContainer #videoControls {
       position: absolute;
       bottom: 0px;
       left: 0px;
@@ -452,14 +452,14 @@ body {
       transition: opacity 0.5s;
       flex-flow: column;
     }
-      .container .video-container #videoContainer #videoControls.transparent {
+      .container #videoContainer #videoControls.transparent {
         opacity: 0;
         pointer-events: none;
       }
-      .container .video-container #videoContainer #videoControls button {
+      .container #videoContainer #videoControls button {
         flex: 0;
       }
-      .container .video-container #videoContainer #videoControls .buttons {
+      .container #videoContainer #videoControls .buttons {
         width: 100%;
         display: flex;
         justify-content: space-between;
@@ -468,16 +468,16 @@ body {
         padding: 0px;
         column-gap: 1rem;
       }
-      .container .video-container #videoContainer #videoControls .buttons .group {
+      .container #videoContainer #videoControls .buttons .group {
         display: flex;
         flex: 1;
         justify-content: flex-end;
       }
 
-      .container .video-container #videoContainer #videoControls .buttons .divider {
+      .container #videoContainer #videoControls .buttons .divider {
         flex: 1;
       }
-      .container .video-container #videoContainer #videoControls .progress {
+      .container #videoContainer #videoControls .progress {
         flex: 1;
         width: 100%;
         display: flex;
@@ -487,12 +487,12 @@ body {
         box-sizing: border-box;
         padding: 0.5rem;
       }
-      .container .video-container #videoContainer #videoControls .progress #progressControl {
+      .container #videoContainer #videoControls .progress #progressControl {
         width: 100%;
         flex: 1;
         height: 0.7rem;
       }
-      .container .video-container #videoContainer #videoControls .progress #progressControl::-webkit-slider-thumb {
+      .container #videoContainer #videoControls .progress #progressControl::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
         width: 25px;
@@ -501,18 +501,18 @@ body {
         background: #eee;
         cursor: ew-resize;
       }
-      .container .video-container #videoContainer #videoControls .progress #progressControl::-moz-range-thumb {
+      .container #videoContainer #videoControls .progress #progressControl::-moz-range-thumb {
         width: 25px;
         height: 25px;
         border-radius: 50%;
         background: #eee;
         cursor: ew-resize;
       }
-      .container .video-container #videoContainer #videoControls .progress .time {
+      .container #videoContainer #videoControls .progress .time {
         color: #eee;
         text-align: center;
       }
-      #pageBody.settings .video-container #videoContainer #videoControls {
+      #pageBody.settings #videoContainer #videoControls {
         opacity: 0;
         pointer-events: none;
       }
@@ -542,7 +542,7 @@ body {
     }
 
 textarea, #categorySelect, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
-#loadContentuButton, #m3uContentKey, #settingsButton,
+#m3uContentKey, #settingsButton,
 .m3u-controls #loadM3uButton, .m3u-controls #closeM3uButton {
   width: 100%;
   border: 1px solid #ddd;
@@ -736,6 +736,12 @@ select:focus-visible {
   }
   #playlistItems li.frame {
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
+  }
+  #playlistItems li.preview {
+    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E') no-repeat 0.5rem center;
+  }
+  #playlistItems li.preview.active {
+    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M10.804%208%205%204.633v6.734zm.792-.696a.802.802%200%200%201%200%201.392l-6.363%203.692C4.713%2012.69%204%2012.345%204%2011.692V4.308c0-.653.713-.998%201.233-.696z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
   }
   #playlistItems li.checking {
     color: #5c5c5c;
@@ -942,9 +948,6 @@ button {
   }
 #m3uContentKey {
   margin-top: 1rem;
-}
-#m3uContent {
-  resize: vertical;
 }
 
 #playlistContent {
@@ -1250,10 +1253,10 @@ input:checked + .slider:before {
   }
 }
 @media only screen and (max-width: 965px) {
-  .container .video-container #videoContainer #videoControls .buttons {
+  .container #videoContainer #videoControls .buttons {
     column-gap: 0.5rem; 
   }
-  .container .video-container #videoContainer #videoControls .buttons button {
+  .container #videoContainer #videoControls .buttons button {
     border-radius: 4px;
     padding: 0.5rem 0.7rem;
   }
@@ -1462,8 +1465,7 @@ input:checked + .slider:before {
           <div id="m3uList"></div>
 
           <!-- <input type="text" id="m3uContentKey" placeholder="Key" value="Content">
-          <textarea id="m3uContent"></textarea>
-          <button id="loadContentuButton">读取内容</button> -->
+          -->
 
           <div class="tools">
             <div class="settings-row">
@@ -1618,8 +1620,6 @@ input:checked + .slider:before {
   </div>
 
 <script>
-const SITE_TITLE_WEB = 'Hunhe IPTV';
-const SITE_TITLE_NATIVE = 'Hunhe IPTV | v1.0';
 const DB_VERSION = 6;
 const UNSAFE_HTTP = 'http://';
 const CONSTS = {
@@ -1651,31 +1651,27 @@ const CONSTS = {
     NONE: 0,
     LIKE: 1,
     DISLIKE: 2
+  },
+  CHANNELS: {
+    RAW: '原始频道',
+    ALL: '所有频道',
+    FAVORITE: '收藏频道'
   }
 };
-
-const TYPES = {
-  M3U: 'm3u', TXT: 'txt'
-};
-const SOURCES = {
-  URL: 'url', CONTENT: 'content'
-};
+const TYPES = { M3U: 'm3u', TXT: 'txt' };
+const SOURCES = { URL: 'url', CONTENT: 'content' };
 const VARS = {
   CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '', CURRENT_ID: '',
-  PING_TIMEOUT: 0,
-  SCREENSHOT_TIME: 3,
+  PING_TIMEOUT: 0, SCREENSHOT_TIME: 3,
   URLS: new Set(),
   /** @type {string} **/
   TRANSACTION: '',
   ALWAYS_ON_TOP: false,
-  DISLIKES: []
+  DISLIKES: [],
+  CONTROL_TIMER: 0
 };
 
 const database = new Database(DB_VERSION);
-
-const allChannels = '所有频道';
-const originalChannels = '原始所有频道';
-const favoriteChannels = '收藏频道';
 
 function getElementById(idList = []) {
   const domList = [];
@@ -1692,15 +1688,14 @@ function getElementById(idList = []) {
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLFormElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLButtonElement,
- * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLTextAreaElement, HTMLInputElement,
- * HTMLButtonElement, HTMLSelectElement, HTMLUListElement, HTMLDivElement, HTMLElement,
+ * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
+ * HTMLSelectElement, HTMLUListElement, HTMLDivElement, HTMLElement, HTMLButtonElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
  * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement, HTMLDivElement,
  * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
  * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
  * HTMLDivElement, HTMLInputElement, HTMLDivElement, HTMLButtonElement, HTMLInputElement,
  * HTMLSpanElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement,
- * HTMLButtonElement
  * ]} **/
 const [
   pageBody,
@@ -1709,15 +1704,14 @@ const [
   playlistContainer, playVideoButton, m3uList, searchContainer, speakerButton,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
   fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
-  pageControl, clearButton, closeButton, m3uContent, m3uContentKey,
-  loadContentuButton, categorySelect, playlistItems, paginationGroup, videoContainer,
+  pageControl, clearButton, closeButton, m3uContentKey,
+  categorySelect, playlistItems, paginationGroup, videoContainer, dislikeButton,
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
   commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
   progressBar, enableLoggingCheckbox, logContainer, pauseVideoButton, screenshotTime,
   screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton, pinButton,
-  dislikeButton
  ] = 
 getElementById([
   'pageBody',
@@ -1726,15 +1720,14 @@ getElementById([
   'playlistContainer', 'playVideoButton', 'm3uList', 'searchContainer', 'speakerButton',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
   'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
-  'pageControl', 'clearButton', 'closeButton', 'm3uContent', 'm3uContentKey',
-  'loadContentuButton', 'categorySelect', 'playlistItems', 'pagination', 'videoContainer',
+  'pageControl', 'clearButton', 'closeButton', 'm3uContentKey',
+  'categorySelect', 'playlistItems', 'pagination', 'videoContainer', 'dislikeButton',
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
   'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
   'progressBar', 'enableLoggingCheckbox', 'logContainer', 'pauseVideoButton', 'screenshotTime',
   'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton',
-  'dislikeButton'
 ]);
 
 let itemsPerPage = 15;
@@ -1743,7 +1736,6 @@ let playlistData = [];
 let currentPage = 1;
 /** @type {Object.<string, Array<{ title: string, group: string, url: string }>>} **/
 let categories = {};
-let currentCategory = allChannels;
 /** @type {Array<{ title: string, url: string, group: string }>} **/
 let filteredPlaylistData = [];
 /** @type {Object.<string, number>} **/
@@ -1756,6 +1748,27 @@ let onlyCheckBroken = 'false';
 let stopURL = null;
 
 class AppShell {
+  SITE_TITLE = 'Hunhe IPTV';
+
+  currentCategory = CONSTS.CHANNELS.ALL;
+
+  displayPlayerControls(showNativeControls = false, showCustomControls = false) {
+    if (document.fullscreenEnabled) {
+      if(showCustomControls) {
+        videoControls.classList.remove('transparent');
+      }
+      else if(showNativeControls) {
+        videoPlayer.controls = showNativeControls;
+      }
+      else {
+        videoControls.classList.add('transparent');
+      }
+      return true;
+    }
+    videoPlayer.controls = true;
+    return false;
+  }
+
   initUI() {
     const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
     if(playListVisible === 'false') {
@@ -1768,7 +1781,7 @@ class AppShell {
     }
     pageBody.classList.remove('settings');
 
-    if(displayPlayerControls()) {
+    if(this.displayPlayerControls()) {
       fullscreenButton.classList.remove('hidden');
     }
   }
@@ -1808,7 +1821,10 @@ class AppShell {
       stopURL = URL.createObjectURL(blob);
     }, 'video/mp4');
   }
-
+  /**
+   * Convert a timestamp to a time ago string
+   * @param {string} timestamp Timestamp
+   */
   timeAgo(timestamp) {
     if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp < 0) {
       return '未知';
@@ -1835,14 +1851,1366 @@ class AppShell {
     }
     return Math.floor(secondsPast / (365 * 86400)) + ' 年前';
   }
-
   /**
    * Change the title of the page
    * @param {string} title The title to set
    */
-  changeTitle(title = SITE_TITLE_WEB) { document.title = title; }
+  changeTitle(title) { document.title = title; }
+  /**
+   * Reset title
+   */
+  resetTitle() {
+    this.changeTitle(this.SITE_TITLE);
+  }
+  /**
+   * Put the page on top
+   * @param {boolean} isOnTop Whether the page is on top
+   */
   putOnTop(isOnTop) {}
-}
+  /**
+   * Get the cached m3u URL
+   * @return {string} The cached m3u URL
+   */
+  getCachedM3uUrl() {
+    return window.localStorage.getItem('cachedM3uUrl') || '';
+  }
+  /**
+   * @param {string} itemCode The item code to fetch
+   */
+  async fetchFavorites(itemCode = CONSTS.CODES.LIKE) {
+    /** @type {{ data: Array<{ id: string, code: string }> }} */
+    const { data } = await database.listData(FAV_STORE);
+    categories[CONSTS.CHANNELS.FAVORITE] = data.filter(x => x.code === itemCode || typeof x.code === 'undefined');
+    return categories[CONSTS.CHANNELS.FAVORITE];
+  }
+  /**
+   * @param {string} itemCode The item code to fetch
+   */
+   async fetchDislikes(itemCode = CONSTS.CODES.DISLIKE) {
+    /** @type {{ data: Array<{ id: string, code: string }> }} */
+    const { data } = await database.listData(FAV_STORE);
+    VARS.DISLIKES = data.filter(x => x.code === itemCode).map(x => x.id);
+  }
+  /**
+   * Get last played video data
+   * @returns {{ url: string, group: string, title: string }?} Returns Play item
+   */
+  getLastVideoItem() {
+    const data = window.localStorage.getItem('lastPlayedItem');
+    if(data) {
+      return JSON.parse(data);
+    }
+    return null;
+  }
+
+  loadComments(id, title, skip = 0) {
+    commentsInput.placeholder = `评论：${title}`;
+    axios.get(`${CONSTS.BASE_URL}/api/tv/comments/${id}?skip=${skip}`)
+    .catch(error => {
+      console.log('load.comments.error->', error);
+    })
+    .then(response => {
+      if(response) {
+        const { data } = response;
+        const { comments } = data;
+
+        commentsList.innerHTML = '';
+
+        comments.forEach(comment => {
+          const commentItem = document.createElement('div');
+          const commentContent = document.createElement('div');
+          const commentTime = document.createElement('div');
+          commentItem.className = 'comment';
+          commentContent.className = 'content';
+          commentContent.textContent = comment.content;
+          commentTime.className = 'time';
+          commentTime.textContent = appShell.timeAgo(new Date(comment.created_time).getTime());
+
+          commentItem.append(commentTime);
+          commentItem.append(commentContent);
+
+          commentsList.appendChild(commentItem);
+        });
+      }
+    });
+  }
+  /**
+   * If the URL is favorite
+   * @param {string} id ID
+   * @returns {Promise<number>} Returns true or false
+   */
+  async fetchPlayItemCode(id) {
+    const { data, error } = await database.readData(id, FAV_STORE);
+    if(error) {
+      printLog('fetchPlayItemCode.error', error.message);
+      return CONSTS.CODES.NONE;
+    }
+    return data ? data.code : CONSTS.CODES.NONE;
+  }
+
+  refreshDislikeButton(itemCode) {
+    if(itemCode === CONSTS.CODES.DISLIKE) {
+      dislikeButton.innerHTML = CONSTS.ICON_UNDISLIKE;
+      dislikeButton.dataset['action'] = 'remove';
+      dislikeButton.classList.add('remove');
+    }
+    else {
+      dislikeButton.innerHTML = CONSTS.ICON_DISLIKE;
+      dislikeButton.dataset['action'] = 'add';
+      dislikeButton.classList.remove('remove');
+    }
+  }
+  /**
+   * @param {{ title: string, url: string, group: string }} item Play item
+   */
+  async loadFavorite(item) {
+    dislikeButton.disabled = favoriteButton.disabled = false;
+    dislikeButton.dataset['id'] = favoriteButton.dataset['id'] = item.id;
+    dislikeButton.dataset['url'] = favoriteButton.dataset['url'] = item.url;
+    dislikeButton.dataset['group'] = favoriteButton.dataset['group'] = item.group;
+    dislikeButton.dataset['title'] = favoriteButton.dataset['title'] = item.title;
+
+    const itemCode = await this.fetchPlayItemCode(item.id);
+    this.refreshFavoriteButton(itemCode);
+    this.refreshDislikeButton(itemCode);
+  }
+
+  loadReCapture(item) {
+    reCaptureButton.disabled = false;
+    reCaptureButton.dataset['id'] = item.id;
+    reCaptureButton.dataset['url'] = item.url;
+    reCaptureButton.dataset['group'] = item.group;
+    reCaptureButton.dataset['title'] = item.title;
+  }
+
+  muteOrUnmuteVideo(mute) {
+    videoPlayer.muted = mute;
+    speakerButton.innerHTML = videoPlayer.muted ? CONSTS.ICON_SPEAKER_ON : CONSTS.ICON_SPEAKER_OFF;
+  }
+  /**
+   * @param {{ title: string, url: string, group: string }} playingItem Play item
+   * @param {string} duration Duration
+   * @param {boolean} isLive Is live
+   **/
+  async onPlay(playingItem, duration = '0', isLive = false) {
+    errorMessage.textContent = '';
+    currentTimeDisplay.textContent = this.getMinutes(videoPlayer.currentTime);
+    totalTimeDisplay.textContent = this.getMinutes(duration);
+    progressControl.max = duration;
+    if(isLive) {
+      progressBar.classList.add('hidden');
+      totalTimeDisplay.classList.add('hidden');
+      currentTimeDisplay.classList.add('hidden');
+    }
+    else {
+      progressBar.classList.remove('hidden');
+      totalTimeDisplay.classList.remove('hidden');
+      currentTimeDisplay.classList.remove('hidden');
+      pauseVideoButton.classList.remove('hidden');
+    }
+    this.saveLastPlayedVideo(playingItem);
+  }
+  /**
+   * 播放视频
+   * @param {{ url: string, group: string, title: string }} source Play data source
+   * @param {number} duration Duration
+   * @param {boolean} isLive Is alive
+   */
+  playVideSource(source, duration = '0', isLive = false) {
+    const lastPlayedTime = videoTimestamp[source.url];
+    if (!isNaN(lastPlayedTime)) {
+      videoPlayer.currentTime = lastPlayedTime;
+    }
+    videoPlayer.play().catch(error => {
+      errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
+    }).then(() => {
+      this.onPlay(source, duration, isLive);
+    });
+  }
+
+  hlsPlay(source) {
+    printLog('hlsPlay');
+    try {
+      const hls = new Hls();
+      hls.loadSource(source.url);
+      hls.attachMedia(videoPlayer);
+      hls.once(Hls.Events.LEVEL_LOADED, (evt, data) => {
+        printLog('Hls.Events.LEVEL_LOADED');
+        if (!data?.details) {
+          return printLog('Warning: Data details is undefined.');
+        }
+        const duration = data?.details?.totalduration || 0;
+        const isLive = data?.details?.live || false;
+        this.playVideSource(source, duration, isLive);
+      });
+      hls.once(Hls.Events.MANIFEST_PARSED, (evt, data) => {
+        const duration = data?.details?.totalduration || 0;
+        const isLive = data?.details?.live || false;
+        printLog('Hls.Events.MANIFEST_PARSED', 'duration->', duration, 'isLive->', isLive);
+      });
+      hls.once(Hls.Events.ERROR, (error, data) => {
+        printLog('Hls.Events.ERROR', 'data.fatal->', data.fatal, 'data.type->', data.type);
+        printLog('Hls.Events.ERROR', JSON.stringify(error));
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              printLog('Hls.ErrorTypes.NETWORK_ERROR', '重试网络请求');
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              printLog('Hls.ErrorTypes.MEDIA_ERROR', '处理媒体播放错误');
+              if(videoPlayer.src === stopURL || videoPlayer.src === '') {
+                printLog('Hls.ErrorTypes.MEDIA_ERROR', '停止视频');
+                hls.destroy();
+              }
+              else if(videoPlayer.src) {
+                printLog('Hls.ErrorTypes.MEDIA_ERROR', '重新加载视频');
+                hls.recoverMediaError(); 
+              }
+              break;
+            default:
+              printLog(data.type, '其他错误类型');
+              hls.destroy();
+              break;
+          }
+        }
+        else {
+          printLog('HLS ERROR unknown');
+        }
+      });
+    }
+    catch(error) {
+      printLog('HLS ERROR 1', error.message);
+    }
+  }
+
+  onLoadedMetadata (evt) {
+    printLog('videoPlayer.loadedmetadata');
+    if (source) {
+      this.playVideSource(source, evt.target.duration);
+    }
+  }
+
+  nativePlay(source) {
+    printLog('nativePlay');
+    videoPlayer.removeEventListener('loadedmetadata', this.onLoadedMetadata);
+    videoPlayer.src = source.url;
+    videoPlayer.addEventListener('loadedmetadata', this.onLoadedMetadata);
+  }
+
+  refreshFavoriteButton(itemCode) {
+    if(itemCode === CONSTS.CODES.LIKE) {
+      favoriteButton.innerHTML = CONSTS.ICON_UNFAVORITE;
+      favoriteButton.dataset['action'] = 'remove';
+      favoriteButton.classList.add('remove');
+    }
+    else {
+      favoriteButton.innerHTML = CONSTS.ICON_FAVORITE;
+      favoriteButton.dataset['action'] = 'add';
+      favoriteButton.classList.remove('remove');
+    }
+  }
+
+  getMinutes(duration) {
+    // 类型检查和异常处理
+    if (typeof duration !== 'number' || isNaN(duration) || Number.isNaN(duration)) {
+      return '00:00';
+    }
+
+    const dNumber = parseInt(duration, 10);
+    const minutes = Math.floor(dNumber / 60);
+    const seconds = dNumber % 60;
+
+    // 处理分钟数小于 10 的情况
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
+    const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds.toString();
+
+    // 使用模板字符串拼接结果
+    return `${formattedMinutes}:${formattedSeconds}`;
+  }
+  /**
+   * @param {{ title: string, group: string, url: string }} source Play item
+   * @param {boolean} isUserAction If it is controled by user
+   */
+  playVideo(source, isUserAction = true) {
+    if (source) {
+      this.changeTitle(source.title);
+    } else {
+      this.resetTitle();
+    }
+    this.loadComments(database.encodeString(source.url), source.title);
+    this.loadFavorite(source);
+    this.loadReCapture(source);
+
+    if(isUserAction === false) { return; }
+    window.localStorage.removeItem('lastPlayedItem');
+    this.muteOrUnmuteVideo(muteWhenPlay === 'true');
+
+    currentTimeDisplay.textContent = this.getMinutes(0);
+    totalTimeDisplay.textContent = this.getMinutes(0);
+    progressControl.value = progressControl.max = '0';
+
+    if (Hls.isSupported() && (source.url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
+      this.hlsPlay(source);
+    }
+    else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+      this.nativePlay(source);
+    }
+    else {
+      errorMessage.textContent = '您的浏览器不支持 HLS 视频流。';
+    }
+  }
+
+  playLastVideo(isUserAction = true) {
+    const lastPlayedItem = this.getLastVideoItem();
+    if (lastPlayedItem) {
+      this.loadVideoTimestamp();
+      this.playVideo(lastPlayedItem, isUserAction);
+    }
+  }
+
+  resetListStyle(className) {
+    for(const node of playlistItems.childNodes) {
+      node.classList.remove(className);
+    }
+  }
+  /**
+   * @param {HTMLLIElement} li List item
+   * @param {{ title: string, url: string, group: string }} item Play item
+   */
+  playNow(li, item) {
+    if(li.dataset['broken']) return;
+    this.resetListStyle('active');
+    li.classList.add('active');
+    this.playVideo(item);
+  }
+
+  showPlayButton() {
+    playVideoButton.innerHTML = CONSTS.ICON_PLAY;
+    pauseVideoButton.innerHTML = CONSTS.ICON_UNPAUSE;
+    playVideoButton.className = 'stopped';
+    this.displayPlayerControls();
+    videoPlayer.className = 'paused';
+  }
+
+  saveVideoTimestamp() {
+    window.localStorage.setItem('videoTimestamp', JSON.stringify(videoTimestamp));
+  }
+
+  changePoster(poster) {
+    if(poster) {
+      videoPlayer.poster = poster;
+      pageBody.style.background = `transparent url("${poster}") center center / cover no-repeat`;
+    }
+  }
+
+  isPlaying() {
+    return videoPlayer.paused === false || playVideoButton.className === 'played' || playVideoButton.className === 'playing';
+  }
+
+  stopVideo(poster = CONSTS.POSTER) {
+    printLog('stopVideo');
+    videoPlayer.pause();
+    if(stopURL) videoPlayer.src = stopURL;
+    videoPlayer.pause();
+    videoPlayer.removeAttribute('src');
+    pauseVideoButton.classList.add('hidden');
+    currentTimeDisplay.textContent = this.getMinutes(0);
+    totalTimeDisplay.textContent = this.getMinutes(0);
+    progressControl.value = progressControl.max = '0';
+
+    this.resetTitle();
+    this.showPlayButton();
+    rewindButton.disabled = forwardButton.disabled = true;
+    this.saveVideoTimestamp();
+    this.changePoster(poster);
+    this.resetListStyle('preview');
+    this.resetListStyle('active');
+  }
+  /**
+   * @param {HTMLLIElement} li List item
+   * @param {{ title: string, url: string, group: string }} item Play item
+   * @param {string} frame Poster
+   */
+  async previewNow(li, item, frame) {
+    dislikeButton.disabled = favoriteButton.disabled = true;
+    if(li.dataset['broken']) return;
+    this.stopVideo(frame);
+    li.classList.add('preview');
+    this.loadComments(li.dataset['id'], li.title);
+    this.loadFavorite(item);
+    this.loadReCapture(item);
+  }
+  /**
+   * @param {HTMLLIElement} li List item
+   * @param {{ ok: boolean, duration: number, frame: string, latency: number, timeout: boolean }} checkResult List item
+   * @param {{ url: string, group: string, title: string }} lastPlayedItem Last played data
+   * @param {number} itemCode If it is favorite
+   */
+  updateListItemStyle(li, checkResult, lastPlayedItem, itemCode) {
+    li.className = '';
+    if (checkResult.ok) {
+      if(checkResult.latency < 500) {
+        li.classList.add('good');
+      }
+      else if (checkResult.latency >= 500 && checkResult.latency <= 1500) {
+        li.classList.add('average');
+      }
+      else {
+        li.classList.add('bad');
+      }
+      if(checkResult.frame) {
+        li.dataset['frame'] = URL.createObjectURL(checkResult.frame);
+        li.classList.add('frame');
+      }
+      li.dataset['duration'] = `[${this.getMinutes(checkResult.duration)}]`;
+    }
+    else {
+      if(checkResult.timeout) {
+        li.dataset['timeout'] = true;
+        li.classList.add('timeout');
+      }
+      else {
+        li.classList.add('broken');
+      }
+      li.title = `此视频源可能无法播放`;
+    }
+    if(lastPlayedItem?.url === li.dataset['url']) {
+      li.classList.add('preview');
+      if(this.isPlaying()) {
+        li.classList.add('active');
+      }
+      if(li.classList.contains('frame')) {
+        this.changePoster(li.dataset['frame']);
+      }
+    }
+    if(itemCode === CONSTS.CODES.LIKE) {
+      if(this.currentCategory !== CONSTS.CHANNELS.FAVORITE) {
+        li.classList.add('favorite'); 
+      }
+      if(li.classList.contains('timeout')) {
+        const deleteButton = document.createElement('span');
+        deleteButton.innerHTML = CONSTS.ICON_CANCEL;
+        deleteButton.className = 'delete';
+        deleteButton.onclick = (evt) => {
+          evt.stopPropagation();
+          const id = li.dataset['id'];
+          this.deleteFavorite(id);
+        };
+        li.append(deleteButton);
+      }
+    }
+  }
+  /**
+   * @param {HTMLVideoElement} video Video tag
+   * @param {string} url URL
+   * @param {Hls?} hls Hls instance
+   * @param {boolean} isRandom If the duration is random
+   * @returns {{ frame: string, duration: number }?} Returns frame URL
+   */
+  async captureFrame(url, hls = null, isRandom = false) {
+    if(storeFrame === 'false') { return null; }
+
+    const frame = await new Promise((resolve) => {
+      let timer = 0;
+      const canvas = document.createElement('canvas');
+      const canvasContext = canvas.getContext('2d');
+
+      if(hls) {
+        hls.attachMedia(frameVideo);
+      }
+      else if(url) {
+        frameVideo.src = url;
+      }
+      else {
+        return resolve(null);
+      }
+
+      const cleanupEvents = (payload) => {
+        frameVideo.removeEventListener('seeked', onSeeked);
+        frameVideo.removeEventListener('loadedmetadata', onLoadedMetaData);
+        clearTimeout(timer);
+        resolve(payload);
+      };
+
+      const onLoadedMetaData = (evt) => {
+        canvas.width = frameVideo.videoWidth;
+        canvas.height = frameVideo.videoHeight;
+        frameVideo.play().then(() => {
+          const captureTime = (isRandom ? Math.ceil(Math.random() * 300) : VARS.SCREENSHOT_TIME);
+          frameVideo.currentTime = captureTime;
+        }).catch(error => {
+          cleanupEvents(null);
+        });
+      },
+      onSeeked = (evt) => {
+        canvas.width = frameVideo.videoWidth;
+        canvas.height = frameVideo.videoHeight;
+        canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if(frameVideo.currentTime > 0) {
+            cleanupEvents({ frame: blob, duration: evt.target.duration });
+          }
+        });
+      };
+
+      frameVideo.addEventListener('seeked', onSeeked);
+      frameVideo.addEventListener('loadedmetadata', onLoadedMetaData);
+      
+      timer = setTimeout(() => {
+        cleanupEvents(null);
+      }, VARS.PING_TIMEOUT - 1000);
+    });
+    return frame;
+  }
+  /**
+   * 检查视频可播放性
+   * @param {string} url URL
+   * @returns {{ ok: boolean, duration: number, frame: string, latency: 0, timeout: boolean }}
+   **/
+  async checkVideoPlayability(url, isRandom = false) {
+    const timestamp = new Date().getTime();
+    return new Promise((resolve) => {
+      let timeoutId = 0;
+      if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
+        try {
+          const hls = new Hls();
+          const cleanup = () => {
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
+            hls.destroy();
+          };
+
+          hls.loadSource(url);
+          hls.once(Hls.Events.MANIFEST_PARSED, async (evt, data) => {
+            const latency = new Date().getTime() - timestamp;
+            const captured = await this.captureFrame(url, hls, isRandom);
+            cleanup();
+            resolve({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, timeout: false });
+          });
+
+          hls.once(Hls.Events.ERROR, () => {
+            cleanup();
+            resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
+          });
+
+          timeoutId = setTimeout(() => {
+            cleanup();
+            resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: true });
+          }, VARS.PING_TIMEOUT);
+        }
+        catch(error) {
+          printLog('HLS ERROR 2');
+        }
+      }
+      else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+        const video = document.createElement('video');
+        video.src = url;
+        const cleanup = () => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          video.remove();
+        };
+
+        video.onloadedmetadata = async (evt) => {
+          const latency = new Date().getTime() - timestamp;
+          const captured = await this.captureFrame(url, null, isRandom);
+          cleanup();
+          resolve({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, timeout: false });
+        };
+
+        video.onerror = () => {
+          cleanup();
+          resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
+        };
+
+        timeoutId = setTimeout(() => {
+          cleanup();
+          resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: true });
+        }, VARS.PING_TIMEOUT);
+      }
+      else {
+        resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
+      }
+    });
+  }
+
+  async showCheckButton(isChecking) {
+    if(isChecking) {
+      listCheckButton.classList.add('checking');
+      listCheckButton.innerHTML = CONSTS.ICON_CANCEL;
+    }
+    else {
+      listCheckButton.classList.remove('checking');
+      listCheckButton.innerHTML = CONSTS.ICON_CHECK;
+    }
+  }
+
+  // 显示播放列表页面
+  async displayPlaylistPage(page, transaction) {
+    playlistItems.innerHTML = '';
+    /** @type {Array<{ title: string, url: string, group: string }>} **/
+    const itemsToDisplay = filteredPlaylistData || [];
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageItems = itemsToDisplay.slice(startIndex, endIndex);
+    const lastPlayedItem = this.getLastVideoItem();
+
+    listCheckButton.disabled = true;
+    // Loop list items
+    pageItems.forEach(async (item, index) => {
+      /** @type {HTMLLIElement} **/
+      const li = document.createElement('li');
+      /** @type {HTMLDivElement} **/
+      const label = document.createElement('label');
+      label.className = 'label';
+      const text = document.createElement('i');
+      text.textContent = item.group === appShell.currentCategory ? item.title : `[${item.group}] ${item.title}`;
+      label.append(text);
+
+      if(item.url.startsWith(UNSAFE_HTTP) && CONSTS.IS_NATIVE === false) {
+        li.dataset['http'] = true;
+        li.classList.add('http');
+        li.classList.add('broken');
+      }
+
+      li.dataset['id'] = item.id;
+      li.dataset['url'] = item.url;
+      li.dataset['group'] = item.group;
+      li.dataset['duration'] = '';
+      li.title = item.title;
+
+      li.onclick = (evt) => {
+        evt.preventDefault();
+        const { currentTarget } = evt;
+        const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : CONSTS.POSTER;
+        const isBroken = currentTarget.classList.contains('broken') === false;
+        if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isBroken) {
+          this.playNow(currentTarget, item);
+        }
+        else {
+          this.previewNow(currentTarget, item, frame);
+        }
+      };
+
+      li.append(label);
+      playlistItems.appendChild(li);
+    });
+    listCheckButton.disabled = false;
+
+    const isAutoCheck = autoCheck === 'true';
+
+    // Update styles
+    for (const li of playlistItems.childNodes) {
+      const videoUrl = li.dataset['url'];
+      const id = li.dataset['id'];
+
+      const itemCode = await this.fetchPlayItemCode(id);
+      /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, latency: number, timeout: boolean } }, error: Error }} */
+      const { data: playCache, error } = await database.readData(id, STA_STORE);
+
+      if(error) {
+        printLog('displayPlaylistPage.error', error.message);
+        return;
+      }
+      if (playCache) {
+        this.updateListItemStyle(li, playCache.result, lastPlayedItem, itemCode);
+      }
+      else if (isAutoCheck && transaction === VARS.TRANSACTION) {
+        this.showCheckButton(isAutoCheck);
+        // No cache or cleaned
+        // Check video playability
+        li.className = 'checking';
+        const result = await this.checkVideoPlayability(videoUrl);
+        await database.addData({ id, result }, STA_STORE);
+        this.updateListItemStyle(li, result, lastPlayedItem, itemCode);
+      }
+    }
+
+    this.showCheckButton(false);
+  }
+
+  // 初始化播放列表
+  async initializePlaylist() {
+    await this.fetchFavorites();
+    await this.fetchDislikes();
+
+    filteredPlaylistData = (categories[appShell.currentCategory] || playlistData).filter(x => VARS.DISLIKES.includes(x.id) === false);
+
+    this.displayPlaylistPage(currentPage, VARS.TRANSACTION).catch(error => {
+      printLog('initializePlaylist.displayPlaylistPage.error', error.message);
+    });
+    this.updatePaginationControls();
+  }
+
+  // 显示播放列表内容
+  showPlaylistContent() {
+    m3uInputContainer.classList.add('hidden');
+    playlistContent.classList.remove('hidden');
+    playlistContainer.className = 'play-list';
+    pageBody.classList.remove('settings');
+    this.displayPlayerControls();
+  }
+
+  async processM3uData(type, data, fromCache = false, isBooting = false) {
+    await this.initPlayData(type, data);
+    this.initializeCategories(isBooting);
+    this.initializePlaylist();
+    this.showPlaylistContent();
+    errorMessage.textContent = '';
+  }
+
+  // 更新分页控件
+  updatePaginationControls() {
+    const itemsToDisplay = filteredPlaylistData || [];
+    const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
+    const hasData = itemsToDisplay.length > 0;
+    pageControl.max = totalPages;
+
+    if(hasData) {
+      pageInfo.innerHTML = `第 <span id="pageCurrent">${currentPage}</span>/${totalPages} 页`;
+      pageControl.min = 1;
+    }
+    else {
+      pageInfo.textContent = '';
+      pageControl.min = 0;
+    }
+    pageControl.value = currentPage;
+    prevButton.disabled = (currentPage === 1 || hasData === false);
+    nextButton.disabled = (currentPage === totalPages || hasData === false);
+  }
+
+  gotoPage(p) {
+    currentPage = p;
+    window.localStorage.setItem('currentPage', p);
+    this.displayPlaylistPage(currentPage, VARS.TRANSACTION = crypto.randomUUID()).catch(error => {
+      printLog('gotoPage.error', error.message);
+    });
+    this.updatePaginationControls();
+  }
+  /**
+   * List the store
+   * @param {string} source The source to list
+   */
+  async listStore(source) {
+    printLog('listStore');
+    settingsButton.disabled = true;
+    const cachedM3uSource = localStorage.getItem('cachedM3uSource') || SOURCES.URL;
+    const cachedM3uUrl = this.getCachedM3uUrl();
+
+    m3uList.innerHTML = '';
+
+    /** @type {{ data: Array<{ key: string, id: string, source: string }> }} **/
+    const { data: list } = await database.listData();
+    for(const m3uItem of list) {
+      const url = database.decodeString(m3uItem.id);
+      const isCurrent = cachedM3uUrl.includes(url) || (cachedM3uSource === SOURCES.CONTENT && m3uItem.source === SOURCES.CONTENT && cachedM3uUrl.includes(url));
+
+      const divItem = document.createElement('div');
+      const aItem = document.createElement('a');
+      const dItem = document.createElement('a');
+      const rItem = document.createElement('a');
+
+      dItem.innerText = '删';
+      dItem.className = 'delete';
+      dItem.dataset['id'] = m3uItem.id;
+      dItem.onclick = async (evt) => {
+        evt.preventDefault();
+        /** @type {HTMLAnchorElement} **/
+        const deleteButton = evt.target;
+        if(deleteButton.classList.contains('ready')) {
+          await database.deleteData(evt.target.dataset['id']);
+          this.listStore('click');
+        }
+        else {
+          deleteButton.classList.add('ready');
+        }
+      };
+      rItem.innerText = '刷';
+      rItem.className = 'refresh';
+      rItem.dataset['id'] = m3uItem.id;
+      rItem.onclick = async (evt) => {
+        evt.preventDefault();
+        const element = evt.target;
+        if(element.classList.contains('disabled')) {
+          return;
+        }
+
+        this.loadM3uUrl({ m3uUrl: url, fromCache: false, isBooting: false, onStart: () => {
+          element.classList.add('disabled');
+        }, onSuccess: async (type, data, cached, isBooting) => {
+          await this.listStore('fetch');
+        }, onCompleted: () => {
+          element.classList.remove('disabled');
+        } });
+      };
+      aItem.textContent = url;
+      aItem.className = 'load';
+      aItem.dataset['id'] = m3uItem.id;
+      aItem.onclick = async (evt) => {
+        /** @type {HTMLAnchorElement} **/
+        const element = evt.target;
+        /** @type {{ data: { id: string, m3u: string, source: string, type: string, time: number }, error: Error }} */
+        const { data, error } = await database.readData(element.dataset['id']);
+        if(error) {
+          printLog('listStore.error', error.message);
+          return;
+        }
+        if(element.textContent === cachedM3uUrl) {
+          return;
+        }
+        if(data.source === SOURCES.URL) {
+          this.setUrlInput(database.decodeString(m3uItem.id));
+        }
+        this.gotoPage(1);
+        await this.processM3uData(data.type || TYPES.M3U, data);
+      };
+      divItem.title = this.timeAgo(m3uItem.time);
+      divItem.append(aItem);
+      divItem.append(rItem);
+      if(isCurrent) {
+        divItem.classList.add('active');
+      }
+      else {
+        divItem.append(dItem);
+      }
+      m3uList.append(divItem);
+    }
+    settingsButton.disabled = false;
+  }
+  /**
+   * Save the category to cache
+   * @param {string} category Category
+   */
+  saveCategoryToCache(category) {
+    this.currentCategory = category;
+    window.localStorage.setItem('currentCategory', category);
+  }
+  /**
+   * Load the current channel
+   * @param {boolean} isBooting Is booting
+   * @returns {string} Returns the current channel
+   */
+  loadCurrentChannel(isBooting = false) {
+    this.currentCategory = CONSTS.CHANNELS.ALL;
+    if(isBooting) {
+      const category = window.localStorage.getItem('currentCategory');
+      if(category && category !== this.currentCategory) {
+        this.saveCategoryToCache(category);
+      }
+    }
+    return this.currentCategory;
+  }
+  /**
+   * @param {boolean} isBooting - Whether or not the app is booting
+   */
+  initializeCategories(isBooting = false) {
+    categorySelect.innerHTML = '';
+    for (let category in categories) {
+      if(category === CONSTS.CHANNELS.RAW){
+        continue;
+      }
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      categorySelect.appendChild(option);
+    }
+    categorySelect.value = this.loadCurrentChannel(isBooting);
+  }
+  /**
+   * @param {string} url URL
+   */
+  processUrl(url) {
+    if(url.includes('#')) {
+      return url.substring(0, url.indexOf('#'));
+    }
+    return url;
+  }
+  /**
+   * 处理 M3U 文件单行
+   * @param {string} line Line
+   */
+  processM3uLine(line) {
+    if (line.startsWith('#EXTINF:')) {
+      const infoLine = line.substring(8);
+      const groupMatch = infoLine.match(/group-title="([^"]+)"/);
+      VARS.CURRENT_GROUP = groupMatch ? groupMatch[1] : CONSTS.CHANNELS.ALL;
+      VARS.CURRENT_TITLE = infoLine.split(',').pop().trim();
+    } else if (line && !line.startsWith('#')) {
+      const processedUrl = this.processUrl(line);
+      VARS.CURRENT_ID = database.encodeString(processedUrl);
+      if(VARS.DISLIKES.includes(VARS.CURRENT_ID)) {
+        return;
+      }
+      if (!VARS.URLS.has(processedUrl)) {
+        VARS.URLS.add(processedUrl);
+        const item = { id: VARS.CURRENT_ID, title: VARS.CURRENT_TITLE || processedUrl, url: processedUrl, group: VARS.CURRENT_GROUP };
+        playlistData.push(item);
+        categories[CONSTS.CHANNELS.ALL].push(item);
+        if (VARS.CURRENT_GROUP !== CONSTS.CHANNELS.ALL) {
+          if (!categories[VARS.CURRENT_GROUP]) {
+            categories[VARS.CURRENT_GROUP] = [];
+          }
+          categories[VARS.CURRENT_GROUP].push(item);
+        }
+      }
+    }
+  }
+  /**
+   * 处理 TXT 文件单行
+   * @param {string} line Text line
+   */
+  async processTxtLine(line) {
+    if (line.endsWith('#genre#')) {
+      const infoLine = line.replace(',#genre#', '');
+      VARS.CURRENT_GROUP = infoLine ? infoLine : CONSTS.CHANNELS.ALL;
+    } else if (line && !line.endsWith('#genre#')) {
+      const lineArray = line.split(',');
+      if(lineArray.length < 2) return;
+      VARS.CURRENT_URL = this.processUrl(lineArray.pop().trim());
+      VARS.CURRENT_ID = database.encodeString(VARS.CURRENT_URL);
+      VARS.CURRENT_TITLE = lineArray.pop().trim();
+      if(VARS.DISLIKES.includes(VARS.CURRENT_ID)) {
+        return;
+      }
+      if (!VARS.URLS.has(VARS.CURRENT_URL)) {
+        VARS.URLS.add(VARS.CURRENT_URL);
+        const group = VARS.CURRENT_GROUP || CONSTS.CHANNELS.ALL;
+        const item = { id: VARS.CURRENT_ID, title: VARS.CURRENT_TITLE, url: VARS.CURRENT_URL, group };
+        playlistData.push(item);
+        categories[CONSTS.CHANNELS.ALL].push(item);
+        if (group !== CONSTS.CHANNELS.ALL) {
+          if (!categories[group]) {
+            categories[group] = [];
+          }
+          categories[group].push(item);
+        }
+      }
+    }
+  }
+  /**
+   * Initialize the playlist data.
+   * @param {string} type The type of data to load.
+   * @param {{ m3u: string, time: string }} data The data to load.
+   */
+  async initPlayData(type, data) {
+    // Data for all
+    playlistData = [];
+    // Data in categories
+    categories = { [CONSTS.CHANNELS.ALL]: [], [CONSTS.CHANNELS.FAVORITE]: [] };
+    VARS.URLS.clear();
+
+    await this.fetchDislikes();
+
+    const lines = data.m3u.split('\n');
+
+    for(const item of lines) {
+      const line = item.trim();
+      // [M3U] Start - Process data
+      if(type === TYPES.M3U) {
+        this.processM3uLine(line);
+      }
+      else if (type === TYPES.TXT) {
+        this.processTxtLine(line);
+      }
+      // [M3U] End - Process data
+    }
+    categories[CONSTS.CHANNELS.RAW] = [...categories[CONSTS.CHANNELS.ALL]];
+    statisticsMessage.textContent = `{ ${playlistData.length}条，(${this.timeAgo(data.time)}) }`;
+  }
+  /**
+   * 设置URL输入框
+   * @param {string} url URL
+   * @param {string} label Label
+   */
+  setUrlInput(url, label = CONSTS.ICON_UPDATE_FROM_URL) {
+    m3uUrlInput.value = url;
+    loadM3uButton.innerHTML = label;
+    window.localStorage.setItem('cachedM3uUrl', url);
+  }
+
+  async loadM3uFile(fromCache = false, isBooting = false) {
+    printLog('loadM3uFile');
+    /** @type {string} **/
+    const m3uUrl = m3uUrlInput.value.trim();
+    this.loadM3uUrl({ m3uUrl, fromCache, isBooting, onStart: () => {
+      
+    }, onSuccess: async (type, data, cached, isBooting) => {
+      await this.processM3uData(type, data, cached, false, isBooting);
+      await this.listStore('fetch');
+      this.gotoPage(1);
+    }, onCompleted: () => {
+    } });
+  }
+  /**
+   * Show m3u input box
+   */
+  async showM3uInput() {
+    window.localStorage.setItem('playListVisible', 'true');
+    if(m3uInputContainer.classList.contains('hidden')) {
+      await this.listStore('showM3uInput');
+      playlistContainer.className = 'settings';
+      pageBody.classList.add('settings')
+      m3uInputContainer.classList.remove('hidden');
+      playlistContent.classList.add('hidden');
+      this.displayPlayerControls(true, true);
+    }
+    else {
+      this.showPlaylistContent();
+    }
+
+    const { totalSize, storeSize } = await database.totalSize();
+    databaseSize.textContent = this.toSize(totalSize);
+    databaseCategories.innerHTML = '';
+
+    document.querySelectorAll('.settings-usage').forEach(item => item.classList.remove('hidden'));
+
+    const labels = { [FAV_STORE]: '收藏', [M3U_STORE]: '频道', [STA_STORE]: '缓存' };
+    for(const item in storeSize) {
+      /** @type {HTMLButtonElement} */
+      const button = document.createElement('button');
+      button.textContent = `${labels[item]}: ${this.toSize(storeSize[item])}`;
+      button.ondblclick = async () => {
+        await database.purgeData(item);
+        window.location.reload();
+      };
+      databaseCategories.append(button);
+    }
+  }
+
+  loadVideoTimestamp() {
+    const videoTimestampData = window.localStorage.getItem('videoTimestamp');
+    videoTimestamp = videoTimestampData ? JSON.parse(videoTimestampData) : {};
+  }
+
+  async loadLocalCache() {
+    const cachedM3uUrl = window.localStorage.getItem('cachedM3uUrl') || '';
+    if (cachedM3uUrl) {
+      this.setUrlInput(cachedM3uUrl);
+      await this.loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
+    }
+    else {
+      await this.showM3uInput();
+    }
+    this.loadVideoTimestamp();
+
+    currentPage = parseInt(window.localStorage.getItem('currentPage')) || 1;
+
+    storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
+    storeFrameCheckbox.checked = storeFrame === 'true';
+    screenshotTime.disabled = !storeFrameCheckbox.checked;
+
+    autoCheck = window.localStorage.getItem('autoCheck') === 'true' ? 'true' : 'false';
+    autoCheckCheckbox.checked = autoCheck === 'true';
+
+    enableLogging = window.localStorage.getItem('enableLogging') === 'true' ? 'true' : 'false';
+    enableLoggingCheckbox.checked = enableLogging === 'true';
+
+    if(enableLogging === 'true') {
+      logContainer.classList.remove('hidden');
+    }
+
+    onlyCheckBroken = window.localStorage.getItem('onlyCheckBroken') === 'true' ? 'true' : 'false';
+    onlyCheckBrokenCheckbox.checked = onlyCheckBroken === 'true';
+
+    VARS.PING_TIMEOUT = parseInt(window.localStorage.getItem('PING_TIMEOUT')) || 10000;
+    checkTimeout.value = Math.round(VARS.PING_TIMEOUT / 1000);
+    checkTimeoutDisplay.textContent = checkTimeout.value;
+
+    VARS.SCREENSHOT_TIME = parseInt(window.localStorage.getItem('screenshotTime')) || 3;
+    screenshotTime.value = VARS.SCREENSHOT_TIME;
+    screenshotTimeDisplay.textContent = screenshotTime.value;
+    
+    muteWhenPlay = window.localStorage.getItem('muteWhenPlay') === 'false' ? 'false' : 'true';
+    muteWhenPlayCheckbox.checked = muteWhenPlay === 'true';
+  }
+  /**
+   * 将字节转换为合适的单位大小
+   * @param {number} val 字节数
+   * @returns {string} 转换后的大小字符串
+   */
+  toSize(val) {
+    // 类型检查
+    if (typeof val !== 'number' || val < 0) {
+      return val;
+    }
+    // 转换逻辑
+    if (val < CONSTS.KILOBYTE) {
+      return `${val} B`;
+    } else if (val < CONSTS.MEGABYTE) {
+      return (val / CONSTS.KILOBYTE).toFixed(2) + ' KB';
+    } else {
+      return (val / CONSTS.MEGABYTE).toFixed(2) + ' MB';
+    }
+  }
+
+  onStopped() {
+    this.showPlayButton();
+    this.resetTitle();
+    this.saveVideoTimestamp();
+    this.displayPlayerControls(false, true);
+  }
+
+  setVideoTimestamp(timestamp) {
+    const lastPlayedItem = this.getLastVideoItem();
+    videoTimestamp[lastPlayedItem.url] = timestamp;
+  }
+
+  saveLastPlayedVideo(playingItem) {
+    window.localStorage.setItem('lastPlayedItem', JSON.stringify(playingItem));
+  }
+
+  seekVideo(time) {
+    videoPlayer.currentTime += time;
+  }
+
+  detectM3uUrl() {
+    loadM3uButton.disabled = !m3uUrlInput.checkValidity();
+    const cachedM3uUrl = this.getCachedM3uUrl();
+    if(cachedM3uUrl === m3uUrlInput.value) {
+      loadM3uButton.innerHTML = CONSTS.ICON_UPDATE_FROM_URL;
+    }
+    else {
+      loadM3uButton.innerHTML = CONSTS.ICON_READ_FROM_URL;
+    }
+  }
+
+  onPlaying() {
+    playVideoButton.innerHTML = CONSTS.ICON_STOP;
+    pauseVideoButton.innerHTML = CONSTS.ICON_PAUSE;
+    fullscreenButton.disabled = false;
+    playVideoButton.className = 'played';
+    errorMessage.textContent = '';
+    videoPlayer.className = '';
+    rewindButton.disabled = forwardButton.disabled = false;
+
+    clearTimeout(VARS.CONTROL_TIMER);
+    VARS.CONTROL_TIMER = setTimeout(this.displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
+  }
+
+  setFullscreenData(state) {
+    videoContainer.dataset['fullscreen'] = !!state;
+  }
+  /**
+   * Reset poster
+   * @param {HTMLElement} node Node
+   */
+  resetPoster(node) {
+    const nodeName = node.tagName.toLowerCase();
+    if(nodeName === 'input' || nodeName === 'video') {
+      return;
+    }
+    if(node.poster !== CONSTS.POSTER) {
+      this.stopVideo(node.poster);
+    }
+  }
+
+  gotoNextPage() {
+    const itemsToDisplay = filteredPlaylistData || [];
+    if (currentPage < Math.ceil(itemsToDisplay.length / itemsPerPage)) {
+      currentPage++;
+      this.gotoPage(currentPage);
+    }
+  }
+
+  gotoPrevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      this.gotoPage(currentPage);
+    }
+  }
+  /**
+   * @param {string} id ID
+   * @param {boolean} payload Data
+   * @param {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} options 参数对象
+   */
+  async fetchM3u(id, payload, options) {
+    printLog('fetchM3u');
+    options.onStart();
+    m3uUrlInput.disabled = loadM3uButton.disabled = true;
+    const { m3uUrl, fromCache = false, isBooting = false } = options;
+    const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
+
+    const safeUrl = (m3uUrl.startsWith(UNSAFE_HTTP) && CONSTS.IS_NATIVE === false) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
+    try {
+      const data = await this.makeRequest(safeUrl, { cache: 'no-store' });
+      if (data) {
+        const time = new Date().getTime();
+        const x = { id, m3u: data, source: SOURCES.URL, type, time };
+        if (payload) {
+          await database.updateData(x);
+        } else {
+          await database.addData(x);
+        }
+        await options.onSuccess(type, x, fromCache, isBooting);
+      }
+      else {
+        errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
+        this.showM3uInput();
+      }
+    } catch (error) {
+      errorMessage.textContent = `加载 M3U 文件时出错，请检查 URL 是否正确。${error.message}`;
+      this.showM3uInput();
+    }
+    finally {
+      m3uUrlInput.disabled = loadM3uButton.disabled = false;
+      options.onCompleted();
+    }
+  }
+  /**
+   * 加载 M3U 文件
+   * @param {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} options 参数对象
+   */
+  async loadM3uUrl(opts) {
+    printLog('loadM3uUrl');
+    /** @type {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} **/
+    const options = Object.assign({}, {
+      m3uUrl: '', fromCache: false, isBooting: false,
+      onStart: () => { },
+      /**
+       * @param {string} type Type
+       * @param {{ id: string, m3u: string, source: string, type: string, time: number }} data Data
+       * @param {boolean} cached Cached
+       * @param {boolean} isBooting Is booting
+       */
+      onSuccess: (type, data, cached, isBooting) => { },
+      onCompleted: () => { }
+    }, opts);
+    const { m3uUrl, fromCache = false, isBooting = false } = options;
+    const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
+
+    if (type && m3uUrlInput.checkValidity()) {
+      const id = database.encodeString(m3uUrl);
+      const { data: payload, error } = await database.readData(id);
+      if(error) {
+        errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
+        printLog('loadM3uFile.fetchDataAndProcess.error', error.message);
+        return;
+      }
+      if (payload && payload.m3u && fromCache) {
+        await this.processM3uData(type, payload, true, isBooting, false);
+      } else {
+        this.fetchM3u(id, payload, options);
+      }
+    }
+    else {
+      errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
+    }
+  }
+
+  // 执行搜索
+  performSearch() {
+    printLog('performSearch');
+    const searchTerm = searchInput.value.toLowerCase();
+    if (this.currentCategory === CONSTS.CHANNELS.ALL || this.currentCategory === CONSTS.CHANNELS.RAW) {
+      filteredPlaylistData = categories[CONSTS.CHANNELS.RAW].filter(item => 
+        item.title.toLowerCase().includes(searchTerm)
+      );
+    } else {
+      filteredPlaylistData = categories[this.currentCategory].filter(item => 
+        item.title.toLowerCase().includes(searchTerm)
+      );
+    }
+    this.gotoPage(1);
+  }
+
+  // 刷新当前页面
+  async refreshCurrentPage(transaction, isChecking = false) {
+    if(isChecking) {
+      //
+    }
+    else {
+      appShell.showCheckButton(true);
+      const lastPlayedItem = appShell.getLastVideoItem();
+
+      const items = playlistItems.childNodes;
+      for (let i = 0; i < items.length; i++) {
+        /** @type {HTMLLIElement} */
+        const li = items[i];
+        if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
+          continue;
+        }
+        li.className = '';
+      }
+
+      for (let i = 0; i < items.length; i++) {
+        /** @type {HTMLLIElement} */
+        const li = items[i];
+        if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
+          continue;
+        }
+        li.className = 'checking';
+        const itemUrl = li.dataset['url'];
+        const itemId = li.dataset['id'];
+
+        if (itemUrl) {
+          if(transaction === VARS.TRANSACTION) {
+            const result = await this.checkVideoPlayability(itemUrl);
+            const itemCode = await this.fetchPlayItemCode(itemId);
+            const id = li.dataset['id'];
+            await database.updateData({ id, result }, STA_STORE);
+            this.updateListItemStyle(li, result, lastPlayedItem, itemCode);
+          }
+          else {
+            li.className = '';
+          }
+        }
+        else {
+          li.classList.add('broken');
+        }
+      }
+    }
+    this.showCheckButton(false);
+  }
+
+  // 加载缓存的数据
+  async startup() {
+    await this.loadLocalCache();
+    this.gotoPage(currentPage);
+    this.playLastVideo(false);
+
+    this.listStore('startup');
+    this.initUI();
+
+    this.generateBlankFrame();
+    this.resetTitle();
+  }
+
+  displaySideMenu(show = false) {
+    // Hide playlist
+    if(show) {
+      this.showPlaylistContent();
+      pageBody.classList.add('play-list');
+    }
+    // Show playlist
+    else {
+      playlistContainer.className = 'back';
+      pageBody.classList.remove('settings');
+      pageBody.classList.remove('play-list');
+      this.displayPlayerControls();
+    }
+    window.localStorage.setItem('playListVisible', show ? 'true' : 'false');
+  }
+
+  async addFavorite(id, url, title, group, code = CONSTS.CODES.LIKE) {
+    await database.addData({ id, url, title, group, code }, FAV_STORE);
+    this.refreshFavoriteButton(code);
+    this.refreshDislikeButton(code);
+    this.initializePlaylist();
+  }
+
+  async deleteFavorite(id) {
+    const { data, error } = await database.deleteData(id, FAV_STORE);
+    if(error) {
+      printLog('deleteFavorite.error', error);
+    }
+    this.refreshFavoriteButton(CONSTS.CODES.NONE);
+    this.refreshDislikeButton(CONSTS.CODES.NONE);
+    this.initializePlaylist();
+  }
+
+} // End of class
 
 class WebShell extends AppShell {
   initUI() {
@@ -1852,7 +3220,7 @@ class WebShell extends AppShell {
 }
 
 class ElectronShell extends AppShell {
-
+  SITE_TITLE = 'Hunhe IPTV | v1.0';
   async makeRequest(url, options = {}) {
     return new Promise((resolve, reject) => {
       const response = window['electronAPI'].makeRequest(url, options);
@@ -1868,10 +3236,9 @@ class ElectronShell extends AppShell {
     });
   }
 
-  changeTitle(title = SITE_TITLE_NATIVE) {
+  changeTitle(title) {
     window['electronAPI'].changeTitle(title);
   }
-
   putOnTop(isOnTop) {
     window['electronAPI'].putOnTop(isOnTop);
   }
@@ -1882,1277 +3249,14 @@ const appShell = CONSTS.IS_NATIVE ? new ElectronShell() : new WebShell();
 
 appShell.initUI();
 
-function getCachedM3uUrl() {
-  return window.localStorage.getItem('cachedM3uUrl') || '';
-}
-
-async function listStore(source) {
-  settingsButton.disabled = true;
-  const cachedM3uSource = localStorage.getItem('cachedM3uSource') || SOURCES.URL;
-  const cachedM3uUrl = getCachedM3uUrl();
-
-  m3uList.innerHTML = '';
-
-  /** @type {{ data: Array<{ key: string, id: string, source: string }> }} **/
-  const { data: list } = await database.listData();
-  for(const m3uItem of list) {
-    const url = database.decodeString(m3uItem.id);
-    const isCurrent = cachedM3uUrl.includes(url) || (cachedM3uSource === SOURCES.CONTENT && m3uItem.source === SOURCES.CONTENT && cachedM3uUrl.includes(url));
-
-    const divItem = document.createElement('div');
-    const aItem = document.createElement('a');
-    const dItem = document.createElement('a');
-    const rItem = document.createElement('a');
-
-    dItem.innerText = '删';
-    dItem.className = 'delete';
-    dItem.dataset['id'] = m3uItem.id;
-    dItem.onclick = async (evt) => {
-      evt.preventDefault();
-      /** @type {HTMLAnchorElement} **/
-      const deleteButton = evt.target;
-      if(deleteButton.classList.contains('ready')) {
-        await database.deleteData(evt.target.dataset['id']);
-        listStore('click');
-      }
-      else {
-        deleteButton.classList.add('ready');
-      }
-    };
-    rItem.innerText = '刷';
-    rItem.className = 'refresh';
-    rItem.dataset['id'] = m3uItem.id;
-    rItem.onclick = async (evt) => {
-      evt.preventDefault();
-      const element = evt.target;
-      if(element.classList.contains('disabled')) {
-        return;
-      }
-
-      loadM3uUrl({ m3uUrl: url, fromCache: false, isBooting: false, onStart: () => {
-        m3uUrlInput.disabled = loadM3uButton.disabled = true;
-        element.classList.add('disabled');
-      }, onSuccess: async (type, data, cached, isBooting) => {
-        await listStore('fetch');
-      }, onCompleted: () => {
-        m3uUrlInput.disabled = loadM3uButton.disabled = false;
-        element.classList.remove('disabled');
-      } });
-    };
-    aItem.textContent = url;
-    aItem.className = 'load';
-    aItem.dataset['id'] = m3uItem.id;
-    aItem.onclick = async (evt) => {
-      /** @type {HTMLAnchorElement} **/
-      const element = evt.target;
-      /** @type {{ data: { id: string, m3u: string, source: string, type: string, time: number }, error: Error }} */
-      const { data, error } = await database.readData(element.dataset['id']);
-      if(error) {
-        printLog('loadCurrentChannel.error', error.message);
-        return;
-      }
-      if(element.textContent === cachedM3uUrl) {
-        return;
-      }
-
-      // if(data.source === SOURCES.CONTENT) {
-      //   setUrlInput('');
-      //   m3uContent.value = data.m3u;
-      // }
-      // else 
-      if(data.source === SOURCES.URL) {
-        setUrlInput(database.decodeString(m3uItem.id));
-      }
-      gotoPage(1);
-      await processM3uData(data.type || TYPES.M3U, data);
-    };
-    divItem.title = appShell.timeAgo(m3uItem.time);
-    divItem.append(aItem);
-    divItem.append(rItem);
-    if(isCurrent) {
-      divItem.classList.add('active');
-    }
-    else {
-      divItem.append(dItem);
-    }
-    m3uList.append(divItem);
-  }
-  settingsButton.disabled = false;
-  //
-}
-
-function loadCurrentChannel(isBooting = false, source = '') {
-  currentCategory = allChannels;
-  if(isBooting) {
-    const category = window.localStorage.getItem('currentCategory');
-    if(category && category !== currentCategory) {
-      saveCategoryToCache(category);
-    }
-  }
-  return currentCategory;
-}
-
-async function loadLocalCache() {
-  const cachedM3uUrl = window.localStorage.getItem('cachedM3uUrl') || '';
-  if (cachedM3uUrl) {
-    setUrlInput(cachedM3uUrl);
-    await loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
-  }
-  else {
-    await showM3uInput();
-  }
-  loadVideoTimestamp();
-
-  currentPage = parseInt(window.localStorage.getItem('currentPage')) || 1;
-
-  storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
-  storeFrameCheckbox.checked = storeFrame === 'true';
-  screenshotTime.disabled = !storeFrameCheckbox.checked;
-
-  autoCheck = window.localStorage.getItem('autoCheck') === 'true' ? 'true' : 'false';
-  autoCheckCheckbox.checked = autoCheck === 'true';
-
-  enableLogging = window.localStorage.getItem('enableLogging') === 'true' ? 'true' : 'false';
-  enableLoggingCheckbox.checked = enableLogging === 'true';
-
-  if(enableLogging === 'true') {
-    logContainer.classList.remove('hidden');
-  }
-
-  onlyCheckBroken = window.localStorage.getItem('onlyCheckBroken') === 'true' ? 'true' : 'false';
-  onlyCheckBrokenCheckbox.checked = onlyCheckBroken === 'true';
-
-  VARS.PING_TIMEOUT = parseInt(window.localStorage.getItem('PING_TIMEOUT')) || 10000;
-  checkTimeout.value = Math.round(VARS.PING_TIMEOUT / 1000);
-  checkTimeoutDisplay.textContent = checkTimeout.value;
-
-  VARS.SCREENSHOT_TIME = parseInt(window.localStorage.getItem('screenshotTime')) || 3;
-  screenshotTime.value = VARS.SCREENSHOT_TIME;
-  screenshotTimeDisplay.textContent = screenshotTime.value;
-  
-  muteWhenPlay = window.localStorage.getItem('muteWhenPlay') === 'false' ? 'false' : 'true';
-  muteWhenPlayCheckbox.checked = muteWhenPlay === 'true';
-}
-
-function displayPlayerControls(showNativeControls = false, showCustomControls = false) {
-  if (document.fullscreenEnabled) {
-    if(showCustomControls) {
-      videoControls.classList.remove('transparent');
-    }
-    else if(showNativeControls) {
-      videoPlayer.controls = showNativeControls;
-    }
-    else {
-      videoControls.classList.add('transparent');
-    }
-    return true;
-  }
-  videoPlayer.controls = true;
-  return false;
-}
-
 /**
- * Get last played video data
- * @returns {{ url: string, group: string, title: string }?} Returns Play item
- */
-function getLastVideoItem() {
-  const data = window.localStorage.getItem('lastPlayedItem');
-  if(data) {
-    return JSON.parse(data);
-  }
-  return null;
-}
-
-function saveVideoTimestamp() {
-  window.localStorage.setItem('videoTimestamp', JSON.stringify(videoTimestamp));
-}
-
-function loadVideoTimestamp() {
-  const videoTimestampData = window.localStorage.getItem('videoTimestamp');
-  videoTimestamp = videoTimestampData ? JSON.parse(videoTimestampData) : {};
-  return videoTimestamp;
-}
-
-function playLastVideo(isUserAction = true) {
-  const lastPlayedItem = getLastVideoItem();
-  if (lastPlayedItem) {
-    loadVideoTimestamp();
-    playVideo(lastPlayedItem, isUserAction);
-  }
-}
-
-function changePoster(poster) {
-  videoPlayer.poster = poster;
-  pageBody.style.background = `transparent url("${poster}") center center / cover no-repeat`;
-}
-
-function stopVideo(poster = CONSTS.POSTER) {
-  printLog('stopVideo');
-  videoPlayer.pause();
-  if(stopURL) videoPlayer.src = stopURL;
-  videoPlayer.pause();
-  videoPlayer.removeAttribute('src');
-  pauseVideoButton.classList.add('hidden');
-  currentTimeDisplay.textContent = getMinutes(0);
-  totalTimeDisplay.textContent = getMinutes(0);
-  progressControl.value = progressControl.max = '0';
-
-  appShell.changeTitle();
-  showPlayButton();
-  rewindButton.disabled = forwardButton.disabled = true;
-  saveVideoTimestamp();
-  changePoster(poster);
-}
-
-function showPlayButton() {
-  playVideoButton.innerHTML = CONSTS.ICON_PLAY;
-  pauseVideoButton.innerHTML = CONSTS.ICON_UNPAUSE;
-  playVideoButton.className = 'stopped';
-  displayPlayerControls();
-  videoPlayer.className = 'paused';
-}
-
-function onStopped() {
-  showPlayButton();
-  appShell.changeTitle();
-  saveVideoTimestamp();
-  displayPlayerControls(false, true);
-}
-
-function setVideoTimestamp(timestamp) {
-  const lastPlayedItem = getLastVideoItem();
-  videoTimestamp[lastPlayedItem.url] = timestamp;
-}
-
-function resetVideoTimestamp() {
-  const lastPlayedItem = getLastVideoItem();
-  if (lastPlayedItem) {
-    loadVideoTimestamp();
-    setVideoTimestamp(0);
-    saveVideoTimestamp();
-  }
-}
-
-function saveCategoryToCache(category) {
-  currentCategory = category;
-  window.localStorage.setItem('currentCategory', category);
-}
-
-// 显示播放列表内容
-function showPlaylistContent() {
-  m3uInputContainer.classList.add('hidden');
-  playlistContent.classList.remove('hidden');
-  playlistContainer.className = 'play-list';
-  pageBody.classList.remove('settings');
-  displayPlayerControls();
-}
-
-/**
- * 将字节转换为合适的单位大小
- * @param {number} val 字节数
- * @returns {string} 转换后的大小字符串
- */
-function toSize(val) {
-  // 类型检查
-  if (typeof val !== 'number' || val < 0) {
-    return val;
-  }
-
-  // 转换逻辑
-  if (val < CONSTS.KILOBYTE) {
-    return `${val} B`;
-  } else if (val < CONSTS.MEGABYTE) {
-    return (val / CONSTS.KILOBYTE).toFixed(2) + ' KB';
-  } else {
-    return (val / CONSTS.MEGABYTE).toFixed(2) + ' MB';
-  }
-}
-
-// 显示 M3U 输入界面
-async function showM3uInput() {
-  window.localStorage.setItem('playListVisible', 'true');
-  if(m3uInputContainer.classList.contains('hidden')) {
-    await listStore('showM3uInput');
-    playlistContainer.className = 'settings';
-    pageBody.classList.add('settings')
-    m3uInputContainer.classList.remove('hidden');
-    playlistContent.classList.add('hidden');
-    displayPlayerControls(true, true);
-  }
-  else {
-    showPlaylistContent();
-  }
-
-  const { totalSize, storeSize } = await database.totalSize();
-  databaseSize.textContent = toSize(totalSize);
-  databaseCategories.innerHTML = '';
-
-  document.querySelectorAll('.settings-usage').forEach(item => item.classList.remove('hidden'));
-
-  const labels = { [FAV_STORE]: '收藏', [M3U_STORE]: '频道', [STA_STORE]: '缓存' };
-  for(const item in storeSize) {
-    const button = document.createElement('button');
-    button.textContent = `${labels[item]}: ${toSize(storeSize[item])}`;
-    button.ondblclick = async () => {
-      await database.purgeData(item);
-      window.location.reload();
-    };
-    databaseCategories.append(button);
-  }
-}
-
-async function processM3uData(type, data, fromCache = false, isBooting = false) {
-  await initPlayData(type, data);
-  initializeCategories(isBooting);
-  initializePlaylist();
-  showPlaylistContent();
-  errorMessage.textContent = '';
-}
-
-async function loadM3uFile(fromCache = false, isBooting = false) {
-  /** @type {string} **/
-  const m3uUrl = m3uUrlInput.value.trim();
-  loadM3uUrl({ m3uUrl, fromCache, isBooting, onStart: () => {
-    m3uUrlInput.disabled = loadM3uButton.disabled = true;
-  }, onSuccess: async (type, data, cached, isBooting) => {
-    console.log(type, data, cached, isBooting);
-    await processM3uData(type, data, cached, false, isBooting);
-    await listStore('fetch');
-    gotoPage(1);
-  }, onCompleted: () => {
-    m3uUrlInput.disabled = loadM3uButton.disabled = false;
-  } });
-}
-
-/**
- * 加载 M3U 文件
- * @param {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} options 参数对象
- */
-async function loadM3uUrl(options) {
-  const { m3uUrl, fromCache = false, isBooting = false, onStart = () => {}, onSuccess = async (type, data, cached, isBooting) => {}, onCompleted = () => {} } = options;
-  const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
-  /**
-   * @param {string} id ID
-   * @param {boolean} payload Data
-   * @param {boolean} cached Cached or not
-   */
-  async function fetchDataAndProcess(id, payload, cached) {
-    printLog('loadM3uFile.fetchDataAndProcess');
-    onStart();
-    const safeUrl = (m3uUrl.startsWith(UNSAFE_HTTP) && CONSTS.IS_NATIVE === false) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
-    try {
-      const data = await appShell.makeRequest(safeUrl, { cache: 'no-store' });
-      if (data) {
-        const time = new Date().getTime();
-        const x = { id, m3u: data, source: SOURCES.URL, type, time };
-        if (payload) {
-          await database.updateData(x);
-        } else {
-          await database.addData(x);
-        }
-        await onSuccess(type, x, cached, isBooting);
-      }
-      else {
-        errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
-        showM3uInput();
-      }
-    } catch (error) {
-      errorMessage.textContent = `加载 M3U 文件时出错，请检查 URL 是否正确。${error.message}`;
-      showM3uInput();
-    }
-    finally {
-      onCompleted();
-    }
-  }
-
-  if (type && m3uUrlInput.checkValidity()) {
-    const id = database.encodeString(m3uUrl);
-    const { data: payload, error } = await database.readData(id);
-    if(error) {
-      errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
-      printLog('loadM3uFile.fetchDataAndProcess.error', error.message);
-      return;
-    }
-    if (payload && payload.m3u && fromCache) {
-      await processM3uData(type, payload, true, isBooting, false);
-    } else {
-      fetchDataAndProcess(id, payload, fromCache);
-    }
-  }
-  else {
-    errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
-  }
-}
-
-// async function loadM3uContent() {
-//   if(m3uContent.value.includes('#EXTINF:')) {
-//     const id = database.encodeString(m3uContentKey.value);
-//     const { data: payload } = await database.readData(id);
-//     const data = { id, m3u: m3uContent.value, source: SOURCES.CONTENT, type: TYPES.M3U }; // m3u only
-//     if(payload) {
-//       await database.updateData(data);
-//     }
-//     else {
-//       await database.addData(data);
-//     }
-//     processM3uData(TYPES.M3U, data.m3u, true);
-//   }
-// }
-
-/**
- * 处理 M3U 文件单行
- * @param {string} line Line
- */
-function processM3uLine(line) {
-  if (line.startsWith('#EXTINF:')) {
-    const infoLine = line.substring(8);
-    const groupMatch = infoLine.match(/group-title="([^"]+)"/);
-    VARS.CURRENT_GROUP = groupMatch ? groupMatch[1] : allChannels;
-    VARS.CURRENT_TITLE = infoLine.split(',').pop().trim();
-  } else if (line && !line.startsWith('#')) {
-    const processedUrl = processUrl(line);
-    VARS.CURRENT_ID = database.encodeString(processedUrl);
-    if(VARS.DISLIKES.includes(VARS.CURRENT_ID)) {
-      return;
-    }
-    if (!VARS.URLS.has(processedUrl)) {
-      VARS.URLS.add(processedUrl);
-      const item = { id: VARS.CURRENT_ID, title: VARS.CURRENT_TITLE || processedUrl, url: processedUrl, group: VARS.CURRENT_GROUP };
-      playlistData.push(item);
-      categories[allChannels].push(item);
-      if (VARS.CURRENT_GROUP !== allChannels) {
-        if (!categories[VARS.CURRENT_GROUP]) {
-          categories[VARS.CURRENT_GROUP] = [];
-        }
-        categories[VARS.CURRENT_GROUP].push(item);
-      }
-    }
-  }
-}
-
-/**
- * 处理 TXT 文件单行
- * @param {string} line Text line
- */
-async function processTxtLine(line) {
-  if (line.endsWith('#genre#')) {
-    const infoLine = line.replace(',#genre#', '');
-    VARS.CURRENT_GROUP = infoLine ? infoLine : allChannels;
-  } else if (line && !line.endsWith('#genre#')) {
-    const lineArray = line.split(',');
-    if(lineArray.length < 2) return;
-    VARS.CURRENT_URL = processUrl(lineArray.pop().trim());
-    VARS.CURRENT_ID = database.encodeString(VARS.CURRENT_URL);
-    VARS.CURRENT_TITLE = lineArray.pop().trim();
-    if(VARS.DISLIKES.includes(VARS.CURRENT_ID)) {
-      return;
-    }
-    if (!VARS.URLS.has(VARS.CURRENT_URL)) {
-      VARS.URLS.add(VARS.CURRENT_URL);
-      const group = VARS.CURRENT_GROUP || allChannels;
-      const item = { id: VARS.CURRENT_ID, title: VARS.CURRENT_TITLE, url: VARS.CURRENT_URL, group };
-      playlistData.push(item);
-      categories[allChannels].push(item);
-      if (group !== allChannels) {
-        if (!categories[group]) {
-          categories[group] = [];
-        }
-        categories[group].push(item);
-      }
-    }
-  }
-}
-
-// 解析 M3U 数据
-async function initPlayData(type, data) {
-  // Data for all
-  playlistData = [];
-  // Data in categories
-  categories = { [allChannels]: [], [favoriteChannels]: [] };
-  VARS.URLS.clear();
-
-  await fetchDislikes();
-
-  const lines = data.m3u.split('\n');
-
-  for(const item of lines) {
-    const line = item.trim();
-    // [M3U] Start - Process data
-    if(type === TYPES.M3U) {
-      processM3uLine(line);
-    }
-    else if (type === TYPES.TXT) {
-      processTxtLine(line);
-    }
-    // [M3U] End - Process data
-  }
-  categories[originalChannels] = [...categories[allChannels]];
-  statisticsMessage.textContent = `{ ${playlistData.length}条，(${appShell.timeAgo(data.time)}) }`;
-}
-
-// 初始化分类
-function initializeCategories(isBooting = false) {
-  categorySelect.innerHTML = '';
-  for (let category in categories) {
-    if(category === originalChannels){
-      continue;
-    }
-    const option = document.createElement('option');
-    option.value = category;
-    option.textContent = category;
-    categorySelect.appendChild(option);
-  }
-
-  categorySelect.value = loadCurrentChannel(isBooting, 'initializeCategories');
-}
-
-function resetListStyle(className) {
-  for(const node of playlistItems.childNodes) {
-    node.classList.remove(className);
-  }
-}
-
-/**
- * @param {HTMLLIElement} li List item
- * @param {{ title: string, url: string, group: string }} item Play item
- */
-function playNow(li, item) {
-  if(li.dataset['broken']) return;
-  resetListStyle('active');
-  li.classList.add('active');
-  playVideo(item);
-}
-
-/**
- * @param {{ title: string, url: string, group: string }} item Play item
- */
-async function loadFavorite(item) {
-  dislikeButton.disabled = favoriteButton.disabled = false;
-  dislikeButton.dataset['id'] = favoriteButton.dataset['id'] = item.id;
-  dislikeButton.dataset['url'] = favoriteButton.dataset['url'] = item.url;
-  dislikeButton.dataset['group'] = favoriteButton.dataset['group'] = item.group;
-  dislikeButton.dataset['title'] = favoriteButton.dataset['title'] = item.title;
-
-  const itemCode = await fetchPlayItemCode(item.id);
-  refreshFavoriteButton(itemCode);
-  refreshDislikeButton(itemCode);
-}
-
-function loadReCapture(item) {
-  reCaptureButton.disabled = false;
-  reCaptureButton.dataset['id'] = item.id;
-  reCaptureButton.dataset['url'] = item.url;
-  reCaptureButton.dataset['group'] = item.group;
-  reCaptureButton.dataset['title'] = item.title;
-}
-
-/**
- * @param {HTMLLIElement} li List item
- * @param {{ title: string, url: string, group: string }} item Play item
- * @param {string} frame Poster
- */
-async function previewNow(li, item, frame) {
-  dislikeButton.disabled = favoriteButton.disabled = true;
-  if(li.dataset['broken']) return;
-  resetListStyle('preview');
-  li.classList.add('preview');
-  stopVideo(frame);
-  loadComments(li.dataset['id'], li.title);
-  loadFavorite(item);
-  loadReCapture(item);
-}
-
-/**
- * @param {string} url URL
- */
-function processUrl(url) {
-  if(url.includes('#')) {
-    return url.substring(0, url.indexOf('#'));
-  }
-  return url;
-}
-
-// 显示播放列表页面
-async function displayPlaylistPage(page, transaction) {
-  playlistItems.innerHTML = '';
-  /** @type {Array<{ title: string, url: string, group: string }>} **/
-  const itemsToDisplay = filteredPlaylistData || [];
-  const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const pageItems = itemsToDisplay.slice(startIndex, endIndex);
-  const lastPlayedItem = getLastVideoItem();
-
-  listCheckButton.disabled = true;
-  // Loop list items
-  pageItems.forEach(async (item, index) => {
-    /** @type {HTMLLIElement} **/
-    const li = document.createElement('li');
-    /** @type {HTMLDivElement} **/
-    const label = document.createElement('label');
-    label.className = 'label';
-    const text = document.createElement('i');
-    text.textContent = item.group === currentCategory ? item.title : `[${item.group}] ${item.title}`;
-    label.append(text);
-
-    if(item.url.startsWith(UNSAFE_HTTP) && CONSTS.IS_NATIVE === false) {
-      li.dataset['http'] = true;
-      li.classList.add('http');
-      li.classList.add('broken');
-    }
-
-    li.dataset['id'] = item.id;
-    li.dataset['url'] = item.url;
-    li.dataset['group'] = item.group;
-    li.dataset['duration'] = '';
-    li.title = item.title;
-
-    li.onclick = (evt) => {
-      evt.preventDefault();
-      const { currentTarget } = evt;
-      const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : CONSTS.POSTER;
-      const isBroken = currentTarget.classList.contains('broken') === false;
-      if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isBroken) {
-        playNow(currentTarget, item);
-      }
-      else {
-        previewNow(currentTarget, item, frame);
-      }
-    };
-
-    li.append(label);
-    playlistItems.appendChild(li);
-  });
-  listCheckButton.disabled = false;
-
-  const isAutoCheck = autoCheck === 'true';
-
-  // Update styles
-  for (const li of playlistItems.childNodes) {
-    const videoUrl = li.dataset['url'];
-    const id = li.dataset['id'];
-
-    const itemCode = await fetchPlayItemCode(id);
-    /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, latency: number, timeout: boolean } }, error: Error }} */
-    const { data: playCache, error } = await database.readData(id, STA_STORE);
-
-    if(error) {
-      printLog('displayPlaylistPage.error', error.message);
-      return;
-    }
-    if (playCache) {
-      updateListItemStyle(li, playCache.result, lastPlayedItem, itemCode);
-    }
-    else if (isAutoCheck && transaction === VARS.TRANSACTION) {
-      showCheckButton(isAutoCheck);
-      // No cache or cleaned
-      // Check video playability
-      li.className = 'checking';
-      const result = await checkVideoPlayability(videoUrl);
-      await database.addData({ id, result }, STA_STORE);
-      updateListItemStyle(li, result, lastPlayedItem, itemCode);
-    }
-  }
-  showCheckButton(false);
-}
-
-/**
- * @param {HTMLLIElement} li List item
- * @param {{ ok: boolean, duration: number, frame: string, latency: number, timeout: boolean }} checkResult List item
- * @param {{ url: string, group: string, title: string }} lastPlayedItem Last played data
- * @param {number} itemCode If it is favorite
- */
-function updateListItemStyle(li, checkResult, lastPlayedItem, itemCode) {
-  li.className = '';
-  if (checkResult.ok) {
-    if(checkResult.latency < 500) {
-      li.classList.add('good');
-    }
-    else if (checkResult.latency >= 500 && checkResult.latency <= 1500) {
-      li.classList.add('average');
-    }
-    else {
-      li.classList.add('bad');
-    }
-    if(checkResult.frame) {
-      li.dataset['frame'] = URL.createObjectURL(checkResult.frame);
-      li.classList.add('frame');
-    }
-    li.dataset['duration'] = `[${getMinutes(checkResult.duration)}]`;
-  }
-  else {
-    if(checkResult.timeout) {
-      li.dataset['timeout'] = true;
-      li.classList.add('timeout');
-    }
-    else {
-      li.classList.add('broken');
-    }
-    li.title = `此视频源可能无法播放`;
-  }
-  if(lastPlayedItem?.url === li.dataset['url']) {
-    li.classList.add('active');
-  }
-  if(itemCode === CONSTS.CODES.LIKE) {
-    if(currentCategory !== favoriteChannels) {
-      li.classList.add('favorite'); 
-    }
-    if(li.classList.contains('timeout')) {
-      const deleteButton = document.createElement('span');
-      deleteButton.innerHTML = CONSTS.ICON_CANCEL;
-      deleteButton.className = 'delete';
-      deleteButton.onclick = (evt) => {
-        evt.stopPropagation();
-        const id = li.dataset['id'];
-        deleteFavorite(id);
-      };
-      li.append(deleteButton);
-    }
-  }
-}
-
-// 更新分页控件
-function updatePaginationControls() {
-  const itemsToDisplay = filteredPlaylistData || [];
-  const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
-  const hasData = itemsToDisplay.length > 0;
-  pageControl.max = totalPages;
-
-  if(hasData) {
-    pageInfo.innerHTML = `第 <span id="pageCurrent">${currentPage}</span>/${totalPages} 页`;
-    pageControl.min = 1;
-  }
-  else {
-    pageInfo.textContent = '';
-    pageControl.min = 0;
-  }
-  pageControl.value = currentPage;
-  prevButton.disabled = (currentPage === 1 || hasData === false);
-  nextButton.disabled = (currentPage === totalPages || hasData === false);
-}
-
-// 初始化播放列表
-async function initializePlaylist() {
-  await fetchFavorites();
-  await fetchDislikes();
-
-  filteredPlaylistData = (categories[currentCategory] || playlistData).filter(x => VARS.DISLIKES.includes(x.id) === false);
-
-  displayPlaylistPage(currentPage, VARS.TRANSACTION).catch(error => {
-    printLog('initializePlaylist.displayPlaylistPage.error', error.message);
-  });
-  updatePaginationControls();
-}
-
-// 执行搜索
-function performSearch() {
-  const searchTerm = searchInput.value.toLowerCase();
-
-  if (currentCategory === allChannels || currentCategory === originalChannels) {
-    filteredPlaylistData = categories[originalChannels].filter(item => 
-      item.title.toLowerCase().includes(searchTerm)
-    );
-  } else {
-    filteredPlaylistData = categories[currentCategory].filter(item => 
-      item.title.toLowerCase().includes(searchTerm)
-    );
-  }
-  gotoPage(1);
-}
-
-async function showCheckButton(isChecking) {
-  if(isChecking) {
-    listCheckButton.classList.add('checking');
-    listCheckButton.innerHTML = CONSTS.ICON_CANCEL;
-  }
-  else {
-    listCheckButton.classList.remove('checking');
-    listCheckButton.innerHTML = CONSTS.ICON_CHECK;
-  }
-}
-
-// 刷新当前页面
-async function refreshCurrentPage(transaction, isChecking = false) {
-  if(isChecking) {
-    //
-  }
-  else {
-    showCheckButton(true);
-    const lastPlayedItem = getLastVideoItem();
-
-    const items = playlistItems.childNodes;
-    for (let i = 0; i < items.length; i++) {
-      /** @type {HTMLLIElement} */
-      const li = items[i];
-      if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
-        continue;
-      }
-      li.className = '';
-    }
-
-    for (let i = 0; i < items.length; i++) {
-      /** @type {HTMLLIElement} */
-      const li = items[i];
-      if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
-        continue;
-      }
-      li.className = 'checking';
-      const itemUrl = li.dataset['url'];
-      const itemId = li.dataset['id'];
-
-      if (itemUrl) {
-        if(transaction === VARS.TRANSACTION) {
-          const result = await checkVideoPlayability(itemUrl);
-          const itemCode = await fetchPlayItemCode(itemId);
-          const id = li.dataset['id'];
-          await database.updateData({ id, result }, STA_STORE);
-          updateListItemStyle(li, result, lastPlayedItem, itemCode);
-        }
-        else {
-          li.className = '';
-        }
-      }
-      else {
-        li.classList.add('broken');
-      }
-    }
-  }
-
-  showCheckButton(false);
-}
-
-/**
- * 播放视频
- * @param {{ url: string, group: string, title: string }} source Play data source
- * @param {number} duration Duration
- * @param {boolean} isLive Is alive
- */
-function playVideSource(source, duration = '0', isLive = false) {
-  const lastPlayedTime = videoTimestamp[source.url];
-  if (!isNaN(lastPlayedTime)) {
-    videoPlayer.currentTime = lastPlayedTime;
-  }
-  videoPlayer.play().catch(error => {
-    errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
-  }).then(() => {
-    onPlay(source, duration, isLive);
-  });
-}
-
-function hlsPlay(source) {
-  printLog('hlsPlay');
-  try {
-    const hls = new Hls();
-    hls.loadSource(source.url);
-    hls.attachMedia(videoPlayer);
-    hls.once(Hls.Events.LEVEL_LOADED, (evt, data) => {
-      printLog('Hls.Events.LEVEL_LOADED');
-      if (!data?.details) {
-        return printLog('Warning: Data details is undefined.');
-      }
-      const duration = data?.details?.totalduration || 0;
-      const isLive = data?.details?.live || false;
-      playVideSource(source, duration, isLive);
-    });
-    hls.once(Hls.Events.MANIFEST_PARSED, (evt, data) => {
-      const duration = data?.details?.totalduration || 0;
-      const isLive = data?.details?.live || false;
-      printLog('Hls.Events.MANIFEST_PARSED', 'duration->', duration, 'isLive->', isLive);
-    });
-    hls.once(Hls.Events.ERROR, (error, data) => {
-      printLog('Hls.Events.ERROR', 'data.fatal->', data.fatal, 'data.type->', data.type);
-      printLog('Hls.Events.ERROR', JSON.stringify(error));
-      if (data.fatal) {
-        switch (data.type) {
-          case Hls.ErrorTypes.NETWORK_ERROR:
-            printLog('Hls.ErrorTypes.NETWORK_ERROR', '重试网络请求');
-            break;
-          case Hls.ErrorTypes.MEDIA_ERROR:
-            printLog('Hls.ErrorTypes.MEDIA_ERROR', '处理媒体播放错误');
-            if(videoPlayer.src === stopURL || videoPlayer.src === '') {
-              printLog('Hls.ErrorTypes.MEDIA_ERROR', '停止视频');
-              hls.destroy();
-            }
-            else if(videoPlayer.src) {
-              printLog('Hls.ErrorTypes.MEDIA_ERROR', '重新加载视频');
-              hls.recoverMediaError(); 
-            }
-            break;
-          default:
-            printLog(data.type, '其他错误类型');
-            hls.destroy();
-            break;
-        }
-      }
-      else {
-        printLog('HLS ERROR unknown');
-      }
-    });
-  }
-  catch(error) {
-    printLog('HLS ERROR 1', error.message);
-  }
-}
-
-function getMinutes(duration) {
-  // 类型检查和异常处理
-  if (typeof duration !== 'number' || isNaN(duration) || Number.isNaN(duration)) {
-    return '00:00';
-  }
-
-  const dNumber = parseInt(duration, 10);
-  const minutes = Math.floor(dNumber / 60);
-  const seconds = dNumber % 60;
-
-  // 处理分钟数小于 10 的情况
-  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
-  const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds.toString();
-
-  // 使用模板字符串拼接结果
-  return `${formattedMinutes}:${formattedSeconds}`;
-}
-
-function nativePlay(source) {
-  printLog('nativePlay');
-  videoPlayer.src = source.url;
-  const onLoadedMetadata = (evt) => {
-    printLog('videoPlayer.loadedmetadata');
-    if (source) {
-      playVideSource(source, evt.target.duration);
-    }
-  }
-  videoPlayer.removeEventListener('loadedmetadata', onLoadedMetadata);
-  videoPlayer.addEventListener('loadedmetadata', onLoadedMetadata);
-}
-
-function refreshFavoriteButton(itemCode) {
-  if(itemCode === CONSTS.CODES.LIKE) {
-    favoriteButton.innerHTML = CONSTS.ICON_UNFAVORITE;
-    favoriteButton.dataset['action'] = 'remove';
-    favoriteButton.classList.add('remove');
-  }
-  else {
-    favoriteButton.innerHTML = CONSTS.ICON_FAVORITE;
-    favoriteButton.dataset['action'] = 'add';
-    favoriteButton.classList.remove('remove');
-  }
-}
-
-function refreshDislikeButton(itemCode) {
-  if(itemCode === CONSTS.CODES.DISLIKE) {
-    dislikeButton.innerHTML = CONSTS.ICON_UNDISLIKE;
-    dislikeButton.dataset['action'] = 'remove';
-    dislikeButton.classList.add('remove');
-  }
-  else {
-    dislikeButton.innerHTML = CONSTS.ICON_DISLIKE;
-    dislikeButton.dataset['action'] = 'add';
-    dislikeButton.classList.remove('remove');
-  }
-}
-
-function saveLastPlayedVideo(playingItem) {
-  window.localStorage.setItem('lastPlayedItem', JSON.stringify(playingItem));
-}
-
-/**
- * If the URL is favorite
- * @param {string} id ID
- * @returns {Promise<number>} Returns true or false
- */
-async function fetchPlayItemCode(id) {
-  const { data, error } = await database.readData(id, FAV_STORE);
-  if(error) {
-    printLog('fetchPlayItemCode.error', error.message);
-    return CONSTS.CODES.NONE;
-  }
-  return data ? data.code : CONSTS.CODES.NONE;
-}
-
-/**
- * @param {{ title: string, url: string, group: string }} playingItem Play item
- * @param {string} duration Duration
- * @param {boolean} isLive Is live
- **/
-async function onPlay(playingItem, duration = '0', isLive = false) {
-  errorMessage.textContent = '';
-  currentTimeDisplay.textContent = getMinutes(videoPlayer.currentTime);
-  totalTimeDisplay.textContent = getMinutes(duration);
-  progressControl.max = duration;
-  if(isLive) {
-    progressBar.classList.add('hidden');
-    totalTimeDisplay.classList.add('hidden');
-    currentTimeDisplay.classList.add('hidden');
-  }
-  else {
-    progressBar.classList.remove('hidden');
-    totalTimeDisplay.classList.remove('hidden');
-    currentTimeDisplay.classList.remove('hidden');
-    pauseVideoButton.classList.remove('hidden');
-  }
-  saveLastPlayedVideo(playingItem);
-}
-
-function onPlaying() {
-  playVideoButton.innerHTML = CONSTS.ICON_STOP;
-  pauseVideoButton.innerHTML = CONSTS.ICON_PAUSE;
-  fullscreenButton.disabled = false;
-  playVideoButton.className = 'played';
-  errorMessage.textContent = '';
-  videoPlayer.className = '';
-  rewindButton.disabled = forwardButton.disabled = false;
-
-  clearTimeout(hideTimer);
-  hideTimer = setTimeout(displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
-}
-
-/**
- * @param {{ title: string, group: string, url: string }} source Play item
- * @param {boolean} isUserAction If it is controled by user
- */
-function playVideo(source, isUserAction = true) {
-  if (source) {
-    appShell.changeTitle(source.title);
-  } else {
-    appShell.changeTitle();
-  }
-  loadComments(database.encodeString(source.url), source.title);
-  loadFavorite(source);
-  loadReCapture(source);
-
-  if(isUserAction === false) { return; }
-  window.localStorage.removeItem('lastPlayedItem');
-  muteOrUnmuteVideo(muteWhenPlay === 'true');
-
-  currentTimeDisplay.textContent = getMinutes(0);
-  totalTimeDisplay.textContent = getMinutes(0);
-  progressControl.value = progressControl.max = '0';
-
-  if (Hls.isSupported() && (source.url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
-    hlsPlay(source);
-  }
-  else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-    nativePlay(source);
-  }
-  else {
-    errorMessage.textContent = '您的浏览器不支持 HLS 视频流。';
-  }
-}
-
-function muteOrUnmuteVideo(mute) {
-  videoPlayer.muted = mute;
-  speakerButton.innerHTML = videoPlayer.muted ? CONSTS.ICON_SPEAKER_ON : CONSTS.ICON_SPEAKER_OFF;
-}
-
-// 设置一个定时器变量
-let hideTimer = 0;
-
-/**
- * @param {Array<any>} args
+ * @param {Array<any>} args Arguments
  */
 function printLog(...args) {
   if(enableLogging === 'true') {
     debugLogs.innerHTML = `$ ${args.join(' ')}\n`.concat(debugLogs.innerHTML);
     logClearButton.classList.remove('hidden');
   }
-}
-
-/**
- * @param {HTMLVideoElement} video Video tag
- * @param {string} url URL
- * @param {Hls?} hls Hls instance
- * @param {boolean} isRandom If the duration is random
- * @returns {{ frame: string, duration: number }?} Returns frame URL
- */
-async function captureFrame(url, hls = null, isRandom = false) {
-  if(storeFrame === 'false') { return null; }
-
-  const frame = await new Promise((resolve) => {
-    let timer = 0;
-    const canvas = document.createElement('canvas');
-    const canvasContext = canvas.getContext('2d');
-
-    if(hls) {
-      hls.attachMedia(frameVideo);
-    }
-    else if(url) {
-      frameVideo.src = url;
-    }
-    else {
-      return resolve(null);
-    }
-    const onLoadedMetaData = (evt) => {
-      canvas.width = frameVideo.videoWidth;
-      canvas.height = frameVideo.videoHeight;
-      frameVideo.play().then(() => {
-        const captureTime = (isRandom ? Math.ceil(Math.random() * 300) : VARS.SCREENSHOT_TIME);
-        frameVideo.currentTime = captureTime;
-      }).catch(error => {
-        cleanupEvents(null);
-      });
-    },
-    onSeeked = (evt) => {
-      canvas.width = frameVideo.videoWidth;
-      canvas.height = frameVideo.videoHeight;
-      canvasContext.drawImage(frameVideo, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        if(frameVideo.currentTime > 0) {
-          cleanupEvents({ frame: blob, duration: evt.target.duration });
-        }
-      });
-    };
-
-    const cleanupEvents = (payload) => {
-      frameVideo.removeEventListener('seeked', onSeeked);
-      frameVideo.removeEventListener('loadedmetadata', onLoadedMetaData);
-      clearTimeout(timer);
-      resolve(payload);
-    };
-
-    frameVideo.addEventListener('seeked', onSeeked);
-    frameVideo.addEventListener('loadedmetadata', onLoadedMetaData);
-    
-    timer = setTimeout(() => {
-      cleanupEvents(null);
-    }, VARS.PING_TIMEOUT - 1000);
-  });
-  return frame;
-}
-
-/**
- * 检查视频可播放性
- * @param {string} url URL
- * @returns {{ ok: boolean, duration: number, frame: string, latency: 0, timeout: boolean }}
- **/
-async function checkVideoPlayability(url, isRandom = false) {
-  const timestamp = new Date().getTime();
-  return new Promise((resolve) => {
-    let timeoutId = 0;
-    if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
-      try {
-        const hls = new Hls();
-        const cleanup = () => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-          hls.destroy();
-        };
-
-        hls.loadSource(url);
-        hls.once(Hls.Events.MANIFEST_PARSED, async (evt, data) => {
-          const latency = new Date().getTime() - timestamp;
-          const captured = await captureFrame(url, hls, isRandom);
-          cleanup();
-          resolve({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, timeout: false });
-        });
-
-        hls.once(Hls.Events.ERROR, () => {
-          cleanup();
-          resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
-        });
-
-        timeoutId = setTimeout(() => {
-          cleanup();
-          resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: true });
-        }, VARS.PING_TIMEOUT);
-      }
-      catch(error) {
-        printLog('HLS ERROR 2');
-      }
-    }
-    else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-      const video = document.createElement('video');
-      video.src = url;
-      const cleanup = () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        video.remove();
-      };
-
-      video.onloadedmetadata = async (evt) => {
-        const latency = new Date().getTime() - timestamp;
-        const captured = await captureFrame(url, null, isRandom);
-        cleanup();
-        resolve({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, timeout: false });
-      };
-
-      video.onerror = () => {
-        cleanup();
-        resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
-      };
-
-      timeoutId = setTimeout(() => {
-        cleanup();
-        resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: true });
-      }, VARS.PING_TIMEOUT);
-    }
-    else {
-      resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
-    }
-  });
-}
-
-function gotoPage(p) {
-  currentPage = p;
-  window.localStorage.setItem('currentPage', p);
-
-  displayPlaylistPage(currentPage, VARS.TRANSACTION = crypto.randomUUID()).catch(error => {
-    printLog('gotoPage.error', error.message);
-  });
-
-  updatePaginationControls();
-}
-
-async function fetchFavorites(itemCode = CONSTS.CODES.LIKE) {
-  /** @type {{ data: Array<{ id: string, code: string }> }} */
-  const { data } = await database.listData(FAV_STORE);
-  categories[favoriteChannels] = data.filter(x => x.code === itemCode || typeof x.code === 'undefined');
-  return categories[favoriteChannels];
-}
-
-async function fetchDislikes(itemCode = CONSTS.CODES.DISLIKE) {
-  /** @type {{ data: Array<{ id: string, code: string }> }} */
-  const { data } = await database.listData(FAV_STORE);
-  VARS.DISLIKES = data.filter(x => x.code === itemCode).map(x => x.id);
-}
-
-function setUrlInput(url, label = CONSTS.ICON_UPDATE_FROM_URL) {
-  m3uUrlInput.value = url;
-  loadM3uButton.innerHTML = label;
-  window.localStorage.setItem('cachedM3uUrl', url);
-}
-
-function setFullscreenData(state) {
-  videoContainer.dataset['fullscreen'] = !!state;
-}
-
-// 加载缓存的数据
-async function startup() {
-  await loadLocalCache();
-  gotoPage(currentPage);
-  playLastVideo(false);
-  listStore('startup');
-  appShell.initUI();
-
-  appShell.generateBlankFrame();
-  appShell.changeTitle();
-}
-
-async function deleteFavorite(id) {
-  const { data, error } = await database.deleteData(id, FAV_STORE);
-  if(error) {
-    printLog('deleteFavorite.error', error);
-  }
-  refreshFavoriteButton(CONSTS.CODES.NONE);
-  refreshDislikeButton(CONSTS.CODES.NONE);
-  initializePlaylist();
-}
-
-async function addFavorite(id, url, title, group, code = CONSTS.CODES.LIKE) {
-  await database.addData({ id, url, title, group, code }, FAV_STORE);
-  refreshFavoriteButton(code);
-  refreshDislikeButton(code);
-  initializePlaylist();
 }
 
 favoriteButton.addEventListener('click', async (evt) => {
@@ -3163,10 +3267,10 @@ favoriteButton.addEventListener('click', async (evt) => {
   const isAddingData = favoriteButton.dataset['action'] === 'add';
   const isDeletingData = favoriteButton.dataset['action'] === 'remove';
   if(isAddingData) {
-    addFavorite(id, url, title, group, CONSTS.CODES.LIKE);
+    appShell.addFavorite(id, url, title, group, CONSTS.CODES.LIKE);
   }
   else if(isDeletingData) {
-    deleteFavorite(id);
+    appShell.deleteFavorite(id);
   }
 });
 
@@ -3178,10 +3282,10 @@ dislikeButton.addEventListener('click', async (evt) => {
   const isAddingData = dislikeButton.dataset['action'] === 'add';
   const isDeletingData = dislikeButton.dataset['action'] === 'remove';
   if(isAddingData) {
-    addFavorite(id, url, title, group, CONSTS.CODES.DISLIKE);
+    appShell.addFavorite(id, url, title, group, CONSTS.CODES.DISLIKE);
   }
   else if(isDeletingData) {
-    deleteFavorite(id);
+    appShell.deleteFavorite(id);
   }
 });
 
@@ -3192,13 +3296,13 @@ reCaptureButton.addEventListener('click', async (evt) => {
   const id = favoriteButton.dataset['id'];
 
   reCaptureButton.disabled = true;
-  const result = await checkVideoPlayability(url, true);
+  const result = await appShell.checkVideoPlayability(url, true);
   await database.updateData({ id, result }, STA_STORE);
-  const itemCode = await fetchPlayItemCode(id);
+  const itemCode = await appShell.fetchPlayItemCode(id);
   for(const node of playlistItems.childNodes) {
     if(node.dataset['url'] === url) {
-      updateListItemStyle(node, result, null, itemCode);
-      changePoster(node.dataset['frame']);
+      appShell.updateListItemStyle(node, result, null, itemCode);
+      appShell.changePoster(node.dataset['frame']);
       break; 
     }
   }
@@ -3219,94 +3323,67 @@ pinButton.addEventListener('click', async (evt) => {
 });
 
 categorySelect.addEventListener('change', async (evt) => {
-  saveCategoryToCache(evt.target.value);
+  appShell.saveCategoryToCache(evt.target.value);
   // 重置搜索
   searchInput.value = '';
   // 更新当前类别的数据
-  if(currentCategory === favoriteChannels) {
-    filteredPlaylistData = await fetchFavorites();
+  if(appShell.currentCategory === CONSTS.CHANNELS.FAVORITE) {
+    filteredPlaylistData = await appShell.fetchFavorites();
   }
   else {
-    filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
+    filteredPlaylistData = categories[appShell.currentCategory === CONSTS.CHANNELS.ALL ? CONSTS.CHANNELS.RAW : appShell.currentCategory];
   }
-  gotoPage(1);
+  appShell.gotoPage(1);
 });
-loadM3uButton.addEventListener('click', (evt) => loadM3uFile(false));
-// loadContentuButton.addEventListener('click', () => loadM3uContent());
+loadM3uButton.addEventListener('click', (evt) => {
+  appShell.loadM3uFile(false);
+});
+
 closeM3uButton.addEventListener('click', (evt) => {
-  showM3uInput();
+  appShell.showM3uInput();
 });
 
-settingsButton.addEventListener('click', showM3uInput);
+settingsButton.addEventListener('click', (evt) => {
+  appShell.showM3uInput();
+});
 
-function gotoPrevPage(evt) {
+prevButton.addEventListener('click', (evt) => {
   evt.preventDefault();
-  if (currentPage > 1) {
-    currentPage--;
-    gotoPage(currentPage);
-  }
-}
-prevButton.addEventListener('click', gotoPrevPage);
-prevButton.addEventListener('dblclick', gotoPrevPage);
+  appShell.gotoPrevPage();
+});
+prevButton.addEventListener('dblclick', (evt) => {
+  evt.preventDefault();
+  appShell.gotoPrevPage();
+});
 document.addEventListener('dblclick', (evt) => {
   /** @type {HTMLElement} **/
   const node = evt.target;
   const nodeName = node.tagName.toLowerCase();
   switch(nodeName) {
     case 'input':
+    case 'button':
       break;
     case 'video':
-      if(videoPlayer.paused === false) videoPlayer.requestFullscreen();
+      if(appShell.isPlaying()) videoPlayer.requestFullscreen();
       break;
     default:
       evt.preventDefault();
       evt.stopPropagation();
+      appShell.resetPoster(node);
   }
 });
 
-function gotoNextPage(evt) {
+nextButton.addEventListener('click', (evt) => {
   evt.preventDefault();
-  const itemsToDisplay = filteredPlaylistData || [];
-  if (currentPage < Math.ceil(itemsToDisplay.length / itemsPerPage)) {
-    currentPage++;
-    gotoPage(currentPage);
-  }
-}
-
-function resetPoster(evt) {
+  appShell.gotoNextPage();
+});
+nextButton.addEventListener('dblclick', (evt) => {
   evt.preventDefault();
-  const node = evt.target;
-  const nodeName = node.tagName.toLowerCase();
-  if(nodeName === 'input' || nodeName === 'video') {
-    return;
-  }
-  /** @type {HTMLVideoElement} */
-  const player = evt.target;
-  if(player.poster !== CONSTS.POSTER) {
-    stopVideo(player.poster);
-  }
-}
-
-function detectM3uUrl() {
-  loadM3uButton.disabled = !m3uUrlInput.checkValidity();
-  const cachedM3uUrl = getCachedM3uUrl();
-  if(cachedM3uUrl === m3uUrlInput.value) {
-    loadM3uButton.innerHTML = CONSTS.ICON_UPDATE_FROM_URL;
-  }
-  else {
-    loadM3uButton.innerHTML = CONSTS.ICON_READ_FROM_URL;
-  }
-}
-
-function seekVideo(time) {
-  videoPlayer.currentTime += time;
-}
-
-nextButton.addEventListener('click', gotoNextPage);
-nextButton.addEventListener('dblclick', gotoNextPage);
+  appShell.gotoNextPage();
+});
 
 pageControl.addEventListener('change', (evt) => {
-  gotoPage(parseInt(evt.target.value));
+  appShell.gotoPage(parseInt(evt.target.value));
   document.getElementById('pageCurrent').textContent = currentPage;
 });
 pageControl.addEventListener('input', (evt) => {
@@ -3317,7 +3394,7 @@ searchContainer.addEventListener('submit', (evt) => {
   evt.preventDefault();
   evt.stopImmediatePropagation();
   if(searchContainer.checkValidity())
-    performSearch();
+    appShell.performSearch();
 });
 
 searchInput.addEventListener('keyup', (evt) => {
@@ -3332,27 +3409,26 @@ searchInput.addEventListener('keyup', (evt) => {
 searchInput.addEventListener('input', function() {
   if (this.value === '') {
     // 清空搜索关键字后，恢复到当前类别的播放列表
-    filteredPlaylistData = categories[currentCategory === allChannels ? originalChannels : currentCategory];
-    gotoPage(1);
+    filteredPlaylistData = categories[appShell.currentCategory === CONSTS.CHANNELS.ALL ? CONSTS.CHANNELS.RAW : appShell.currentCategory];
+    appShell.gotoPage(1);
   }
   searchInput.dispatchEvent(new Event('keyup'));
 });
 
 m3uUrlInput.addEventListener('blur', (evt) => {
-  detectM3uUrl();
+  appShell.detectM3uUrl();
 });
 m3uUrlInput.addEventListener('keyup', (evt) => {
-  detectM3uUrl();
+  appShell.detectM3uUrl();
 });
 m3uUrlInput.addEventListener('input', (evt) => {
-  detectM3uUrl();
+  appShell.detectM3uUrl();
 });
 
 clearButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   searchInput.value = '';
-  performSearch();
-  gotoPage(1);
+  appShell.performSearch();
   searchInput.dispatchEvent(new Event('keyup'));
 });
 
@@ -3361,36 +3437,36 @@ closeButton.addEventListener('click', (evt) => {
 });
 
 listCheckButton.addEventListener('click', (evt) => {
-  refreshCurrentPage(VARS.TRANSACTION = crypto.randomUUID(), listCheckButton.classList.contains('checking'));
+  appShell.refreshCurrentPage(VARS.TRANSACTION = crypto.randomUUID(), listCheckButton.classList.contains('checking'));
 });
 
 videoPlayer.addEventListener('timeupdate', (evt) => {
   if(videoPlayer.src === stopURL) { return; }
 
-  const lastPlayedItem = getLastVideoItem();
+  const lastPlayedItem = appShell.getLastVideoItem();
   if(lastPlayedItem) {
     /** @type {HTMLVideoElement} **/
     const player = evt.target;
     progressControl.value = player.currentTime;
-    setVideoTimestamp(player.currentTime);
+    appShell.setVideoTimestamp(player.currentTime);
     if (progressControl.max === '0' && player.duration) {
       progressControl.max = player.duration;
-      totalTimeDisplay.textContent = getMinutes(player.duration);
+      totalTimeDisplay.textContent = appShell.getMinutes(player.duration);
     }
-    currentTimeDisplay.textContent = getMinutes(player.currentTime);
+    currentTimeDisplay.textContent = appShell.getMinutes(player.currentTime);
   }
 });
 videoPlayer.addEventListener('pause', (evt) => {
   printLog('videoPlayer.pause');
-  onStopped();
+  appShell.onStopped();
 });
 
 videoPlayer.addEventListener('seeked', (evt) => {
-  const lastPlayedItem = getLastVideoItem();
+  const lastPlayedItem = appShell.getLastVideoItem();
   printLog('videoPlayer.seeked', videoPlayer.currentTime, evt.target.currentTime);
   if(lastPlayedItem) {
     printLog('lastPlayedItem.seeked', videoPlayer.currentTime, evt.target.currentTime);
-    setVideoTimestamp(videoPlayer.currentTime);
+    appShell.setVideoTimestamp(videoPlayer.currentTime);
   }
 });
 videoPlayer.addEventListener('canplay', (evt) => {
@@ -3398,12 +3474,12 @@ videoPlayer.addEventListener('canplay', (evt) => {
 });
 videoPlayer.addEventListener('play', (evt) => {
   printLog('videoPlayer.play');
-  onPlaying();
+  appShell.onPlaying();
 });
 videoPlayer.addEventListener('loadeddata', (evt) => {
   printLog(`videoPlayer.loadeddata - ${videoPlayer.readyState}`);
   if(videoPlayer.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA)
-    displayPlayerControls(true, true);
+    appShell.displayPlayerControls(true, true);
 });
 videoPlayer.addEventListener('playing', (evt) => {
   printLog(`videoPlayer.playing - ${videoPlayer.networkState}`);
@@ -3416,7 +3492,7 @@ videoPlayer.addEventListener("stalled", (evt) => {
   const player = evt.target;
   printLog('videoPlayer.stalled', player.paused);
   if(player.paused) {
-    onStopped();
+    appShell.onStopped();
   }
 });
 
@@ -3431,16 +3507,16 @@ videoPlayer.addEventListener('waiting', (evt) => {
 });
 videoPlayer.addEventListener('canplaythrough', (evt) => {
   printLog('videoPlayer.canplaythrough');
-  onPlaying();
+  appShell.onPlaying();
 });
 videoPlayer.addEventListener('ended', (evt) => {
   printLog('videoPlayer.ended');
-  onStopped(true);
+  appShell.onStopped(true);
 });
 videoPlayer.addEventListener('error', (evt) => {
   printLog('videoPlayer.error');
   if(videoPlayer.src === stopURL) {
-    showPlayButton();
+    appShell.showPlayButton();
     return;
   }
   errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
@@ -3448,48 +3524,40 @@ videoPlayer.addEventListener('error', (evt) => {
 ['mouseover', 'touchstart'].forEach(eventType => {
   [videoPlayer, videoControls].forEach(element => {
     element.addEventListener(eventType, () => {
-      clearTimeout(hideTimer);
-      displayPlayerControls(true, true);
-    });
+      clearTimeout(VARS.CONTROL_TIMER);
+      appShell.displayPlayerControls(true, true);
+    }, { passive: true });
   });
 });
 ['mouseout', 'touchend'].forEach(eventType => {
   [videoPlayer, videoControls].forEach(element => {
     element.addEventListener(eventType, () => {
-      clearTimeout(hideTimer);
-      hideTimer = setTimeout(displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
+      clearTimeout(VARS.CONTROL_TIMER);
+      VARS.CONTROL_TIMER = setTimeout(appShell.displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
     });
   });
 });
 [videoPlayer, videoControls].forEach(element => {
   element.addEventListener('touchcancel', () => {
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
+    clearTimeout(VARS.CONTROL_TIMER);
+    VARS.CONTROL_TIMER = setTimeout(appShell.displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
   });
 });
 videoPlayer.addEventListener('click', (evt) => {
-  clearTimeout(hideTimer);
+  clearTimeout(VARS.CONTROL_TIMER);
   if(videoControls.classList.contains('transparent')) {
-    displayPlayerControls(true, true);
+    appShell.displayPlayerControls(true, true);
   }
   else {
-    displayPlayerControls();
+    appShell.displayPlayerControls();
   }
 });
 
-videoPlayer.addEventListener('dblclick', resetPoster);
-bottomControls.addEventListener('dblclick', resetPoster);
-
-// progressControl.addEventListener("click", (evt) => {
-//   const rect = progressControl.getBoundingClientRect();
-//   const pos = (evt.pageX - rect.left) / progressControl.offsetWidth;
-//   videoPlayer.currentTime = pos * videoPlayer.duration;
-
-//   const lastPlayedItem = getLastVideoItem();
-//   if(lastPlayedItem) {
-//     setVideoTimestamp(videoPlayer.currentTime);
-//   }
-// });
+videoPlayer.addEventListener('dblclick', (evt) => {
+  evt.preventDefault();
+  const node = evt.target;
+  appShell.resetPoster(node);
+});
 
 progressControl.addEventListener('change', (evt) => {
   const value = evt.target.value;
@@ -3501,7 +3569,7 @@ progressControl.addEventListener('input', (evt) => {
   const value = evt.target.value;
   try {
     const currentTime = parseFloat(value);
-    currentTimeDisplay.textContent = getMinutes(currentTime);
+    currentTimeDisplay.textContent = appShell.getMinutes(currentTime);
     if (!isNaN(currentTime) && !Number.isNaN(currentTime)) {
       videoPlayer.currentTime = currentTime;
     }
@@ -3509,11 +3577,11 @@ progressControl.addEventListener('input', (evt) => {
 });
 
 playVideoButton.addEventListener('click', (evt) => {
-  if(playVideoButton.className === 'played' || playVideoButton.className === 'playing') {
-    stopVideo();
+  if(appShell.isPlaying()) {
+    appShell.stopVideo();
   }
   else {
-    playLastVideo();
+    appShell.playLastVideo();
   }
 });
 
@@ -3531,7 +3599,7 @@ pauseVideoButton.addEventListener('click', (evt) => {
 });
 
 speakerButton.addEventListener('click', (evt) => {
-  muteOrUnmuteVideo(!videoPlayer.muted);
+  appShell.muteOrUnmuteVideo(!videoPlayer.muted);
 });
 
 fullscreenButton.addEventListener('click', (evt) => {
@@ -3541,41 +3609,25 @@ fullscreenButton.addEventListener('click', (evt) => {
   if (document.fullscreenElement === null && document.fullscreenEnabled) {
     // The document is not in fullscreen mode
     videoPlayer.requestFullscreen();
-    setFullscreenData(true);
+    appShell.setFullscreenData(true);
   } else {
     // The document is in fullscreen mode
     document.exitFullscreen();
-    setFullscreenData(false);
+    appShell.setFullscreenData(false);
   }
 });
 
 rewindButton.addEventListener('click', (evt) => {
-  seekVideo(-30);
+  appShell.seekVideo(-30);
 });
 
 forwardButton.addEventListener('click', (evt) => {
-  seekVideo(30);
+  appShell.seekVideo(30);
 });
-
-function displaySideMenu(show = false) {
-  // Hide playlist
-  if(show) {
-    showPlaylistContent();
-    pageBody.classList.add('play-list');
-  }
-  // Show playlist
-  else {
-    playlistContainer.className = 'back';
-    pageBody.classList.remove('settings');
-    pageBody.classList.remove('play-list');
-    displayPlayerControls();
-  }
-  window.localStorage.setItem('playListVisible', show ? 'true' : 'false');
-}
 
 playListButton.addEventListener('click', (evt) => {
   let playListVisible = window.localStorage.getItem('playListVisible') || 'false';
-  displaySideMenu(playListVisible === 'false');
+  appShell.displaySideMenu(playListVisible === 'false');
 });
 
 storeFrameCheckbox.addEventListener('change', (evt) => {
@@ -3625,42 +3677,9 @@ logClearButton.addEventListener('click', (evt) => {
   debugLogs.innerHTML = '> 日志';
 });
 
-function loadComments(id, title, skip = 0) {
-  commentsInput.placeholder = `评论：${title}`;
-  axios.get(`${CONSTS.BASE_URL}/api/tv/comments/${id}?skip=${skip}`)
-  .catch(error => {
-    console.log('load.comments.error->', error);
-  })
-  .then(response => {
-    if(response) {
-      const { data } = response;
-      const { comments } = data;
-
-      commentsList.innerHTML = '';
-
-      comments.forEach(comment => {
-        const commentItem = document.createElement('div');
-        const commentContent = document.createElement('div');
-        const commentTime = document.createElement('div');
-        commentItem.className = 'comment';
-        commentContent.className = 'content';
-        commentContent.textContent = comment.content;
-        commentTime.className = 'time';
-        commentTime.textContent = appShell.timeAgo(new Date(comment.created_time).getTime());
-
-        commentItem.append(commentTime);
-        commentItem.append(commentContent);
-
-        commentsList.appendChild(commentItem);
-      });
-
-    }
-  });
-}
-
 commentsForm.addEventListener('submit', async (evt) => {
   evt.preventDefault();
-  const lastPlayedItem = getLastVideoItem();
+  const lastPlayedItem = appShell.getLastVideoItem();
   if(lastPlayedItem) {
     const id = database.encodeString(lastPlayedItem.url);
     axios.post(`${CONSTS.BASE_URL}/api/tv/comments/${id}`, {
@@ -3673,7 +3692,7 @@ commentsForm.addEventListener('submit', async (evt) => {
       commentsInput.value = '';
       commentsInput.focus();
       commentsInput.dispatchEvent(new Event('input'));
-      loadComments(id, lastPlayedItem.title);
+      appShell.loadComments(id, lastPlayedItem.title);
     });
   }
 });
@@ -3685,20 +3704,20 @@ commentsInput.addEventListener('input', (evt) => {
 
 [bottomControls, paginationGroup].forEach(element => {
   window.swipe(element).on('swipeLeft', (evt) => {
-    displaySideMenu(false);
+    appShell.displaySideMenu(false);
   });
 })
 
 window.swipe(bottomControls).on('swipeRight', (evt) => {
-  displaySideMenu(true);
+  appShell.displaySideMenu(true);
 });
 
 window.swipe(videoPlayer).on('swipeRight', (evt) => {
-  seekVideo(30);
+  appShell.seekVideo(30);
 });
 
 window.swipe(videoPlayer).on('swipeLeft', (evt) => {
-  seekVideo(-30);
+  appShell.seekVideo(-30);
 });
 
 let isHidden = false;
@@ -3710,36 +3729,36 @@ document.addEventListener('keydown', function (event) {
     }
     else {
       pageContainer.className = 'hidden';
-      muteOrUnmuteVideo(true);
+      appShell.muteOrUnmuteVideo(true);
       videoPlayer.pause();
     }
     isHidden = !isHidden;
   }
   else if(event.key === 'ArrowLeft' || event.keyCode === 37) {
     event.preventDefault();
-    seekVideo(-30);
+    appShell.seekVideo(-30);
   }
   else if(event.key === 'ArrowRight' || event.keyCode === 39) {
     event.preventDefault();
-    seekVideo(30);
+    appShell.seekVideo(30);
   }
   else if (event.key === 'ArrowUp' || event.keyCode === 38) {
     event.preventDefault();
-    seekVideo(60);
+    appShell.seekVideo(60);
   }
   else if (event.key === 'ArrowDown' || event.keyCode === 40) {
     event.preventDefault();
-    seekVideo(-60);
+    appShell.seekVideo(-60);
   }
 });
 
 window.addEventListener('beforeunload', (evt) => {
-  saveVideoTimestamp();
+  appShell.saveVideoTimestamp();
 });
 
 // 初始化
 window.addEventListener('DOMContentLoaded', (evt) => {
-  startup();
+  appShell.startup();
 });
 
 </script>
