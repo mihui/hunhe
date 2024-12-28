@@ -2322,14 +2322,13 @@ class AppShell {
       li.title = `此视频源可能无法播放`;
     }
     if(lastPlayedItem?.url === li.dataset['url']) {
-      appShell.previewNow(li, lastPlayedItem, li.dataset['frame']);
-      // li.classList.add('preview');
-      // if(this.isPlaying()) {
-      //   li.classList.add('active');
-      // }
-      // if(li.classList.contains('frame')) {
-      //   this.changePoster(li.dataset['frame']);
-      // }
+      li.classList.add('preview');
+      if(this.isPlaying()) {
+        li.classList.add('active');
+      }
+      if(li.classList.contains('frame')) {
+        this.changePoster(li.dataset['frame']);
+      }
     }
     if(itemCode === CONSTS.CODES.LIKE) {
       if(this.currentCategory !== CONSTS.CHANNELS.FAVORITE) {
