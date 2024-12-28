@@ -3003,6 +3003,7 @@ class AppShell {
     }
     if(node.poster !== CONSTS.POSTER) {
       this.stopVideo(node.poster);
+      window.localStorage.removeItem('lastPlayedItem');
     }
   }
 
