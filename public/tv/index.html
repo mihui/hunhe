@@ -1976,7 +1976,7 @@ class AppShell {
           commentContent.className = 'content';
           commentContent.textContent = comment.content;
           commentTime.className = 'time';
-          commentTime.textContent = appShell.timeAgo(new Date(comment.created_time).getTime());
+          commentTime.textContent = this.timeAgo(new Date(comment.created_time).getTime());
 
           commentItem.append(commentTime);
           commentItem.append(commentContent);
@@ -2563,7 +2563,7 @@ class AppShell {
       label.className = 'label';
       /** @type {HTMLElement} **/
       const text = document.createElement('i');
-      text.textContent = item.group === appShell.currentCategory ? item.title : `[${item.group}] ${item.title}`;
+      text.textContent = item.group === this.currentCategory ? item.title : `[${item.group}] ${item.title}`;
       label.append(text);
 
       if(item.url.startsWith(UNSAFE_HTTP) && CONSTS.IS_NATIVE === false) {
@@ -2633,7 +2633,7 @@ class AppShell {
     await this.fetchFavorites();
     await this.fetchDislikes();
 
-    filteredPlaylistData = (categories[appShell.currentCategory] || playlistData).filter(x => VARS.DISLIKES.includes(x.id) === false);
+    filteredPlaylistData = (categories[this.currentCategory] || playlistData).filter(x => VARS.DISLIKES.includes(x.id) === false);
 
     this.displayPlaylistPage(currentPage, VARS.TRANSACTION).catch(error => {
       printLog('initializePlaylist.displayPlaylistPage.error', error.message);
@@ -2650,8 +2650,9 @@ class AppShell {
 
   async processM3uData(type, data, fromCache = false, isBooting = false) {
     await this.initPlayData(type, data);
+    await this.initializePlaylist();
     this.initializeCategories(isBooting);
-    this.initializePlaylist();
+
     this.showPlaylistContent();
     errorMessage.textContent = '';
   }
@@ -2788,7 +2789,6 @@ class AppShell {
    * @returns {string} Returns the current channel
    */
   loadCurrentChannel(isBooting = false) {
-    printLog('loadCurrentChannel');
     this.currentCategory = CONSTS.CHANNELS.ALL;
     if(isBooting) {
       let category = window.localStorage.getItem('currentCategory');
@@ -2827,6 +2827,7 @@ class AppShell {
    * @param {boolean} isBooting - Whether or not the app is booting
    */
   initializeCategories(isBooting = false) {
+    printLog('initializeCategories');
     channelList.innerHTML = '';
     const selectedChannel = this.loadCurrentChannel(isBooting);
     channelButton.textContent = selectedChannel;
@@ -2836,7 +2837,7 @@ class AppShell {
       }
       /** @type {HTMLLIElement} **/
       const li = document.createElement('li');
-      const size = Object.hasOwn(categories, category) ? categories[category].length : 0;
+      const size = categories[category].length;
 
       li.dataset['channel'] = category;
       li.dataset['duration'] = size;
@@ -3306,8 +3307,8 @@ class AppShell {
       //
     }
     else {
-      appShell.showCheckButton(true);
-      const lastPlayedItem = appShell.getLastVideoItem();
+      this.showCheckButton(true);
+      const lastPlayedItem = this.getLastVideoItem();
 
       const items = playlistItems.childNodes;
       for (let i = 0; i < items.length; i++) {
