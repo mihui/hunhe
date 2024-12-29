@@ -725,6 +725,9 @@ select:focus-visible {
     border-radius: 4px;
     width: auto;
   }
+  #playlistItems li.favorite::after {
+    padding: 0.3rem;
+  }
   #playlistItems li::-webkit-scrollbar,
   #playlistItems li label::-webkit-scrollbar {
     display: none;
@@ -848,9 +851,6 @@ button {
   justify-content: center;
 }
 
-#bottomControls {
-  display: none;
-}
 #errorControl #errorMessage {
   color: #e74c3c;
   text-align: center;
@@ -869,8 +869,6 @@ button {
 
 #settingsButton {
   background-color: #606060;
-  border-top-left-radius: 0px;
-  border-bottom-left-radius: 0px;
 }
 
 #reCaptureButton {
@@ -1127,6 +1125,7 @@ button {
   align-items: flex-start;
   justify-content: center;
   flex-flow: column;
+  user-select: none;
 }
 
   .tools #databaseSize {
@@ -1155,6 +1154,7 @@ button {
     width: 100%;
     padding: 0.5rem;
     position: relative;
+    user-select: all;
   }
   .tools .debug #debugLogs {
     width: 100%;
@@ -1320,7 +1320,7 @@ input:checked + .slider:before {
 }
 
 #commentsLayout {
-  display: none;
+  display: flex;
   width: 100%;
   flex-flow: column;
   overflow: auto;
@@ -1587,9 +1587,8 @@ input:checked + .slider:before {
                 <button type="reset" id="clearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
               </div>
               <button type="submit" id="searchButton" class="hidden"><svg width="20" height="20"><use xlink:href="#search"/></svg></button>
-              <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
             </form>
-            
+
             <ul id="playlistItems"></ul>
             <div class="page-controls">
               <div id="pagination">
@@ -1647,6 +1646,7 @@ input:checked + .slider:before {
           </div>
 
           <div id="bottomButtons" class="user-controls">
+            <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
             <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
             <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
             <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
@@ -3086,12 +3086,24 @@ class AppShell {
   }
   /**
    * Reset poster
-   * @param {HTMLElement} node Node
+   * @param {Event} evt Node
    */
-  resetPoster(node) {
+  resetPoster(evt) {
+    /** @type {HTMLElement} **/
+    const node = evt.target;
     const nodeName = node.tagName.toLowerCase();
-    if(nodeName === 'input' || nodeName === 'video') {
-      return;
+    switch(nodeName) {
+      case 'input':
+      case 'button':
+        break;
+      case 'video':
+        if(this.isPlaying()) videoPlayer.requestFullscreen();
+        break;
+      default:
+        {
+          evt.preventDefault();
+          evt.stopPropagation();
+          }
     }
     if(node.poster !== CONSTS.POSTER) {
       window.localStorage.removeItem('lastPlayedItem');
@@ -3448,21 +3460,7 @@ prevButton.addEventListener('dblclick', (evt) => {
   appShell.gotoPrevPage();
 });
 document.addEventListener('dblclick', (evt) => {
-  /** @type {HTMLElement} **/
-  const node = evt.target;
-  const nodeName = node.tagName.toLowerCase();
-  switch(nodeName) {
-    case 'input':
-    case 'button':
-      break;
-    case 'video':
-      if(appShell.isPlaying()) videoPlayer.requestFullscreen();
-      break;
-    default:
-      evt.preventDefault();
-      evt.stopPropagation();
-      appShell.resetPoster(node);
-  }
+  appShell.resetPoster(evt);
 });
 
 nextButton.addEventListener('click', (evt) => {
@@ -3484,7 +3482,7 @@ pageControl.addEventListener('input', (evt) => {
 
 searchContainer.addEventListener('submit', (evt) => {
   evt.preventDefault();
-  evt.stopImmediatePropagation();
+  evt.stopPropagation();
   if(searchContainer.checkValidity())
     appShell.performSearch();
 });
@@ -3531,6 +3529,11 @@ m3uInputContainer.addEventListener('click', (evt) => {
   if(evt.target.id === 'm3uInputContainer') {
     closeM3uButton.dispatchEvent(new Event('click'));
   }
+});
+
+m3uInputContainer.addEventListener('dblclick', (evt) => {
+  evt.preventDefault();
+  evt.stopPropagation();
 });
 
 listCheckButton.addEventListener('click', (evt) => {
@@ -3652,9 +3655,7 @@ videoPlayer.addEventListener('click', (evt) => {
 });
 
 videoPlayer.addEventListener('dblclick', (evt) => {
-  evt.preventDefault();
-  const node = evt.target;
-  appShell.resetPoster(node);
+  appShell.resetPoster(evt);
 });
 
 progressControl.addEventListener('change', (evt) => {
