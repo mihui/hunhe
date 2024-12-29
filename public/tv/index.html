@@ -2630,9 +2630,7 @@ class AppShell {
 
   // 初始化播放列表
   async initializePlaylist() {
-
     filteredPlaylistData = (categories[this.currentCategory] || playlistData).filter(x => VARS.DISLIKES.includes(x.id) === false);
-
     this.displayPlaylistPage(currentPage, VARS.TRANSACTION).catch(error => {
       printLog('initializePlaylist.displayPlaylistPage.error', error.message);
     });
@@ -2787,8 +2785,8 @@ class AppShell {
    * @returns {string} Returns the current channel
    */
   loadCurrentChannel(isBooting = false) {
-    this.currentCategory = CONSTS.CHANNELS.ALL;
     if(isBooting) {
+      this.currentCategory = CONSTS.CHANNELS.ALL;
       let category = window.localStorage.getItem('currentCategory');
       if(category && category !== this.currentCategory) {
         /** @type {Array<string>} */
@@ -2829,8 +2827,10 @@ class AppShell {
     await this.fetchDislikes();
 
     channelList.innerHTML = '';
+
     const selectedChannel = this.loadCurrentChannel(isBooting);
     channelButton.textContent = selectedChannel;
+
     for (let category in categories) {
       if(category === CONSTS.CHANNELS.RAW){
         continue;
@@ -3381,6 +3381,7 @@ class AppShell {
     await database.addData({ id, url, title, group, code }, FAV_STORE);
     this.refreshFavoriteButton(code);
     this.refreshDislikeButton(code);
+    await this.initializeCategories();
     this.initializePlaylist();
   }
 
@@ -3391,9 +3392,9 @@ class AppShell {
     }
     this.refreshFavoriteButton(CONSTS.CODES.NONE);
     this.refreshDislikeButton(CONSTS.CODES.NONE);
+    await this.initializeCategories();
     this.initializePlaylist();
   }
-
 } // End of class
 
 class WebShell extends AppShell {
