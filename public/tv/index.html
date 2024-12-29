@@ -2266,10 +2266,9 @@ class AppShell {
     return videoPlayer.paused === false || playVideoButton.className === 'played' || playVideoButton.className === 'playing';
   }
 
-  stopVideo(isReset = false, poster = CONSTS.POSTER) {
+  stopVideo(removePreview = true, isReset = false, poster = CONSTS.POSTER) {
     printLog('stopVideo');
     videoPlayer.pause();
-    const item = this.getLastVideoItem();
     if(stopURL) videoPlayer.src = stopURL;
     videoPlayer.pause();
     videoPlayer.removeAttribute('src');
@@ -2283,10 +2282,10 @@ class AppShell {
     this.resetControlButtons(false, isReset);
     this.saveVideoTimestamp();
     this.changePoster(poster);
-    //
-    // this.resetListStyle('preview');
     this.resetListStyle('active');
-    if(item) this.resetListStyles(item.url, ['preview']);
+    if(removePreview) {
+      this.resetListStyle('preview');
+    }
   }
   /**
    * @param {HTMLLIElement} li List item
@@ -2295,7 +2294,7 @@ class AppShell {
    */
   async previewNow(li, item, frame) {
     printLog('previewNow');
-    this.stopVideo(false, frame);
+    this.stopVideo(true, false, frame);
     if(li.dataset['broken']) return;
     li.classList.add('preview');
     this.loadComments(li.dataset['id'], li.title);
@@ -3096,7 +3095,7 @@ class AppShell {
     }
     if(node.poster !== CONSTS.POSTER) {
       window.localStorage.removeItem('lastPlayedItem');
-      this.stopVideo(true, node.poster);
+      this.stopVideo(true, true, node.poster);
     }
   }
 
@@ -3677,7 +3676,7 @@ progressControl.addEventListener('input', (evt) => {
 
 playVideoButton.addEventListener('click', (evt) => {
   if(appShell.isPlaying()) {
-    appShell.stopVideo();
+    appShell.stopVideo(false);
   }
   else {
     appShell.playLastVideo();
