@@ -1604,7 +1604,7 @@ input:checked + .slider:before {
             <ul id="channelList" class="menu-list hidden"></ul>
             <ul id="playlistItems" class="menu-list"></ul>
 
-            <div class="page-controls">
+            <div id="pageControls" class="page-controls">
               <div id="pagination">
                 <button id="prevPage" disabled>上页</button>
                 <div class="page-information">
@@ -1744,7 +1744,7 @@ function getElementById(idList = []) {
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLButtonElement,
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement, HTMLUListElement,
- * HTMLUListElement, HTMLDivElement, HTMLElement, HTMLButtonElement,
+ * HTMLUListElement, HTMLDivElement, HTMLElement, HTMLButtonElement, HTMLDivElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
  * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement, HTMLDivElement,
  * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
@@ -1760,7 +1760,7 @@ const [
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
   fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
   pageControl, clearButton, closeButton, m3uContentKey, channelList,
-  playlistItems, paginationGroup, videoContainer, dislikeButton,
+  playlistItems, paginationGroup, videoContainer, dislikeButton, pageControls,
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
@@ -1776,7 +1776,7 @@ getElementById([
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
   'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
   'pageControl', 'clearButton', 'closeButton', 'm3uContentKey', 'channelList',
-  'playlistItems', 'pagination', 'videoContainer', 'dislikeButton',
+  'playlistItems', 'pagination', 'videoContainer', 'dislikeButton', 'pageControls',
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
@@ -2805,14 +2805,20 @@ class AppShell {
   }
 
   switchChannel() {
+    // Channel
     if(channelList.classList.contains('hidden')) {
       channelList.classList.remove('hidden');
       playlistItems.classList.add('hidden');
+      searchInput.classList.add('hidden');
+      pageControls.classList.add('hidden');
       listCheckButton.disabled = true;
     }
+    // Playlist
     else {
       channelList.classList.add('hidden');
       playlistItems.classList.remove('hidden');
+      searchInput.classList.remove('hidden');
+      pageControls.classList.remove('hidden');
       listCheckButton.disabled = false;
     }
     channelButton.textContent = this.currentCategory;
