@@ -533,6 +533,7 @@ body {
         flex: 1;
         width: 100%;
         height: 100%;
+        z-index: 10;
       }
       #pageBody .container #m3uInputContainer {
         width: 100%;
@@ -546,13 +547,14 @@ body {
         display: flex;
         align-items: center;
         background: #ffffffbd;
-        transition: all 0.3s;
+        transition: all 0.2s;
+        z-index: -1;
       }
         #pageBody .container #m3uInputContainer .box {
           justify-content: flex-start;
           margin: 0px auto;
-          max-height: 0%;
-          flex: 0 0 0%;
+          max-height: 78%;
+          flex: 0 0 78%;
           box-shadow: 0px 0px 4px #999;
           transition: all 0.3s;
           opacity: 0;
@@ -2267,6 +2269,7 @@ class AppShell {
   stopVideo(isReset = false, poster = CONSTS.POSTER) {
     printLog('stopVideo');
     videoPlayer.pause();
+    const item = this.getLastVideoItem();
     if(stopURL) videoPlayer.src = stopURL;
     videoPlayer.pause();
     videoPlayer.removeAttribute('src');
@@ -2281,8 +2284,9 @@ class AppShell {
     this.saveVideoTimestamp();
     this.changePoster(poster);
     //
-    this.resetListStyle('preview');
+    // this.resetListStyle('preview');
     this.resetListStyle('active');
+    if(item) this.resetListStyles(item.url, ['preview']);
   }
   /**
    * @param {HTMLLIElement} li List item
@@ -2770,10 +2774,16 @@ class AppShell {
    * @returns {string} Returns the current channel
    */
   loadCurrentChannel(isBooting = false) {
+    printLog('loadCurrentChannel');
     this.currentCategory = CONSTS.CHANNELS.ALL;
     if(isBooting) {
-      const category = window.localStorage.getItem('currentCategory');
+      let category = window.localStorage.getItem('currentCategory');
       if(category && category !== this.currentCategory) {
+        /** @type {Array<string>} */
+        const channels = Object.keys(categories);
+        if(channels.includes(category) === false) {
+          category = this.currentCategory;
+        }
         this.saveCategoryToCache(category);
       }
     }
