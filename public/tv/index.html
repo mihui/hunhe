@@ -1938,7 +1938,7 @@ class AppShell {
   /**
    * @param {string} itemCode The item code to fetch
    */
-   async fetchDislikes(itemCode = CONSTS.CODES.DISLIKE) {
+  async fetchDislikes(itemCode = CONSTS.CODES.DISLIKE) {
     /** @type {{ data: Array<{ id: string, code: string }> }} */
     const { data } = await database.listData(FAV_STORE);
     VARS.DISLIKES = data.filter(x => x.code === itemCode).map(x => x.id);
@@ -2630,8 +2630,6 @@ class AppShell {
 
   // 初始化播放列表
   async initializePlaylist() {
-    await this.fetchFavorites();
-    await this.fetchDislikes();
 
     filteredPlaylistData = (categories[this.currentCategory] || playlistData).filter(x => VARS.DISLIKES.includes(x.id) === false);
 
@@ -2650,8 +2648,8 @@ class AppShell {
 
   async processM3uData(type, data, fromCache = false, isBooting = false) {
     await this.initPlayData(type, data);
-    await this.initializePlaylist();
-    this.initializeCategories(isBooting);
+    await this.initializeCategories(isBooting);
+    this.initializePlaylist();
 
     this.showPlaylistContent();
     errorMessage.textContent = '';
@@ -2826,8 +2824,10 @@ class AppShell {
   /**
    * @param {boolean} isBooting - Whether or not the app is booting
    */
-  initializeCategories(isBooting = false) {
-    printLog('initializeCategories');
+  async initializeCategories(isBooting = false) {
+    await this.fetchFavorites();
+    await this.fetchDislikes();
+
     channelList.innerHTML = '';
     const selectedChannel = this.loadCurrentChannel(isBooting);
     channelButton.textContent = selectedChannel;
