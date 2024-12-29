@@ -2568,7 +2568,7 @@ class AppShell {
         const { currentTarget } = evt;
         const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : CONSTS.POSTER;
         const isBroken = currentTarget.classList.contains('broken') === false;
-        if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isBroken) {
+        if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isBroken && !this.isPlaying()) {
           this.playNow(currentTarget, item);
         }
         else {
