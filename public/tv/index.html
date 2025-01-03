@@ -1000,7 +1000,14 @@ button {
 #playlistContent .top-buttons #channelButton {
   flex: 1;
   border-radius: 0;
+  background-color: #3471db;
+  transition: all 1s;
+  justify-content: center;
 }
+  #playlistContent .top-buttons #channelButton.channel {
+    justify-content: flex-start;
+    padding-left: 0;
+  }
 #playlistContent .top-buttons #closeButton,
 #playlistContent .top-buttons #listCheckButton {
   background-color: #3471db;
@@ -1589,7 +1596,7 @@ input:checked + .slider:before {
           <div id="playlistContent">
             <div class="top-buttons">
               <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
-              <button type="button" id="channelButton">请稍候...</button>
+              <button type="button" id="channelButton">加载中...</button>
               <button id="listCheckButton" data-checking="false"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
             </div>
 
@@ -2594,7 +2601,7 @@ class AppShell {
       li.append(label);
       playlistItems.appendChild(li);
     });
-    listCheckButton.disabled = false;
+    listCheckButton.disabled = channelButton.classList.contains('channel');
 
     const isAutoCheck = autoCheck === 'true';
 
@@ -2799,7 +2806,7 @@ class AppShell {
         this.saveCategoryToCache(category);
       }
     }
-    channelButton.textContent = this.currentCategory;
+    channelButton.textContent = channelButton.classList.contains('channel') ? '返回' : this.currentCategory;
     return this.currentCategory;
   }
 
@@ -2810,6 +2817,7 @@ class AppShell {
       playlistItems.classList.add('hidden');
       searchInput.classList.add('hidden');
       pageControls.classList.add('hidden');
+      channelButton.classList.add('channel');
       listCheckButton.disabled = true;
     }
     // Playlist
@@ -2818,6 +2826,7 @@ class AppShell {
       playlistItems.classList.remove('hidden');
       searchInput.classList.remove('hidden');
       pageControls.classList.remove('hidden');
+      channelButton.classList.remove('channel');
       listCheckButton.disabled = false;
     }
     this.loadCurrentChannel();
@@ -2862,6 +2871,7 @@ class AppShell {
           if(currentTarget.classList.contains('selected') || li.dataset['duration'] === '0') {
             return;
           }
+          /** @type {{ channel: string }} **/
           const { channel = CONSTS.CHANNELS.ALL } = currentTarget.dataset;
           this.resetListStyle('selected', channelList);
           li.classList.add('selected');
@@ -3591,7 +3601,12 @@ clearButton.addEventListener('click', (evt) => {
 });
 
 closeButton.addEventListener('click', (evt) => {
-  playListButton.dispatchEvent(new Event('click'));
+  if(channelButton.classList.contains('channel')) {
+    channelButton.dispatchEvent(new Event('click'));
+  }
+  else {
+    playListButton.dispatchEvent(new Event('click'));
+  }
 });
 m3uInputContainer.addEventListener('click', (evt) => {
   if(evt.target.id === 'm3uInputContainer') {
