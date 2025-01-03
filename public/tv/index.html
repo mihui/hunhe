@@ -663,7 +663,6 @@ select:focus-visible {
 #playlistContent .top-buttons #listCheckButton {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-  background-color: #db6634;
 }
 
 ul.menu-list {
@@ -1000,18 +999,19 @@ button {
 #playlistContent .top-buttons #channelButton {
   flex: 1;
   border-radius: 0;
-  background-color: #3471db;
-  transition: all 1s;
   justify-content: center;
 }
-  #playlistContent .top-buttons #channelButton.channel {
+  #playlistContent .top-buttons.channel #channelButton {
     justify-content: flex-start;
     padding-left: 0;
   }
-#playlistContent .top-buttons #closeButton,
-#playlistContent .top-buttons #listCheckButton {
+#playlistContent .top-buttons button {
   background-color: #3471db;
+  transition: all 1s;
 }
+  #playlistContent .top-buttons.channel button {
+    background-color: #2e6bcc;
+  }
   #playlistContent .top-buttons #listCheckButton.checking {
     background-color: #db6634;
   }
@@ -1594,7 +1594,7 @@ input:checked + .slider:before {
       <div id="playlistContainer">
         <div class="box">
           <div id="playlistContent">
-            <div class="top-buttons">
+            <div class="top-buttons" id="topButtons">
               <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
               <button type="button" id="channelButton">加载中...</button>
               <button id="listCheckButton" data-checking="false"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
@@ -1757,7 +1757,7 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
  * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
  * HTMLDivElement, HTMLInputElement, HTMLDivElement, HTMLButtonElement, HTMLInputElement,
- * HTMLSpanElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement,
+ * HTMLSpanElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement,
  * ]} **/
 const [
   pageBody,
@@ -1773,7 +1773,7 @@ const [
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
   commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
   progressBar, enableLoggingCheckbox, logContainer, pauseVideoButton, screenshotTime,
-  screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton, pinButton,
+  screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton, pinButton, topButtons,
  ] = 
 getElementById([
   'pageBody',
@@ -1789,7 +1789,7 @@ getElementById([
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
   'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
   'progressBar', 'enableLoggingCheckbox', 'logContainer', 'pauseVideoButton', 'screenshotTime',
-  'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton',
+  'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton', 'topButtons'
 ]);
 
 let itemsPerPage = 15;
@@ -2601,7 +2601,7 @@ class AppShell {
       li.append(label);
       playlistItems.appendChild(li);
     });
-    listCheckButton.disabled = channelButton.classList.contains('channel');
+    listCheckButton.disabled = topButtons.classList.contains('channel');
 
     const isAutoCheck = autoCheck === 'true';
 
@@ -2806,7 +2806,7 @@ class AppShell {
         this.saveCategoryToCache(category);
       }
     }
-    channelButton.textContent = channelButton.classList.contains('channel') ? '返回' : this.currentCategory;
+    channelButton.textContent = topButtons.classList.contains('channel') ? '返回' : this.currentCategory;
     return this.currentCategory;
   }
 
@@ -2817,7 +2817,7 @@ class AppShell {
       playlistItems.classList.add('hidden');
       searchInput.classList.add('hidden');
       pageControls.classList.add('hidden');
-      channelButton.classList.add('channel');
+      topButtons.classList.add('channel');
       listCheckButton.disabled = true;
     }
     // Playlist
@@ -2826,7 +2826,7 @@ class AppShell {
       playlistItems.classList.remove('hidden');
       searchInput.classList.remove('hidden');
       pageControls.classList.remove('hidden');
-      channelButton.classList.remove('channel');
+      topButtons.classList.remove('channel');
       listCheckButton.disabled = false;
     }
     this.loadCurrentChannel();
@@ -3601,7 +3601,7 @@ clearButton.addEventListener('click', (evt) => {
 });
 
 closeButton.addEventListener('click', (evt) => {
-  if(channelButton.classList.contains('channel')) {
+  if(topButtons.classList.contains('channel')) {
     channelButton.dispatchEvent(new Event('click'));
   }
   else {
