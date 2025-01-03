@@ -2756,6 +2756,8 @@ class AppShell {
           this.setUrlInput(database.decodeString(m3uItem.id));
         }
         this.gotoPage(1);
+        this.saveCategoryToCache(CONSTS.CHANNELS.ALL);
+        this.loadCurrentChannel();
         await this.processM3uData(data.type || TYPES.M3U, data);
       };
       divItem.title = this.timeAgo(m3uItem.time);
@@ -2797,6 +2799,7 @@ class AppShell {
         this.saveCategoryToCache(category);
       }
     }
+    channelButton.textContent = this.currentCategory;
     return this.currentCategory;
   }
 
@@ -2817,8 +2820,9 @@ class AppShell {
       pageControls.classList.remove('hidden');
       listCheckButton.disabled = false;
     }
-    channelButton.textContent = this.currentCategory;
+    this.loadCurrentChannel();
   }
+
   /**
    * @param {boolean} isBooting - Whether or not the app is booting
    */
@@ -2827,9 +2831,7 @@ class AppShell {
     await this.fetchDislikes();
 
     channelList.innerHTML = '';
-
     const selectedChannel = this.loadCurrentChannel(isBooting);
-    channelButton.textContent = selectedChannel;
 
     for (let category in categories) {
       if(category === CONSTS.CHANNELS.RAW){
