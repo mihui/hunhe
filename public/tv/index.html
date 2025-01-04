@@ -715,7 +715,7 @@ ul.menu-list li {
     text-align: right;
     justify-content: end;
     flex: 0;
-    padding: 0.2rem;
+    padding: 0.5rem;
     border-radius: 4px;
     width: auto;
   }
@@ -730,6 +730,7 @@ ul.menu-list li {
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E') no-repeat 0.5rem center;
     border-left: 3px solid green;
     border-bottom: 1px solid green;
+    color: darkgreen;
   }
   ul.menu-list li.good {
     border-left: 3px solid green;
@@ -790,6 +791,9 @@ ul.menu-list li {
   }
   ul.menu-list li:nth-of-type(even) {
     background-color: transparent;
+  }
+  ul#channelList.menu-list li:nth-of-type(even) {
+    background-color: rgba(255, 255, 255, 0.55);
   }
   ul.menu-list li.frame:nth-of-type(even) {
     background-color: rgba(255, 255, 255, 0.55);
