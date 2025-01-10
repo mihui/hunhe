@@ -566,8 +566,9 @@ body {
         z-index: 40;
       }
         #pageBody.settings .container #m3uInputContainer .box {
-          flex: 0 0 80%;
-          max-height: 80%;
+          flex: 0 0 90%;
+          max-height: 90%;
+          height: auto;
           opacity: 1;
         }
 
@@ -1031,7 +1032,7 @@ button {
     column-gap: 1rem;
     flex: 0;
     width: 100%;
-    margin-top: 14px;
+    margin-top: 0.5rem;
   }
   #playlistContent .page-controls #pagination button, .user-controls button {
     flex: 1;
@@ -1661,7 +1662,7 @@ input:checked + .slider:before {
               <div id="errorMessage"></div>
             </div>
 
-            <div id="commentsLayout">
+            <div id="commentsLayout" class="hidden">
               <div id="commentsList" class="comments-container"></div>
               <form id="commentsForm" class="comments-form">
                 <input type="text" id="commentsInput" placeholder="评论" />
@@ -1762,6 +1763,7 @@ function getElementById(idList = []) {
  * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
  * HTMLDivElement, HTMLInputElement, HTMLDivElement, HTMLButtonElement, HTMLInputElement,
  * HTMLSpanElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement,
+ * HTMLDivElement,
  * ]} **/
 const [
   pageBody,
@@ -1778,6 +1780,7 @@ const [
   commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
   progressBar, enableLoggingCheckbox, logContainer, pauseVideoButton, screenshotTime,
   screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton, pinButton, topButtons,
+  commentsLayout
  ] = 
 getElementById([
   'pageBody',
@@ -1793,7 +1796,8 @@ getElementById([
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
   'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
   'progressBar', 'enableLoggingCheckbox', 'logContainer', 'pauseVideoButton', 'screenshotTime',
-  'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton', 'topButtons'
+  'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton', 'topButtons',
+  'commentsLayout'
 ]);
 
 let itemsPerPage = 15;
@@ -1994,6 +1998,7 @@ class AppShell {
 
           commentsList.appendChild(commentItem);
         });
+        commentsLayout.classList.remove('hidden');
       }
     });
   }
@@ -2223,7 +2228,7 @@ class AppShell {
     }
     if(isUserAction === false) { return; }
     this.loadVideoTimestamp();
-    this.loadComments(database.encodeString(source.url), source.title);
+    // this.loadComments(database.encodeString(source.url), source.title);
     this.loadFavorite(source);
     this.loadReCapture(source);
 
@@ -2264,6 +2269,7 @@ class AppShell {
    * @param {{ title: string, url: string, group: string }} item Play item
    */
   playNow(li, item) {
+    commentsLayout.classList.add('hidden');
     if(li.dataset['broken']) return;
     this.playVideo(item);
   }
@@ -2311,6 +2317,7 @@ class AppShell {
     if(removePreview) {
       this.resetListStyle('preview');
     }
+    commentsLayout.classList.add('hidden');
   }
   /**
    * @param {HTMLLIElement} li List item
@@ -3191,15 +3198,16 @@ class AppShell {
     switch(nodeName) {
       case 'input':
       case 'button':
-        break;
+      case 'svg':
+        return;
       case 'video':
         if(this.isPlaying()) videoPlayer.requestFullscreen();
-        break;
+        return;
       default:
         {
           evt.preventDefault();
           evt.stopPropagation();
-          }
+        }
     }
     if(node.poster !== CONSTS.POSTER) {
       window.localStorage.removeItem('lastPlayedItem');
