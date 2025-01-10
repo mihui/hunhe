@@ -8,7 +8,7 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-tap-highlight" content="no">
   <script src="js-hls.js"></script>
-  <script src="js-swipe.js?v=1"></script>
+  <script src="js-swipe.js?v=17"></script>
   <script src="js-simple-peer.js"></script>
   <script>
     // M3U list store
@@ -3901,13 +3901,14 @@ channelButton.addEventListener('click', (evt) => {
 
 [bottomControls, paginationGroup].forEach(element => {
   window.swipe(element).on('swipeLeft', (evt) => {
+    appShell.displaySideMenu(true);
+  });
+
+  window.swipe(element).on('swipeRight', (evt) => {
     appShell.displaySideMenu(false);
   });
-})
 
-window.swipe(bottomControls).on('swipeRight', (evt) => {
-  appShell.displaySideMenu(true);
-});
+})
 
 window.swipe(videoPlayer).on('swipeRight', (evt) => {
   appShell.seekVideo(30);

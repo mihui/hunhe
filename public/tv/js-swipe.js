@@ -16,9 +16,9 @@ class SwipeHandler {
   constructor(dom) {
     this.domElement = dom;
     this.startX = 0;
-    this.threshold = 100; // Minimum distance to consider a swipe
+    this.threshold = 40; // Minimum distance to consider a swipe
     this.lastMoveTimestamp = 0;
-    this.debounceTime = 16; // Debounce time in ms (60fps)
+    this.debounceTime = 500; // Debounce time in ms (60fps)
     this.domElement.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
     this.domElement.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: true });
   }
@@ -37,16 +37,16 @@ class SwipeHandler {
     try {
       if (evt.touches.length === 0) { return; }
       const currentTimestamp = window.performance.now();
-  
+
+      const currentX = evt.touches[0].clientX;
+      const diffX = this.startX - currentX;
+
       if (currentTimestamp - this.lastMoveTimestamp < this.debounceTime) {
         return;
       }
-  
+      console.log('debounceTime:', currentTimestamp - this.lastMoveTimestamp, 'threshold:', Math.abs(diffX).toFixed(2));
+
       this.lastMoveTimestamp = currentTimestamp;
-  
-      const currentX = evt.touches[0].clientX;
-      const diffX = this.startX - currentX;
-  
       if (Math.abs(diffX) >= this.threshold) {
         requestAnimationFrame(() => {
           const eventName = diffX > 0 ? 'swipeLeft' : 'swipeRight';
