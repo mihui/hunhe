@@ -790,11 +790,32 @@ ul.menu-list li {
     font-size: 0.8rem;
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23666%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%201.5a.5.5%200%200%201%20.5-.5h11a.5.5%200%200%201%200%201h-1v1a4.5%204.5%200%200%201-2.557%204.06c-.29.139-.443.377-.443.59v.7c0%20.213.154.451.443.59A4.5%204.5%200%200%201%2012.5%2013v1h1a.5.5%200%200%201%200%201h-11a.5.5%200%201%201%200-1h1v-1a4.5%204.5%200%200%201%202.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5%204.5%200%200%201%203.5%203V2h-1a.5.5%200%200%201-.5-.5m2.5.5v1a3.5%203.5%200%200%200%201.989%203.158c.533.256%201.011.791%201.011%201.491v.702c0%20.7-.478%201.235-1.011%201.491A3.5%203.5%200%200%200%204.5%2013v1h7v-1a3.5%203.5%200%200%200-1.989-3.158C8.978%209.586%208.5%209.052%208.5%208.351v-.702c0-.7.478-1.235%201.011-1.491A3.5%203.5%200%200%200%2011.5%203V2z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
   }
+  ul#channelList.menu-list {
+    row-gap: 0px;
+    flex-flow: wrap;
+  }
+  ul#channelList.menu-list li {
+    border-left: 0px none;
+    border-bottom: 1px solid #ccc;
+    width: 50%;
+    height: auto;
+  }
   ul.menu-list li:nth-of-type(even) {
     background-color: transparent;
   }
-  ul#channelList.menu-list li:nth-of-type(even) {
+  ul#channelList.menu-list li.selected {
     background-color: rgba(255, 255, 255, 0.55);
+    border-bottom-color: darkgreen;
+  }
+  ul#channelList.menu-list li:nth-of-type(odd) {
+    max-width: calc(50% - 1px);
+    border-right: 1px solid #ccc;
+  }
+  ul#channelList.menu-list li:nth-of-type(even) {
+    max-width: calc(50% - 1px);
+  }
+  ul#channelList.menu-list li:last-child {
+    border-bottom: 0px none;
   }
   ul.menu-list li.frame:nth-of-type(even) {
     background-color: rgba(255, 255, 255, 0.55);
@@ -862,15 +883,6 @@ button {
   text-align: center;
   flex: 1;
   width: 100%;
-}
-#errorControl #statisticsMessage {
-  text-align: right;
-  width: 100%;
-  font-size: 0.8rem;
-  color: gray;
-  font-style: italic;
-  display: flex;
-  justify-content: flex-end;
 }
 
 #settingsButton {
@@ -1658,7 +1670,6 @@ input:checked + .slider:before {
 
           <div id="bottomControls" class="bottom-controls">
             <div class="user-controls" id="errorControl">
-              <div id="statisticsMessage"></div>
               <div id="errorMessage"></div>
             </div>
 
@@ -1750,7 +1761,7 @@ function getElementById(idList = []) {
 
 /** @type {[
  * HTMLBodyElement,
- * HTMLVideoElement, HTMLDivElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
+ * HTMLVideoElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement, HTMLVideoElement,
  * HTMLButtonElement, HTMLDivElement, HTMLFormElement, HTMLButtonElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
@@ -1758,7 +1769,7 @@ function getElementById(idList = []) {
  * HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement, HTMLUListElement,
  * HTMLUListElement, HTMLDivElement, HTMLElement, HTMLButtonElement, HTMLDivElement,
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
- * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement, HTMLDivElement,
+ * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement,
  * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
  * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
  * HTMLDivElement, HTMLInputElement, HTMLDivElement, HTMLButtonElement, HTMLInputElement,
@@ -1767,7 +1778,7 @@ function getElementById(idList = []) {
  * ]} **/
 const [
   pageBody,
-  videoPlayer, errorMessage, errorControl, m3uUrlInput, closeM3uButton,
+  videoPlayer, errorMessage, m3uUrlInput, closeM3uButton,
   loadM3uButton, settingsButton, m3uInputContainer, playlistContent, bottomControls,
   playVideoButton, m3uList, searchContainer, speakerButton, channelButton,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
@@ -1775,7 +1786,7 @@ const [
   pageControl, clearButton, closeButton, m3uContentKey, channelList,
   playlistItems, paginationGroup, videoContainer, dislikeButton, pageControls,
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
-  checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo, statisticsMessage,
+  checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo,
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
   commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
   progressBar, enableLoggingCheckbox, logContainer, pauseVideoButton, screenshotTime,
@@ -1784,7 +1795,7 @@ const [
  ] = 
 getElementById([
   'pageBody',
-  'videoPlayer', 'errorMessage', 'errorControl', 'm3uUrlInput', 'closeM3uButton',
+  'videoPlayer', 'errorMessage', 'm3uUrlInput', 'closeM3uButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent', 'bottomControls',
   'playVideoButton', 'm3uList', 'searchContainer', 'speakerButton', 'channelButton',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
@@ -1792,7 +1803,7 @@ getElementById([
   'pageControl', 'clearButton', 'closeButton', 'm3uContentKey', 'channelList',
   'playlistItems', 'pagination', 'videoContainer', 'dislikeButton', 'pageControls',
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
-  'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo', 'statisticsMessage',
+  'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo',
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
   'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
   'progressBar', 'enableLoggingCheckbox', 'logContainer', 'pauseVideoButton', 'screenshotTime',
@@ -1998,7 +2009,7 @@ class AppShell {
 
           commentsList.appendChild(commentItem);
         });
-        commentsLayout.classList.remove('hidden');
+        this.showComments(true);
       }
     });
   }
@@ -2061,7 +2072,7 @@ class AppShell {
    * @param {boolean} isLive Is live
    **/
   async onPlay(playingItem, duration = '0', isLive = false) {
-    errorMessage.textContent = '';
+    this.showErrorMessage();
     currentTimeDisplay.textContent = this.getMinutes(videoPlayer.currentTime);
     totalTimeDisplay.textContent = this.getMinutes(duration);
     progressControl.max = duration;
@@ -2090,7 +2101,7 @@ class AppShell {
       videoPlayer.currentTime = lastPlayedTime;
     }
     videoPlayer.play().catch(error => {
-      errorMessage.textContent = '无法播放所选视频，请尝试其他源或检查网络连接。';
+      this.showErrorMessage('无法播放所选视频，请尝试其他源或检查网络连接。');
     }).then(() => {
       this.onPlay(source, duration, isLive);
     });
@@ -2248,7 +2259,7 @@ class AppShell {
       this.nativePlay(source);
     }
     else {
-      errorMessage.textContent = '您的浏览器不支持 HLS 视频流。';
+      this.showErrorMessage('您的浏览器不支持 HLS 视频流。');
     }
   }
 
@@ -2269,7 +2280,7 @@ class AppShell {
    * @param {{ title: string, url: string, group: string }} item Play item
    */
   playNow(li, item) {
-    commentsLayout.classList.add('hidden');
+    this.showComments(false);
     if(li.dataset['broken']) return;
     this.playVideo(item);
   }
@@ -2317,7 +2328,7 @@ class AppShell {
     if(removePreview) {
       this.resetListStyle('preview');
     }
-    commentsLayout.classList.add('hidden');
+    this.showComments(false);
   }
   /**
    * @param {HTMLLIElement} li List item
@@ -2668,7 +2679,7 @@ class AppShell {
     this.initializePlaylist();
 
     this.showPlaylistContent();
-    errorMessage.textContent = '';
+    this.showErrorMessage();
   }
 
   // 更新分页控件
@@ -3006,8 +3017,8 @@ class AppShell {
       // [M3U] End - Process data
     }
     categories[CONSTS.CHANNELS.RAW] = [...categories[CONSTS.CHANNELS.ALL]];
-    statisticsMessage.textContent = `{ ${playlistData.length}条，(${this.timeAgo(data.time)}) }`;
   }
+
   /**
    * 设置URL输入框
    * @param {string} url URL
@@ -3177,7 +3188,7 @@ class AppShell {
     pauseVideoButton.innerHTML = CONSTS.ICON_PAUSE;
     fullscreenButton.disabled = false;
     playVideoButton.className = 'played';
-    errorMessage.textContent = '';
+    this.showErrorMessage();
     videoPlayer.className = '';
     this.resetControlButtons(true);
     clearTimeout(VARS.CONTROL_TIMER);
@@ -3255,11 +3266,11 @@ class AppShell {
         await options.onSuccess(type, x, fromCache, isBooting);
       }
       else {
-        errorMessage.textContent = '加载 M3U 文件时出错，请检查 URL 是否正确。';
+        this.showErrorMessage('加载 M3U 文件时出错，请检查 URL 是否正确。');
         this.showM3uInput();
       }
     } catch (error) {
-      errorMessage.textContent = `加载 M3U 文件时出错，请检查 URL 是否正确。${error.message}`;
+      this.showErrorMessage(`加载 M3U 文件时出错，请检查 URL 是否正确。${error.message}`);
       this.showM3uInput();
     }
     finally {
@@ -3293,7 +3304,7 @@ class AppShell {
       const id = database.encodeString(m3uUrl);
       const { data: payload, error } = await database.readData(id);
       if(error) {
-        errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
+        this.showErrorMessage('请输入有效的 M3U 文件 URL。');
         printLog('loadM3uFile.fetchDataAndProcess.error', error.message);
         return;
       }
@@ -3304,7 +3315,7 @@ class AppShell {
       }
     }
     else {
-      errorMessage.textContent = '请输入有效的 M3U 文件 URL。';
+      this.showErrorMessage('请输入有效的 M3U 文件 URL。');
     }
   }
 
@@ -3419,6 +3430,32 @@ class AppShell {
     await this.initializeCategories();
     this.initializePlaylist();
   }
+  showBottomControls(display = false) {
+    if(display) {
+      bottomControls.classList.remove('hidden');
+    }
+    else {
+      bottomControls.classList.add('hidden');
+    }
+  }
+  showComments(display = false) {
+    this.showBottomControls(display);
+    if(display) {
+      commentsLayout.classList.remove('hidden');
+    }
+    else {
+      commentsLayout.classList.add('hidden');
+    }
+  }
+  showErrorMessage(message = '') {
+    if(message.length > 0) {
+      this.showBottomControls(true);
+    }
+    else {
+      this.showBottomControls(false);
+    }
+    errorMessage.textContent = message;
+  }
 } // End of class
 
 class WebShell extends AppShell {
@@ -3510,7 +3547,8 @@ reCaptureButton.addEventListener('click', async (evt) => {
   const itemCode = await appShell.fetchPlayItemCode(id);
   for(const node of playlistItems.childNodes) {
     if(node.dataset['url'] === url) {
-      appShell.updateListItemStyle(node, result, null, itemCode);
+      const lastPlayedItem = appShell.getLastVideoItem();
+      appShell.updateListItemStyle(node, result, lastPlayedItem, itemCode);
       appShell.changePoster(node.dataset['frame']);
       break; 
     }
@@ -3715,7 +3753,7 @@ videoPlayer.addEventListener('error', (evt) => {
     appShell.showPlayButton();
     return;
   }
-  errorMessage.textContent = '加载视频时出错，请尝试其他源或检查网络连接。';
+  appShell.showErrorMessage('加载视频时出错，请尝试其他源或检查网络连接。');
 });
 ['mouseover', 'touchstart'].forEach(eventType => {
   [videoPlayer, videoControls].forEach(element => {
