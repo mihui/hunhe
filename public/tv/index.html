@@ -673,7 +673,7 @@ ul.menu-list {
   display: flex;
   flex-flow: column;
   flex: 1;
-  row-gap: 0.3rem;
+  row-gap: 0px;
   justify-content: flex-start;
   overflow: auto;
   scrollbar-width: none;
@@ -700,7 +700,7 @@ ul.menu-list li {
   -ms-overflow-style: none;
   border-left: 3px solid gray;
   transition: 0.5s all;
-  border-bottom: 1px solid #eee;
+  border-bottom: 2px solid transparent;
   user-select: none;
   -webkit-user-select: none;
   position: relative;
@@ -730,7 +730,7 @@ ul.menu-list li {
   ul.menu-list li.selected {
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E') no-repeat 0.5rem center;
     border-left: 3px solid green;
-    border-bottom: 1px solid green;
+    border-bottom-color: green;
     color: darkgreen;
   }
   ul.menu-list li.good {
@@ -738,21 +738,21 @@ ul.menu-list li {
   }
   ul.menu-list li.good.preview,
   ul.menu-list li.good:hover {
-    border-bottom: 1px solid green;
+    border-bottom-color: green;
   }
   ul.menu-list li.average {
-    border-left: 3px solid orange;
+    border-left: 3px solid darkorange;
   }
   ul.menu-list li.average.preview,
   ul.menu-list li.average:hover {
-    border-bottom: 1px solid orange;
+    border-bottom-color: orange;
   }
   ul.menu-list li.bad {
-    border-left: 3px solid red;
+    border-bottom-color: darkred;
   }
   ul.menu-list li.bad.preview,
   ul.menu-list li.bad:hover {
-    border-bottom: 1px solid red;
+    border-bottom-color: darkred;
   }
   ul.menu-list li.favorite {
     box-shadow: inset -2px 0 1px 0px gray;
@@ -772,17 +772,27 @@ ul.menu-list li {
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%203.5a.5.5%200%200%200-1%200V9a.5.5%200%200%200%20.252.434l3.5%202a.5.5%200%200%200%20.496-.868L8%208.71z%22%2F%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016m7-8A7%207%200%201%201%201%208a7%207%200%200%201%2014%200%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
   }
   ul.menu-list li.broken:hover {
-    border-bottom: 1px solid black;
+    border-bottom-color: black;
     background-color: white;
   }
   ul.menu-list li.frame {
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
   }
+  ul.menu-list li.average.frame {
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkorange%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+  }
+  ul.menu-list li.bad.frame {
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+  }
   ul.menu-list li.preview {
     background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E') no-repeat 0.5rem center;
   }
+  ul.menu-list li.average.preview {
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkorange%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+  }
   ul.menu-list li.preview.active {
-    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M10.804%208%205%204.633v6.734zm.792-.696a.802.802%200%200%201%200%201.392l-6.363%203.692C4.713%2012.69%204%2012.345%204%2011.692V4.308c0-.653.713-.998%201.233-.696z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
+    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
+    color: inherit;
   }
   ul.menu-list li.checking {
     color: #5c5c5c;
@@ -808,10 +818,12 @@ ul.menu-list li {
     border-bottom-color: darkgreen;
   }
   ul#channelList.menu-list li:nth-of-type(odd) {
-    max-width: calc(50% - 1px);
+    width: calc(50% - 1px);
+    max-width: calc(50% - 0.5px);
     border-right: 1px solid #ccc;
   }
   ul#channelList.menu-list li:nth-of-type(even) {
+    width: calc(50% - 1px);
     max-width: calc(50% - 1px);
   }
   ul.menu-list li.frame:nth-of-type(even) {
@@ -820,7 +832,6 @@ ul.menu-list li {
   ul.menu-list li.frame:hover,
   ul.menu-list li:hover {
     background-color: #cceeee5c;
-    border-bottom: 1px solid black;
   }
   ul.menu-list li label {
     width: 100%;
@@ -2085,6 +2096,7 @@ class AppShell {
       pauseVideoButton.classList.remove('hidden');
     }
     this.saveLastPlayedVideo(playingItem);
+    console.log('playingItem--->', playingItem);
   }
   /**
    * 播放视频
@@ -2336,7 +2348,9 @@ class AppShell {
     printLog('previewNow');
     this.stopVideo(true, false, frame);
     if(li.dataset['broken']) return;
-    li.classList.add('preview');
+    if(li.classList.contains('frame')) {
+      li.classList.add('preview');
+    }
     this.loadComments(li.dataset['id'], li.title);
     this.loadFavorite(item);
     this.loadReCapture(item);
@@ -2354,7 +2368,7 @@ class AppShell {
       if(checkResult.latency < 500) {
         li.classList.add('good');
       }
-      else if (checkResult.latency >= 500 && checkResult.latency <= 1500) {
+      else if (checkResult.latency >= 500 && checkResult.latency <= 1000) {
         li.classList.add('average');
       }
       else {
@@ -3531,7 +3545,7 @@ dislikeButton.addEventListener('click', async (evt) => {
     appShell.deleteFavorite(id);
   }
 });
-
+// 
 reCaptureButton.addEventListener('click', async (evt) => {
   const url = reCaptureButton.dataset['url'];
   const group = favoriteButton.dataset['group'];
