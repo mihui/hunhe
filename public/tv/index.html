@@ -831,10 +831,13 @@ ul.menu-list li {
     max-width: calc(50% - 1px);
   }
   ul#channelList.menu-list li::after {
-    background: darkslateblue;
+    background: #606060;
     color: white;
     padding: 0.25rem;
     margin-right: 0.5rem;
+  }
+  ul#channelList.menu-list li.selected::after {
+    background: darkgreen;
   }
   ul.menu-list li.frame:nth-of-type(even) {
     background-color: rgba(255, 255, 255, 0.55);
@@ -2142,9 +2145,13 @@ class AppShell {
         this.playVideSource(source, duration, isLive);
       });
       hls.once(Hls.Events.MANIFEST_PARSED, (evt, data) => {
+        printLog('Hls.Events.LEVEL_LOADED');
+        if (!data?.details) {
+          return printLog('Warning: Data details is undefined.');
+        }
         const duration = data?.details?.totalduration || 0;
         const isLive = data?.details?.live || false;
-        printLog('Hls.Events.MANIFEST_PARSED', 'duration->', duration, 'isLive->', isLive);
+        this.playVideSource(source, duration, isLive);
       });
       hls.once(Hls.Events.ERROR, (error, data) => {
         printLog('Hls.Events.ERROR', 'data.fatal->', data.fatal, 'data.type->', data.type);
@@ -2524,7 +2531,7 @@ class AppShell {
        */
       const resolveProblem = (val) => {
         const data = Object.assign({}, {
-          ok: false, duration: 0, frame: null, latency: new Date().getTime() - timestamp, timeout: false, alive: false
+          ok: false, duration: 0, frame: null, latency: new Date().getTime() - timestamp, timeout: false
         }, val);
         return resolve(data);
       };
@@ -2539,26 +2546,13 @@ class AppShell {
           };
 
           hls.loadSource(url);
-          // hls.once(Hls.Events.MANIFEST_PARSED, async (evt, data) => {
-          //   const latency = new Date().getTime() - timestamp;
-          //   const captured = await this.captureFrame(url, hls, isRandom);
-          //   console.log('data--->', data);
-          //   cleanup();
-          //   resolveProblem({ ok: true, duration: captured?.duration, frame: captured?.frame, latency });
-          // });
-          hls.once(Hls.Events.LEVEL_LOADED, async (evt, data) => {
-            printLog('Hls.Events.LEVEL_LOADED');
-            if (!data?.details) {
-              return printLog('Warning: Data details is undefined.');
-            }
-            const duration = data?.details?.totalduration || 0;
-            const isLive = data?.details?.live || false;
-
+          hls.once(Hls.Events.MANIFEST_PARSED, async (evt, data) => {
             const latency = new Date().getTime() - timestamp;
             const captured = await this.captureFrame(url, hls, isRandom);
             cleanup();
-            resolveProblem({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, alive: isLive });
+            resolveProblem({ ok: true, duration: captured?.duration, frame: captured?.frame, latency });
           });
+
           hls.once(Hls.Events.ERROR, () => {
             cleanup();
             resolveProblem({ latency: new Date().getTime() - timestamp });
