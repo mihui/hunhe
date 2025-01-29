@@ -2249,11 +2249,12 @@ class AppShell {
     } else {
       this.resetTitle();
     }
-    if(isUserAction === false) { return; }
     this.loadVideoTimestamp();
     // this.loadComments(database.encodeString(source.url), source.title);
     this.loadFavorite(source);
     this.loadReCapture(source);
+    if(isUserAction === false) { return; }
+
 
     window.localStorage.removeItem('lastPlayedItem');
     this.muteOrUnmuteVideo(muteWhenPlay === 'true');
@@ -2368,10 +2369,10 @@ class AppShell {
   updateListItemStyle(li, checkResult, lastPlayedItem, itemCode) {
     li.className = '';
     if (checkResult.ok) {
-      if(checkResult.latency < 700) {
+      if(checkResult.latency < 1000) {
         li.classList.add('good');
       }
-      else if (checkResult.latency >= 700 && checkResult.latency <= 2000) {
+      else if (checkResult.latency >= 1000 && checkResult.latency <= 2000) {
         li.classList.add('average');
       }
       else {
@@ -2494,7 +2495,7 @@ class AppShell {
 
       frameVideo.addEventListener('seeked', onSeeked);
       frameVideo.addEventListener('loadedmetadata', onLoadedMetaData);
-      
+
       timer = setTimeout(() => {
         cleanupEvents(null);
       }, VARS.PING_TIMEOUT - 1000);
@@ -2510,6 +2511,16 @@ class AppShell {
     const timestamp = new Date().getTime();
     return new Promise((resolve) => {
       let timeoutId = 0;
+      /**
+       * Return value
+       * @param {{ ok: boolean, duration: number, frame: string, latency: number, timeout: boolean, alive: boolean }} val New value
+       */
+      const resolveProblem = (val) => {
+        const data = Object.assign({}, {
+          ok: false, duration: 0, frame: null, latency: new Date().getTime() - timestamp, timeout: false, alive: false
+        }, val);
+        return resolve(data);
+      };
       if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
         try {
           const hls = new Hls();
@@ -2521,21 +2532,34 @@ class AppShell {
           };
 
           hls.loadSource(url);
-          hls.once(Hls.Events.MANIFEST_PARSED, async (evt, data) => {
+          // hls.once(Hls.Events.MANIFEST_PARSED, async (evt, data) => {
+          //   const latency = new Date().getTime() - timestamp;
+          //   const captured = await this.captureFrame(url, hls, isRandom);
+          //   console.log('data--->', data);
+          //   cleanup();
+          //   resolveProblem({ ok: true, duration: captured?.duration, frame: captured?.frame, latency });
+          // });
+          hls.once(Hls.Events.LEVEL_LOADED, async (evt, data) => {
+            printLog('Hls.Events.LEVEL_LOADED');
+            if (!data?.details) {
+              return printLog('Warning: Data details is undefined.');
+            }
+            const duration = data?.details?.totalduration || 0;
+            const isLive = data?.details?.live || false;
+
             const latency = new Date().getTime() - timestamp;
             const captured = await this.captureFrame(url, hls, isRandom);
             cleanup();
-            resolve({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, timeout: false });
+            resolveProblem({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, alive: isLive });
           });
-
           hls.once(Hls.Events.ERROR, () => {
             cleanup();
-            resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
+            resolveProblem({ latency: new Date().getTime() - timestamp });
           });
 
           timeoutId = setTimeout(() => {
             cleanup();
-            resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: true });
+            resolveProblem({ latency: new Date().getTime() - timestamp, timeout: true });
           }, VARS.PING_TIMEOUT);
         }
         catch(error) {
@@ -2556,21 +2580,21 @@ class AppShell {
           const latency = new Date().getTime() - timestamp;
           const captured = await this.captureFrame(url, null, isRandom);
           cleanup();
-          resolve({ ok: true, duration: captured?.duration, frame: captured?.frame, latency, timeout: false });
+          resolveProblem({ ok: true, latency, timeout: true });
         };
 
         video.onerror = () => {
           cleanup();
-          resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
+          resolveProblem({ latency: new Date().getTime() - timestamp });
         };
 
         timeoutId = setTimeout(() => {
           cleanup();
-          resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: true });
+          resolveProblem({ latency: new Date().getTime() - timestamp, timeout: true });
         }, VARS.PING_TIMEOUT);
       }
       else {
-        resolve({ ok: false, duration: 0, latency: new Date().getTime() - timestamp, timeout: false });
+        resolveProblem({ latency: new Date().getTime() - timestamp });
       }
     });
   }
