@@ -8,7 +8,6 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-tap-highlight" content="no">
   <script src="js-hls.js"></script>
-  <script src="js-swipe.js?v=17"></script>
   <script src="js-simple-peer.js"></script>
   <script>
     // M3U list store
@@ -2109,7 +2108,6 @@ class AppShell {
       pauseVideoButton.classList.remove('hidden');
     }
     this.saveLastPlayedVideo(playingItem);
-    console.log('playingItem--->', playingItem);
   }
   /**
    * 播放视频
@@ -2268,7 +2266,6 @@ class AppShell {
     this.loadFavorite(source);
     this.loadReCapture(source);
     if(isUserAction === false) { return; }
-
 
     window.localStorage.removeItem('lastPlayedItem');
     this.muteOrUnmuteVideo(muteWhenPlay === 'true');
@@ -3974,25 +3971,6 @@ commentsInput.addEventListener('input', (evt) => {
 
 channelButton.addEventListener('click', (evt) => {
   appShell.switchChannel();
-});
-
-[bottomControls, paginationGroup].forEach(element => {
-  window.swipe(element).on('swipeLeft', (evt) => {
-    appShell.displaySideMenu(true);
-  });
-
-  window.swipe(element).on('swipeRight', (evt) => {
-    appShell.displaySideMenu(false);
-  });
-
-})
-
-window.swipe(videoPlayer).on('swipeRight', (evt) => {
-  appShell.seekVideo(30);
-});
-
-window.swipe(videoPlayer).on('swipeLeft', (evt) => {
-  appShell.seekVideo(-30);
 });
 
 let isGloballyHidden = false;
