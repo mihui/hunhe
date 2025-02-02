@@ -2265,6 +2265,7 @@ class AppShell {
     // this.loadComments(database.encodeString(source.url), source.title);
     this.loadFavorite(source);
     this.loadReCapture(source);
+    this.resetControlButtons(false, false);
     if(isUserAction === false) { return; }
 
     window.localStorage.removeItem('lastPlayedItem');
@@ -3067,7 +3068,6 @@ class AppShell {
   }
 
   async loadM3uFile(fromCache = false, isBooting = false) {
-    printLog('loadM3uFile');
     /** @type {string} **/
     const m3uUrl = m3uUrlInput.value.trim();
     this.loadM3uUrl({ m3uUrl, fromCache, isBooting, onStart: () => {
