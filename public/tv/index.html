@@ -10,7 +10,7 @@
   <script src="js-hls.js"></script>
   <script src="js-simple-peer.js"></script>
   <script>
-    // M3U list store
+// M3U list store
 const M3U_STORE = 'm3u-store';
 // Favorites
 const FAV_STORE = 'fav-store';
@@ -3901,7 +3901,10 @@ videoPlayer.addEventListener('click', (evt) => {
 videoPlayer.addEventListener('dblclick', (evt) => {
   appShell.resetPoster(evt);
 });
-
+videoPlayer.addEventListener('volumechange', (evt) => {
+  const isMuted = videoPlayer.muted || videoPlayer.volume === 0;
+  speakerButton.innerHTML = isMuted ? CONSTS.ICON_SPEAKER_ON : CONSTS.ICON_SPEAKER_OFF;
+});
 progressControl.addEventListener('change', (evt) => {
   const value = evt.target.value;
   const currentTime = parseFloat(value);
