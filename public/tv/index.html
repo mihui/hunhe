@@ -351,6 +351,7 @@ body {
   overflow: hidden;
   align-items: center;
   background: url(background.jpeg) center center / cover no-repeat;
+  transition: background 0.5s ease-in-out;
 }
   .container {
     width: 100%;
@@ -548,7 +549,6 @@ body {
         justify-content: center;
         display: flex;
         align-items: center;
-        background: #ffffffbd;
         transition: all 0.2s;
         z-index: -1;
       }
@@ -2178,6 +2178,7 @@ class AppShell {
               }
               else if(videoPlayer.src) {
                 printLog('Hls.ErrorTypes.MEDIA_ERROR', '重新加载视频');
+                hls.swapAudioCodec();
                 hls.recoverMediaError(); 
               }
               break;
@@ -3508,6 +3509,64 @@ class AppShell {
     }
     errorMessage.textContent = message;
   }
+  updateBackground() {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = videoPlayer.videoWidth;
+      canvas.height = videoPlayer.videoHeight;
+
+      ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const dominantColor = this.getDominantColor(imageData);
+
+      pageBody.style.background = `
+        radial-gradient(circle, ${dominantColor} 0%, #000 100%)
+      `;
+      // const imageUrl = canvas.toDataURL('image/png');
+      // document.body.style.backgroundImage = `url(${imageUrl})`;
+    }
+    catch(error) {}
+  }
+  getDominantColor(imageData) {
+    if(imageData) {
+      const pixelCount = imageData.data.length / 4;
+      const colorCount = new Map();
+      const alphaThreshold = 128; // 可根据需求调整透明度阈值
+
+      for (let i = 0; i < pixelCount; i++) {
+        const offset = i * 4;
+        const r = imageData.data[offset];
+        const g = imageData.data[offset + 1];
+        const b = imageData.data[offset + 2];
+        const a = imageData.data[offset + 3];
+
+        if (a >= alphaThreshold) {
+          const color = (r << 16) | (g << 8) | b;
+          const count = colorCount.get(color) || 0;
+          colorCount.set(color, count + 1);
+        }
+      }
+
+      let maxCount = 0;
+      let dominantColor = null;
+
+      for (const [color, count] of colorCount.entries()) {
+        if (count > maxCount) {
+          maxCount = count;
+          dominantColor = color;
+        }
+      }
+      if(dominantColor) {
+        const r = (dominantColor >> 16) & 0xFF;
+        const g = (dominantColor >> 8) & 0xFF;
+        const b = dominantColor & 0xFF;
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+    }
+    return '';
+  }
 } // End of class
 
 class WebShell extends AppShell {
@@ -3727,7 +3786,7 @@ listCheckButton.addEventListener('click', (evt) => {
 
 videoPlayer.addEventListener('timeupdate', (evt) => {
   if(videoPlayer.src === stopURL) { return; }
-
+  // appShell.updateBackground();
   const lastPlayedItem = appShell.getLastVideoItem();
   if(lastPlayedItem) {
     /** @type {HTMLVideoElement} **/
