@@ -402,6 +402,9 @@ body {
         height: auto;
         z-index: 10;
       }
+      .container #videoContainer #videoPlayer::-webkit-media-controls {
+        display: none !important;
+      }
       .container .video-container .video-wrapper #frameVideo {
         width: 100%;
         max-height: 100%;
@@ -677,6 +680,9 @@ ul.menu-list {
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
 }
   ul.menu-list::-webkit-scrollbar { 
     display: none;
@@ -2130,7 +2136,11 @@ class AppShell {
   hlsPlay(source) {
     printLog('hlsPlay');
     try {
-      const hls = new Hls();
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        capLevelToPlayerSize: true
+      });
       hls.loadSource(source.url);
       hls.attachMedia(videoPlayer);
       hls.once(Hls.Events.LEVEL_LOADED, (evt, data) => {
@@ -2158,6 +2168,7 @@ class AppShell {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
               printLog('Hls.ErrorTypes.NETWORK_ERROR', '重试网络请求');
+              hls.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
               printLog('Hls.ErrorTypes.MEDIA_ERROR', '处理媒体播放错误');
@@ -2339,6 +2350,7 @@ class AppShell {
     if(stopURL) videoPlayer.src = stopURL;
     videoPlayer.pause();
     videoPlayer.removeAttribute('src');
+    videoPlayer.load();
     pauseVideoButton.classList.add('hidden');
     currentTimeDisplay.textContent = this.getMinutes(0);
     totalTimeDisplay.textContent = this.getMinutes(0);
@@ -2535,7 +2547,11 @@ class AppShell {
       };
       if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
         try {
-          const hls = new Hls();
+          const hls = new Hls({
+            enableWorker: false,
+            lowLatencyMode: true,
+            capLevelToPlayerSize: true
+          });
           const cleanup = () => {
             if (timeoutId) {
               clearTimeout(timeoutId);
