@@ -82,7 +82,7 @@ class Database {
         };
 
         this.request.onupgradeneeded = async (event) => {
-          console.log('数据库版本号从 ' + event.oldVersion + ' 升级到 ' + event.newVersion);
+          printLog('Database version upgraded from', event.oldVersion, 'to ', event.newVersion);
           /** @type {IDBDatabase} */
           const db = event.target.result;
           try {
@@ -98,13 +98,13 @@ class Database {
           } catch (error) {}
 
           db.onversionchange = (event) => {
-            console.log("The version of this database has changed");
+            printLog('The version of this database has changed');
           };
         };
         this.request.onsuccess = (event) => {
           this.db = event.target.result;
           this.db.onclose = (evt) => {
-            console.log('The database has been closed');
+            printLog('The database has been closed');
             this.db = null;
           };
           resolve({ db: this.db });
@@ -403,9 +403,7 @@ body {
         height: auto;
         z-index: 10;
       }
-      .container #videoContainer #videoPlayer::-webkit-media-controls {
-        display: none !important;
-      }
+
       .container .video-container .video-wrapper #frameVideo {
         width: 100%;
         max-height: 100%;
@@ -539,6 +537,7 @@ body {
         z-index: 10;
       }
       #pageBody .container #m3uInputContainer {
+        transform: translateZ(0);
         width: 100%;
         height: 100%;
         position: absolute;
@@ -549,16 +548,17 @@ body {
         justify-content: center;
         display: flex;
         align-items: center;
-        transition: all 0.2s;
+        transition: all 0.3s ease-in-out;
         z-index: -1;
       }
         #pageBody .container #m3uInputContainer .box {
+          transform: translateZ(0);
           justify-content: flex-start;
           margin: 0px auto;
           max-height: 78%;
           flex: 0 0 78%;
           box-shadow: 0px 0px 4px #999;
-          transition: all 0.3s;
+          transition: all 0.5s ease-in-out;
           opacity: 0;
           border-radius: 6px;
         }
@@ -566,6 +566,7 @@ body {
       #pageBody.settings .container #m3uInputContainer {
         width: 100%;
         z-index: 40;
+        background: #dddddddd;
       }
         #pageBody.settings .container #m3uInputContainer .box {
           flex: 0 0 90%;
@@ -575,6 +576,7 @@ body {
         }
 
     #pageBody.menu .container #playlistContainer {
+      transform: translateZ(0);
       width: 0px;
       flex: 0 0;
       min-width: 0px;
@@ -1550,6 +1552,11 @@ input:checked + .slider:before {
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="channel" viewBox="0 0 16 16">
       <path d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/>
     </symbol>
+    <!-- PICTURE-IN-PICTURE -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="picture-in-picture" viewBox="0 0 16 16">
+      <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h13A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 12.5zM1.5 3a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5z"/>
+      <path d="M8 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-5a.5.5 0 0 1-.5-.5z"/>
+    </symbol>
   </svg>
 
   <div class="container" id="pageContainer">
@@ -1681,6 +1688,7 @@ input:checked + .slider:before {
                   <div class="divider"></div>
                   <button id="pinButton"><svg width="20" height="20"><use xlink:href="#unpin"/></svg></button>
                   <button id="speakerButton"><svg width="20" height="20"><use xlink:href="#mute"/></svg></button>
+                  <button id="pipButton" disabled><svg width="20" height="20"><use xlink:href="#picture-in-picture"/></svg></button>
                   <button id="fullscreenButton" class="hidden" disabled><svg width="20" height="20"><use xlink:href="#fullscreen"/></svg></button>
                 </div>
                 <div id="progressBar" class="progress">
@@ -1787,7 +1795,7 @@ function getElementById(idList = []) {
 
 /** @type {[
  * HTMLBodyElement,
- * HTMLVideoElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement,
+ * HTMLVideoElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement, HTMLVideoElement,
  * HTMLButtonElement, HTMLDivElement, HTMLFormElement, HTMLButtonElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
@@ -1804,7 +1812,7 @@ function getElementById(idList = []) {
  * ]} **/
 const [
   pageBody,
-  videoPlayer, errorMessage, m3uUrlInput, closeM3uButton,
+  videoPlayer, errorMessage, m3uUrlInput, closeM3uButton, pipButton,
   loadM3uButton, settingsButton, m3uInputContainer, playlistContent, bottomControls,
   playVideoButton, m3uList, searchContainer, speakerButton, channelButton,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
@@ -1821,7 +1829,7 @@ const [
  ] = 
 getElementById([
   'pageBody',
-  'videoPlayer', 'errorMessage', 'm3uUrlInput', 'closeM3uButton',
+  'videoPlayer', 'errorMessage', 'm3uUrlInput', 'closeM3uButton', 'pipButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent', 'bottomControls',
   'playVideoButton', 'm3uList', 'searchContainer', 'speakerButton', 'channelButton',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
@@ -2010,10 +2018,7 @@ class AppShell {
   loadComments(id, title, skip = 0) {
     commentsInput.placeholder = `评论：${title}`;
     axios.get(`${CONSTS.BASE_URL}/api/tv/comments/${id}?skip=${skip}`)
-    .catch(error => {
-      console.log('load.comments.error->', error);
-    })
-    .then(response => {
+    .catch(error => {}).then(response => {
       if(response) {
         const { data } = response;
         const { comments } = data;
@@ -2328,6 +2333,7 @@ class AppShell {
     playVideoButton.className = 'stopped';
     this.displayPlayerControls();
     videoPlayer.className = 'paused';
+    pipButton.disabled = fullscreenButton.disabled = true;
   }
 
   saveVideoTimestamp() {
@@ -3239,7 +3245,7 @@ class AppShell {
   onPlaying() {
     playVideoButton.innerHTML = CONSTS.ICON_STOP;
     pauseVideoButton.innerHTML = CONSTS.ICON_PAUSE;
-    fullscreenButton.disabled = false;
+    pipButton.disabled = fullscreenButton.disabled = false;
     playVideoButton.className = 'played';
     this.showErrorMessage();
     videoPlayer.className = '';
@@ -3566,6 +3572,14 @@ class AppShell {
       }
     }
     return '';
+  }
+  togglePictureInPicture() {
+    if (document.pictureInPictureElement) {
+      document.exitPictureInPicture();
+    }
+    else {
+      videoPlayer.requestPictureInPicture();
+    }
   }
 } // End of class
 
@@ -3947,7 +3961,9 @@ pauseVideoButton.addEventListener('click', (evt) => {
 speakerButton.addEventListener('click', (evt) => {
   appShell.muteOrUnmuteVideo(!videoPlayer.muted);
 });
-
+pipButton.addEventListener('click', (evt) => {
+  appShell.togglePictureInPicture();
+});
 fullscreenButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
@@ -4028,7 +4044,7 @@ commentsForm.addEventListener('submit', async (evt) => {
   if(lastPlayedItem) {
     const id = database.encodeString(lastPlayedItem.url);
     axios.post(`${CONSTS.BASE_URL}/api/tv/comments/${id}`, {
-      content: commentsInput.value
+      content: commentsInput.value, video_time: videoPlayer.currentTime
     })
     .catch(error => {
       printLog('comments.error->', error.message);
