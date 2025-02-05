@@ -710,6 +710,7 @@ ul.menu-list li {
   -webkit-user-select: none;
   position: relative;
   background-position: -1rem center;
+  background-repeat: no-repeat;
   padding: 0px;
   font-size: 0.8rem;
 }
@@ -733,7 +734,7 @@ ul.menu-list li {
     display: none;
   }
   ul.menu-list li.selected {
-    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E') no-repeat 0.5rem center;
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
     border-left: 3px solid green;
     border-bottom-color: green;
     color: darkgreen;
@@ -746,14 +747,15 @@ ul.menu-list li {
     border-bottom-color: green;
   }
   ul.menu-list li.average {
-    border-left: 3px solid #dd7700;
+    border-left: 3px solid #806600;
   }
   ul.menu-list li.average.preview,
   ul.menu-list li.average:hover {
-    border-bottom-color: orange;
+    border-bottom-color: #806600;
   }
   ul.menu-list li.bad {
     border-bottom-color: darkred;
+    border-left-color: darkred;
   }
   ul.menu-list li.bad.preview,
   ul.menu-list li.bad:hover {
@@ -762,51 +764,61 @@ ul.menu-list li {
   ul.menu-list li.favorite {
     box-shadow: inset -2px 0 1px 0px gray;
   }
-  ul.menu-list li.active {
-    font-weight: bold;
-  }
   ul.menu-list li.broken {
     font-style: italic;
     color: #888;
     font-size: small;
-    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M0%2010.5a.5.5%200%200%201%20.5-.5h15a.5.5%200%200%201%200%201H.5a.5.5%200%200%201-.5-.5M12%200H4a2%202%200%200%200-2%202v7h1V2a1%201%200%200%201%201-1h8a1%201%200%200%201%201%201v7h1V2a2%202%200%200%200-2-2m2%2012h-1v2a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1v-2H2v2a2%202%200%200%200%202%202h8a2%202%200%200%200%202-2z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M0%2010.5a.5.5%200%200%201%20.5-.5h15a.5.5%200%200%201%200%201H.5a.5.5%200%200%201-.5-.5M12%200H4a2%202%200%200%200-2%202v7h1V2a1%201%200%200%201%201-1h8a1%201%200%200%201%201%201v7h1V2a2%202%200%200%200-2-2m2%2012h-1v2a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1v-2H2v2a2%202%200%200%200%202%202h8a2%202%200%200%200%202-2z%22%2F%3E%3C%2Fsvg%3E');
+    background-position-x: 0.5rem;
   }
   ul.menu-list li.timeout {
     color: #888;
     font-size: small;
-    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%203.5a.5.5%200%200%200-1%200V9a.5.5%200%200%200%20.252.434l3.5%202a.5.5%200%200%200%20.496-.868L8%208.71z%22%2F%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016m7-8A7%207%200%201%201%201%208a7%207%200%200%201%2014%200%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%203.5a.5.5%200%200%200-1%200V9a.5.5%200%200%200%20.252.434l3.5%202a.5.5%200%200%200%20.496-.868L8%208.71z%22%2F%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016m7-8A7%207%200%201%201%201%208a7%207%200%200%201%2014%200%22%2F%3E%3C%2Fsvg%3E');
+    background-position-x: 0.5rem;
   }
   ul.menu-list li.broken:hover {
     border-bottom-color: black;
     background-color: white;
   }
   ul.menu-list li.frame {
-    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+    background-position-x: 0.5rem;
   }
   ul.menu-list li.average.frame {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23dd7700%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
   }
   ul.menu-list li.bad.frame {
     background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
   }
   ul.menu-list li.preview {
-    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E') no-repeat 0.5rem center;
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    background-position-x: 0.5rem;
   }
   ul.menu-list li.average.preview {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23dd7700%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
   }
   ul.menu-list li.bad.preview {
     background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
   }
+  ul.menu-list li.active,
   ul.menu-list li.preview.active {
-    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
+    font-weight: bold;
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22green%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
     color: inherit;
+  }
+  ul.menu-list li.average.active {
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+  }
+  ul.menu-list li.bad.active {
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
   }
   ul.menu-list li.checking {
     color: #5c5c5c;
     border-left-color: #000;
     font-size: 0.8rem;
-    background: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23666%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%201.5a.5.5%200%200%201%20.5-.5h11a.5.5%200%200%201%200%201h-1v1a4.5%204.5%200%200%201-2.557%204.06c-.29.139-.443.377-.443.59v.7c0%20.213.154.451.443.59A4.5%204.5%200%200%201%2012.5%2013v1h1a.5.5%200%200%201%200%201h-11a.5.5%200%201%201%200-1h1v-1a4.5%204.5%200%200%201%202.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5%204.5%200%200%201%203.5%203V2h-1a.5.5%200%200%201-.5-.5m2.5.5v1a3.5%203.5%200%200%200%201.989%203.158c.533.256%201.011.791%201.011%201.491v.702c0%20.7-.478%201.235-1.011%201.491A3.5%203.5%200%200%200%204.5%2013v1h7v-1a3.5%203.5%200%200%200-1.989-3.158C8.978%209.586%208.5%209.052%208.5%208.351v-.702c0-.7.478-1.235%201.011-1.491A3.5%203.5%200%200%200%2011.5%203V2z%22%2F%3E%3C%2Fsvg%3E') no-repeat 0.5rem center;
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23666%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%201.5a.5.5%200%200%201%20.5-.5h11a.5.5%200%200%201%200%201h-1v1a4.5%204.5%200%200%201-2.557%204.06c-.29.139-.443.377-.443.59v.7c0%20.213.154.451.443.59A4.5%204.5%200%200%201%2012.5%2013v1h1a.5.5%200%200%201%200%201h-11a.5.5%200%201%201%200-1h1v-1a4.5%204.5%200%200%201%202.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5%204.5%200%200%201%203.5%203V2h-1a.5.5%200%200%201-.5-.5m2.5.5v1a3.5%203.5%200%200%200%201.989%203.158c.533.256%201.011.791%201.011%201.491v.702c0%20.7-.478%201.235-1.011%201.491A3.5%203.5%200%200%200%204.5%2013v1h7v-1a3.5%203.5%200%200%200-1.989-3.158C8.978%209.586%208.5%209.052%208.5%208.351v-.702c0-.7.478-1.235%201.011-1.491A3.5%203.5%200%200%200%2011.5%203V2z%22%2F%3E%3C%2Fsvg%3E');
+    background-position-x: 0.5rem;
   }
   ul#channelList.menu-list {
     row-gap: 0px;
@@ -2400,15 +2412,16 @@ class AppShell {
    * @param {HTMLLIElement} li List item
    * @param {{ ok: boolean, duration: number, frame: string, latency: number, timeout: boolean }} checkResult List item
    * @param {{ url: string, group: string, title: string }} lastPlayedItem Last played data
-   * @param {number} itemCode If it is favorite
    */
-  updateListItemStyle(li, checkResult, lastPlayedItem, itemCode) {
+  async updateListItemStyle(li, checkResult, lastPlayedItem) {
+    const itemId = li.dataset['id'];
+    const itemCode = await this.fetchPlayItemCode(itemId);
     li.className = '';
     if (checkResult.ok) {
-      if(checkResult.latency < 1000) {
+      if(checkResult.latency < 500) {
         li.classList.add('good');
       }
-      else if (checkResult.latency >= 1000 && checkResult.latency <= 2000) {
+      else if (checkResult.latency >= 500 && checkResult.latency <= 1000) {
         li.classList.add('average');
       }
       else {
@@ -2637,6 +2650,24 @@ class AppShell {
     }
   }
 
+  /**
+   * Refresh video playability
+   * @param {HTMLLIElement} li List item
+   */
+  async refreshVideoPlayability(li) {
+    const videoUrl = li.dataset['url'];
+    const id = li.dataset['id'];
+    this.showCheckButton(true);
+    // No cache or cleaned
+    // Check video playability
+    li.className = 'checking';
+    const result = await this.checkVideoPlayability(videoUrl);
+    await database.addData({ id, result }, STA_STORE);
+    const lastPlayedItem = this.getLastVideoItem();
+    await this.updateListItemStyle(li, result, lastPlayedItem);
+    this.showCheckButton(false);
+  }
+
   // 显示播放列表页面
   async displayPlaylistPage(page, transaction) {
     playlistItems.innerHTML = '';
@@ -2645,7 +2676,6 @@ class AppShell {
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const pageItems = itemsToDisplay.slice(startIndex, endIndex);
-    const lastPlayedItem = this.getLastVideoItem();
 
     listCheckButton.disabled = true;
     // Loop list items
@@ -2676,12 +2706,17 @@ class AppShell {
         evt.preventDefault();
         const { currentTarget } = evt;
         const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : CONSTS.POSTER;
-        const isBroken = currentTarget.classList.contains('broken') === false;
-        if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isBroken && !this.isPlaying()) {
+        const isOK = currentTarget.classList.contains('broken') === false;
+        const isFresh = currentTarget.classList.length === 0;
+        if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isOK && !this.isPlaying() && isFresh === false) {
           this.playNow(currentTarget, item);
         }
         else {
           this.previewNow(currentTarget, item, frame);
+        }
+        if(isFresh) {
+          // reCaptureButton.dispatchEvent(new Event('click'));
+          this.refreshVideoPlayability(currentTarget);
         }
       };
 
@@ -2694,28 +2729,19 @@ class AppShell {
 
     // Update styles
     for (const li of playlistItems.childNodes) {
-      const videoUrl = li.dataset['url'];
       const id = li.dataset['id'];
-
-      const itemCode = await this.fetchPlayItemCode(id);
       /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, latency: number, timeout: boolean } }, error: Error }} */
       const { data: playCache, error } = await database.readData(id, STA_STORE);
-
       if(error) {
         printLog('displayPlaylistPage.error', error.message);
         return;
       }
       if (playCache) {
-        this.updateListItemStyle(li, playCache.result, lastPlayedItem, itemCode);
+        const lastPlayedItem = this.getLastVideoItem();
+        await this.updateListItemStyle(li, playCache.result, lastPlayedItem);
       }
       else if (isAutoCheck && transaction === VARS.TRANSACTION) {
-        this.showCheckButton(isAutoCheck);
-        // No cache or cleaned
-        // Check video playability
-        li.className = 'checking';
-        const result = await this.checkVideoPlayability(videoUrl);
-        await database.addData({ id, result }, STA_STORE);
-        this.updateListItemStyle(li, result, lastPlayedItem, itemCode);
+        await this.refreshVideoPlayability(li);
       }
     }
 
@@ -3427,15 +3453,13 @@ class AppShell {
         }
         li.className = 'checking';
         const itemUrl = li.dataset['url'];
-        const itemId = li.dataset['id'];
 
         if (itemUrl) {
           if(transaction === VARS.TRANSACTION) {
             const result = await this.checkVideoPlayability(itemUrl);
-            const itemCode = await this.fetchPlayItemCode(itemId);
             const id = li.dataset['id'];
             await database.updateData({ id, result }, STA_STORE);
-            this.updateListItemStyle(li, result, lastPlayedItem, itemCode);
+            await this.updateListItemStyle(li, result, lastPlayedItem);
           }
           else {
             li.className = '';
@@ -3674,11 +3698,11 @@ reCaptureButton.addEventListener('click', async (evt) => {
   reCaptureButton.disabled = true;
   const result = await appShell.checkVideoPlayability(url, true);
   await database.updateData({ id, result }, STA_STORE);
-  const itemCode = await appShell.fetchPlayItemCode(id);
+  const lastPlayedItem = appShell.getLastVideoItem();
+
   for(const node of playlistItems.childNodes) {
     if(node.dataset['url'] === url) {
-      const lastPlayedItem = appShell.getLastVideoItem();
-      appShell.updateListItemStyle(node, result, lastPlayedItem, itemCode);
+      appShell.updateListItemStyle(node, result, lastPlayedItem);
       appShell.changePoster(node.dataset['frame']);
       break; 
     }
