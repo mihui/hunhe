@@ -2418,10 +2418,10 @@ class AppShell {
     const itemCode = await this.fetchPlayItemCode(itemId);
     li.className = '';
     if (checkResult.ok) {
-      if(checkResult.latency < 500) {
+      if(checkResult.latency < 800) {
         li.classList.add('good');
       }
-      else if (checkResult.latency >= 500 && checkResult.latency <= 1000) {
+      else if (checkResult.latency >= 800 && checkResult.latency <= 2000) {
         li.classList.add('average');
       }
       else {
