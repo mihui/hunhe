@@ -528,7 +528,8 @@ body {
       z-index: 10;
       background: #ffffff99;
       box-shadow: 2px 0px 6px 1px #ccc;
-      transition: all 0.2s;
+      overflow: hidden;
+      transition: flex 0.2s ease, min-width 0.2s ease;
     }
       #pageBody .container .player-interface {
         display: flex;
@@ -582,7 +583,6 @@ body {
       flex: 0 0;
       min-width: 0px;
       max-width: 0px;
-      overflow: hidden;
     }
 
 textarea, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
