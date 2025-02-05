@@ -3308,6 +3308,7 @@ class AppShell {
       case 'svg':
         return;
       case 'video':
+        node.poster = CONSTS.POSTER;
         // if(this.isPlaying()) videoPlayer.requestFullscreen();
         // return;
       default:
@@ -3316,6 +3317,7 @@ class AppShell {
           evt.stopPropagation();
         }
     }
+
     if(node.poster !== CONSTS.POSTER) {
       window.localStorage.removeItem('lastPlayedItem');
       this.stopVideo(true, true, node.poster);
