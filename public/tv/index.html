@@ -351,6 +351,7 @@ body {
   overflow: hidden;
   align-items: center;
   background: url(background.jpeg) center center / cover no-repeat;
+  backdrop-filter: blur(20px);
 }
   .container {
     width: 100%;
@@ -382,12 +383,16 @@ body {
       max-height: 100%;
       min-width: 300px;
       height: auto;
-      background-color: #333;
+      background-color: transparent;
       position: relative;
       flex: none;
+      transition: flex 0.2s ease-in-out;
     }
     .play-list .container .video-container .video-wrapper {
       max-height: calc(100vh - 4rem);
+    }
+    .menu .container .video-container .video-wrapper {
+      flex: 1;
     }
       .container #videoContainer {
         display: flex;
@@ -1115,7 +1120,7 @@ button {
   width: 100%;
   flex: 1;
   position: relative;
-  background-color: rgba(237, 237, 237, 0.85);
+  background-color: rgba(237, 237, 237, 0.25);
   border-radius: 0px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
@@ -3304,8 +3309,8 @@ class AppShell {
       case 'svg':
         return;
       case 'video':
-        if(this.isPlaying()) videoPlayer.requestFullscreen();
-        return;
+        // if(this.isPlaying()) videoPlayer.requestFullscreen();
+        // return;
       default:
         {
           evt.preventDefault();
@@ -3546,26 +3551,6 @@ class AppShell {
     }
     errorMessage.textContent = message;
   }
-  updateBackground() {
-    try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = videoPlayer.videoWidth;
-      canvas.height = videoPlayer.videoHeight;
-
-      ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
-
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const dominantColor = this.getDominantColor(imageData);
-
-      pageBody.style.background = `
-        radial-gradient(circle, ${dominantColor} 0%, #000 100%)
-      `;
-      // const imageUrl = canvas.toDataURL('image/png');
-      // document.body.style.backgroundImage = `url(${imageUrl})`;
-    }
-    catch(error) {}
-  }
   getDominantColor(imageData) {
     if(imageData) {
       const pixelCount = imageData.data.length / 4;
@@ -3604,6 +3589,27 @@ class AppShell {
     }
     return '';
   }
+  updateBackground() {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = videoPlayer.videoWidth;
+      canvas.height = videoPlayer.videoHeight;
+
+      ctx.drawImage(videoPlayer.poster, 0, 0, canvas.width, canvas.height);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const dominantColor = this.getDominantColor(imageData);
+
+      pageBody.style.background = `
+        radial-gradient(circle, ${dominantColor} 0%, #000 100%)
+      `;
+      // const imageUrl = canvas.toDataURL('image/png');
+      // document.body.style.backgroundImage = `url(${imageUrl})`;
+    }
+    catch(error) {}
+  }
+
   togglePictureInPicture() {
     if (document.pictureInPictureElement) {
       document.exitPictureInPicture();
