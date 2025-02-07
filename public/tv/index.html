@@ -2456,17 +2456,17 @@ class AppShell {
       if(this.currentCategory !== CONSTS.CHANNELS.FAVORITE) {
         li.classList.add('favorite'); 
       }
-      if(li.classList.contains('timeout')) {
-        const deleteButton = document.createElement('span');
-        deleteButton.innerHTML = CONSTS.ICON_CANCEL;
-        deleteButton.className = 'delete';
-        deleteButton.onclick = (evt) => {
-          evt.stopPropagation();
-          const id = li.dataset['id'];
-          this.deleteFavorite(id);
-        };
-        li.append(deleteButton);
-      }
+      // if(li.classList.contains('timeout')) {
+      //   const deleteButton = document.createElement('span');
+      //   deleteButton.innerHTML = CONSTS.ICON_CANCEL;
+      //   deleteButton.className = 'delete';
+      //   deleteButton.onclick = (evt) => {
+      //     evt.stopPropagation();
+      //     const id = li.dataset['id'];
+      //     this.deleteFavorite(id);
+      //   };
+      //   li.append(deleteButton);
+      // }
     }
   }
   /**
