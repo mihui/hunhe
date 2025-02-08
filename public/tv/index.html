@@ -520,7 +520,6 @@ body {
         opacity: 0;
         pointer-events: none;
       }
-
     .container #playlistContainer {
       min-width: 300px;
       width: 100%;
@@ -581,7 +580,6 @@ body {
       flex: 0 0;
       min-width: 0px;
     }
-
 textarea, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
 #m3uContentKey, #settingsButton,
 .m3u-controls #loadM3uButton, .m3u-controls #closeM3uButton {
@@ -597,11 +595,9 @@ textarea, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
   border-bottom-right-radius: 0px;
   font-size: 14px;
 }
-
 #searchContainer, #playlistContent .top-buttons {
   margin-bottom: 10px;
 }
-
 #searchContainer {
   display: flex;
 }
@@ -629,25 +625,20 @@ textarea, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
   #searchContainer #clearButton svg {
     background-color: white;
   }
-
 #searchInput, #m3uUrlInput {
   padding: 12px;
 }
-
 #searchInput {
   flex-grow: 1;
 }
-
 textarea:focus-visible,
 input:focus-visible,
 select:focus-visible {
   outline: 1px solid #ddd;
 }
-
 #searchButton {
   border-radius: 0px;
 }
-
 #searchButton, #closeButton, #settingsButton {
   width: auto;
   background-color: #3498db;
@@ -660,12 +651,10 @@ select:focus-visible {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-
 #playlistContent .top-buttons #listCheckButton {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
-
 ul.menu-list {
   list-style-type: none;
   padding: 0px;
@@ -685,7 +674,6 @@ ul.menu-list {
   ul.menu-list::-webkit-scrollbar { 
     display: none;
   }
-
 ul.menu-list li {
   will-change: transform;
   cursor: pointer;
@@ -915,6 +903,15 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: filter 0.3s ease;
+}
+button:disabled {
+  background-color: #bdc3c7 !important;
+  color: #eee;
+}
+button:not(:disabled):active,
+button:not(:disabled):focus-visible {
+  filter: brightness(0.9);
 }
 
 #errorControl #errorMessage {
@@ -1091,13 +1088,7 @@ button {
     .user-controls button {
       transition: transform 0.1s ease, background-color 0.2s ease;
     }
-    .user-controls button:active {
-      transform: scale(0.95);
-    }
-    .user-controls button:active::after {
-      opacity: 1;
-      transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease;
-    }
+
   #playlistContent .page-controls #pagination button {
     font-size: 16px;
     flex: 0;
@@ -1261,10 +1252,6 @@ button {
   }
 .settings-usage {
   row-gap: 0.5rem;
-}
-button:disabled {
-  background-color: #bdc3c7 !important;
-  color: #eee;
 }
 
 .settings-row {
@@ -1884,9 +1871,18 @@ let onlyCheckBroken = 'false';
 let stopURL = null;
 
 class AppShell {
+  blacklist = [];
   SITE_TITLE = 'Hunhe IPTV';
-
   currentCategory = CONSTS.CHANNELS.ALL;
+
+  /**
+   * @param {URL} url Video URL
+   */
+  addBlackList(url) {
+    if(this.blacklist.indexOf(url.hostname) === -1) {
+      this.blacklist.push(url.hostname);
+    }
+  }
 
   displayPlayerControls(showNativeControls = false, showCustomControls = false) {
     if (document.fullscreenEnabled) {
@@ -2563,6 +2559,17 @@ class AppShell {
         }, val);
         return resolve(data);
       };
+      let videoUrl = null;
+      try {
+        videoUrl = new URL(url);
+        if(this.blacklist.includes(videoUrl.hostname)) {
+          throw new Error(`${videoUrl.hostname} is not available!`);
+        }
+      }
+      catch(error) {
+        // console.warn('Invalid host:', error.message);
+        return resolveProblem({ latency: new Date().getTime() - timestamp });
+      }
       if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
         try {
           const hls = new Hls({
@@ -2587,6 +2594,7 @@ class AppShell {
 
           hls.once(Hls.Events.ERROR, () => {
             cleanup();
+            this.addBlackList(videoUrl);
             resolveProblem({ latency: new Date().getTime() - timestamp });
           });
 
@@ -2618,6 +2626,7 @@ class AppShell {
 
         video.onerror = () => {
           cleanup();
+          this.addBlackList(videoUrl);
           resolveProblem({ latency: new Date().getTime() - timestamp });
         };
 
