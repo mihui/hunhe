@@ -521,18 +521,22 @@ body {
         pointer-events: none;
       }
     .container #playlistContainer {
-      min-width: 300px;
       width: 100%;
-      flex: 1;
       height: 100%;
       display: flex;
       z-index: 10;
       background: #ffffff99;
       box-shadow: 2px 0px 6px 1px #ccc;
       overflow: hidden;
+      flex: 0 0;
+      min-width: 0px;
       transform: translateZ(0);
       transition: flex 0.2s ease, min-width 0.3s ease;
       will-change: flex, min-width;
+    }
+    #pageBody.menu .container #playlistContainer {
+      flex: 1;
+      min-width: 300px;
     }
       #pageBody .container .player-interface {
         display: flex;
@@ -576,10 +580,6 @@ body {
           scale: 0.9;
         }
 
-    #pageBody.menu .container #playlistContainer {
-      flex: 0 0;
-      min-width: 0px;
-    }
 textarea, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
 #m3uContentKey, #settingsButton,
 .m3u-controls #loadM3uButton, .m3u-controls #closeM3uButton {
@@ -743,7 +743,6 @@ ul.menu-list li {
     border-bottom-color: #806600;
   }
   ul.menu-list li.bad {
-    border-bottom-color: darkred;
     border-left-color: darkred;
   }
   ul.menu-list li.bad.preview,
@@ -1060,7 +1059,7 @@ button:not(:disabled):focus-visible {
   }
 #playlistContent .top-buttons button {
   background-color: #3471db;
-  transition: all 1s;
+  transition: justify-content 0.3s ease, padding-left 0.3s ease;
 }
   #playlistContent .top-buttons.channel button {
     background-color: #2e6bcc;
@@ -3483,7 +3482,8 @@ class AppShell {
     this.gotoPage(currentPage);
     this.playLastVideo(false);
 
-    this.listStore('startup');
+    await this.listStore('startup');
+
     this.initUI();
 
     this.generateBlankFrame();
