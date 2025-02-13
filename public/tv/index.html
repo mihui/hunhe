@@ -789,6 +789,9 @@ ul.menu-list li {
   ul.menu-list li.bad.preview {
     background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
   }
+  ul.menu-list li.broken.preview {
+    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+  }
   ul.menu-list li.active,
   ul.menu-list li.preview.active {
     font-weight: bold;
@@ -1787,7 +1790,8 @@ const VARS = {
   TRANSACTION: '',
   ALWAYS_ON_TOP: false,
   DISLIKES: [],
-  CONTROL_TIMER: 0
+  CONTROL_TIMER: 0,
+  IS_GLOBALLY_HIDDEN: false
 };
 
 const database = new Database(DB_VERSION);
@@ -2708,7 +2712,7 @@ class AppShell {
         const { currentTarget } = evt;
         const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : CONSTS.POSTER;
         const isOK = currentTarget.classList.contains('broken') === false;
-        const isFresh = currentTarget.classList.length === 0;
+        const isFresh = currentTarget.classList.length === 0 || currentTarget.classList.contains('broken') || currentTarget.classList.contains('timeout');
         if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isOK && !this.isPlaying() && isFresh === false) {
           this.playNow(currentTarget, item);
         }
@@ -2716,7 +2720,6 @@ class AppShell {
           this.previewNow(currentTarget, item, frame);
         }
         if(isFresh) {
-          // reCaptureButton.dispatchEvent(new Event('click'));
           this.refreshVideoPlayability(currentTarget);
         }
       };
@@ -4101,11 +4104,10 @@ channelButton.addEventListener('click', (evt) => {
   appShell.switchChannel();
 });
 
-let isGloballyHidden = false;
 document.addEventListener('keydown', function (event) {
   if (event.key === 'Escape' || event.keyCode === 27) {
     event.preventDefault();
-    if(isGloballyHidden) {
+    if(VARS.IS_GLOBALLY_HIDDEN) {
       pageContainer.className = 'container';
     }
     else {
@@ -4113,7 +4115,7 @@ document.addEventListener('keydown', function (event) {
       appShell.muteOrUnmuteVideo(true);
       videoPlayer.pause();
     }
-    isGloballyHidden = !isGloballyHidden;
+    VARS.IS_GLOBALLY_HIDDEN = !VARS.IS_GLOBALLY_HIDDEN;
   }
   else if(event.key === 'ArrowLeft' || event.keyCode === 37) {
     event.preventDefault();
@@ -4134,6 +4136,7 @@ document.addEventListener('keydown', function (event) {
 });
 document.addEventListener('dblclick', (evt) => {
   appShell.resetPoster(evt);
+  appShell.displaySideMenu(false);
 });
 window.addEventListener('beforeunload', (evt) => {
   appShell.saveVideoTimestamp();
