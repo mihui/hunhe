@@ -2723,7 +2723,6 @@ class AppShell {
           this.refreshVideoPlayability(currentTarget);
         }
       };
-
       li.append(label);
       playlistItems.appendChild(li);
     });
@@ -3295,6 +3294,7 @@ class AppShell {
   /**
    * Reset poster
    * @param {Event} evt Node
+   * @returns {boolean} Returns boolean value if the event was handled
    */
   resetPoster(evt) {
     /** @type {HTMLElement} **/
@@ -3304,7 +3304,7 @@ class AppShell {
       case 'input':
       case 'button':
       case 'svg':
-        return;
+        return false;
       case 'video':
         node.poster = CONSTS.POSTER;
         // if(this.isPlaying()) videoPlayer.requestFullscreen();
@@ -3319,7 +3319,10 @@ class AppShell {
     if(node.poster !== CONSTS.POSTER) {
       window.localStorage.removeItem('lastPlayedItem');
       this.stopVideo(true, true, node.poster);
+      appShell.displaySideMenu(false);
+      return true;
     }
+    return false;
   }
 
   gotoNextPage() {
@@ -4136,7 +4139,6 @@ document.addEventListener('keydown', function (event) {
 });
 document.addEventListener('dblclick', (evt) => {
   appShell.resetPoster(evt);
-  appShell.displaySideMenu(false);
 });
 window.addEventListener('beforeunload', (evt) => {
   appShell.saveVideoTimestamp();
