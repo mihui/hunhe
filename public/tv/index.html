@@ -372,7 +372,6 @@ body {
     height: 100%;
     user-select: none;
     -webkit-user-select: none;
-    transform: translateZ(0);
     will-change: flex-grow, min-width, max-width, width;
   }
     .container .video-container .video-wrapper {
@@ -386,7 +385,7 @@ body {
       height: auto;
       background-color: transparent;
       position: relative;
-      flex: none;
+      flex: 1;
     }
     .play-list .container .video-container .video-wrapper {
       max-height: calc(100vh - 4rem);
@@ -397,7 +396,6 @@ body {
         flex: 1;
         margin: 0px;
         padding: 0px;
-        transform: translateZ(0);
         will-change: flex-grow, min-width, max-width;
       }
       .container #videoContainer #videoPlayer {
@@ -413,25 +411,7 @@ body {
         position: absolute;
         z-index: -1;
       }
-    .container .video-container .bottom-controls {
-      flex: 1;
-      align-items: flex-start;
-      display: flex;
-      column-gap: 1rem;
-      justify-content: flex-end;
-      width: 100%;
-      flex-flow: column;
-      row-gap: 0.5rem;
-      user-select: none;
-      -webkit-user-select: none;
-      overflow: auto;
-    }
-    .container .video-container .bottom-controls::-webkit-scrollbar {
-      display: none;
-    }
-    .container .video-container .bottom-controls #errorControl {
-      flex-flow: column;
-    }
+
     .container .video-container .user-controls {
       width: 100%;
       display: flex;
@@ -916,13 +896,6 @@ button:not(:disabled):focus-visible {
   filter: brightness(0.9);
 }
 
-#errorControl #errorMessage {
-  color: #e74c3c;
-  text-align: center;
-  flex: 1;
-  width: 100%;
-}
-
 #settingsButton {
   background-color: #606060;
 }
@@ -1126,7 +1099,9 @@ button:not(:disabled):focus-visible {
 .box::-webkit-scrollbar { 
   display: none;
 }
-
+.container .video-container .box {
+  background-color: rgba(0, 0, 0, 0.85);
+}
 .range {
   appearance: none;
   width: 100%;
@@ -1361,9 +1336,6 @@ input:checked + .slider:before {
     flex: 1;
     max-height: 100%;
   }
-  .container #commentsLayout, .container #bottomControls {
-    display: flex;
-  }
 }
 @media only screen and (max-width: 965px) {
   .container #videoContainer #videoControls .buttons button {
@@ -1386,70 +1358,6 @@ input:checked + .slider:before {
   display: none !important;
 }
 
-#commentsLayout {
-  display: flex;
-  width: 100%;
-  flex-flow: column;
-  overflow: auto;
-  flex: 1;
-}
-
-.play-list #bottomControls {
-  display: flex;
-  justify-content: flex-start;
-}
-.menu #bottomControls {
-  display: none;
-}
-#commentsLayout .comments-form {
-  display: flex;
-  width: 100%;
-  flex: 0;
-}
-#commentsLayout .comments-container {
-  width: 100%;
-  row-gap: 0;
-  display: flex;
-  flex-flow: column;
-  overflow: auto;
-  flex: 1;
-}
-#commentsLayout .comments-container .comment {
-  display: flex;
-  width: 100%;
-  flex-flow: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 0.5rem;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-  #commentsLayout .comments-container .comment:nth-of-type(even) {
-    background: #f2f2f286;
-  }
-  #commentsLayout .comments-container .comment .time {
-    font-size: 0.8rem;
-    color: gray;
-  }
-
-  #commentsLayout .comments-form input {
-    padding: 0.5rem;
-    background: #ffffff80;
-    border-radius: 4px;
-    outline: none;
-    transition: all 0.2s ease-in-out;
-    border: 0px;
-  }
-  #commentsLayout .comments-form #commentsInput {
-    flex: 1;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;
-  }
-  #commentsLayout .comments-form #commentsButton {
-    border-top-left-radius: 0px;
-    border-bottom-left-radius: 0px;
-  }
-  
   </style>
 </head>
 
@@ -1712,20 +1620,6 @@ input:checked + .slider:before {
             <video id="frameVideo" playsinline muted></video>
           </div>
 
-          <div id="bottomControls" class="bottom-controls">
-            <div class="user-controls" id="errorControl">
-              <div id="errorMessage"></div>
-            </div>
-
-            <div id="commentsLayout" class="hidden">
-              <div id="commentsList" class="comments-container"></div>
-              <form id="commentsForm" class="comments-form">
-                <input type="text" id="commentsInput" placeholder="评论" />
-                <input type="submit" id="commentsButton" value="发送" disabled />
-              </form>
-            </div>
-          </div>
-
           <div id="bottomButtons" class="user-controls">
             <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
             <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
@@ -1806,8 +1700,8 @@ function getElementById(idList = []) {
 
 /** @type {[
  * HTMLBodyElement,
- * HTMLVideoElement, HTMLDivElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement,
- * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement, HTMLVideoElement,
+ * HTMLVideoElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement,
+ * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement,
  * HTMLButtonElement, HTMLDivElement, HTMLFormElement, HTMLButtonElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLButtonElement,
@@ -1816,15 +1710,14 @@ function getElementById(idList = []) {
  * HTMLDivElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement, HTMLInputElement,
  * HTMLInputElement, HTMLSpanElement, HTMLElement, HTMLVideoElement,
  * HTMLInputElement, HTMLSpanElement, HTMLSpanElement, HTMLDivElement, HTMLButtonElement,
- * HTMLFormElement, HTMLInputElement, HTMLButtonElement, HTMLDivElement, HTMLInputElement,
+ * HTMLInputElement,
  * HTMLDivElement, HTMLInputElement, HTMLDivElement, HTMLButtonElement, HTMLInputElement,
  * HTMLSpanElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLDivElement,
- * HTMLDivElement,
  * ]} **/
 const [
   pageBody,
-  videoPlayer, errorMessage, m3uUrlInput, closeM3uButton, pipButton,
-  loadM3uButton, settingsButton, m3uInputContainer, playlistContent, bottomControls,
+  videoPlayer, m3uUrlInput, closeM3uButton, pipButton,
+  loadM3uButton, settingsButton, m3uInputContainer, playlistContent,
   playVideoButton, m3uList, searchContainer, speakerButton, channelButton,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
   fullscreenButton, prevButton, nextButton, pageInfo, listCheckButton,
@@ -1833,15 +1726,14 @@ const [
   pageContainer, databaseSize, databaseCategories, storeFrameCheckbox, autoCheckCheckbox,
   checkTimeout, checkTimeoutDisplay, debugLogs, frameVideo,
   progressControl, currentTimeDisplay, totalTimeDisplay, videoControls, logClearButton,
-  commentsForm, commentsInput, commentsButton, commentsList, onlyCheckBrokenCheckbox,
+  onlyCheckBrokenCheckbox,
   progressBar, enableLoggingCheckbox, logContainer, pauseVideoButton, screenshotTime,
   screenshotTimeDisplay, muteWhenPlayCheckbox, reCaptureButton, pinButton, topButtons,
-  commentsLayout
  ] = 
 getElementById([
   'pageBody',
-  'videoPlayer', 'errorMessage', 'm3uUrlInput', 'closeM3uButton', 'pipButton',
-  'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent', 'bottomControls',
+  'videoPlayer', 'm3uUrlInput', 'closeM3uButton', 'pipButton',
+  'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent',
   'playVideoButton', 'm3uList', 'searchContainer', 'speakerButton', 'channelButton',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
   'fullscreenButton', 'prevPage', 'nextPage', 'pageInfo', 'listCheckButton',
@@ -1850,10 +1742,9 @@ getElementById([
   'pageContainer', 'databaseSize', 'databaseCategories', 'storeFrameCheckbox', 'autoCheckCheckbox',
   'checkTimeout', 'checkTimeoutDisplay', 'debugLogs', 'frameVideo',
   'progressControl', 'currentTimeDisplay', 'totalTimeDisplay', 'videoControls', 'logClearButton',
-  'commentsForm', 'commentsInput', 'commentsButton', 'commentsList', 'onlyCheckBrokenCheckbox',
+  'onlyCheckBrokenCheckbox',
   'progressBar', 'enableLoggingCheckbox', 'logContainer', 'pauseVideoButton', 'screenshotTime',
   'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton', 'topButtons',
-  'commentsLayout'
 ]);
 
 let itemsPerPage = 15;
@@ -2033,36 +1924,6 @@ class AppShell {
       return JSON.parse(data);
     }
     return null;
-  }
-
-  loadComments(id, title, skip = 0) {
-    commentsInput.placeholder = `评论：${title}`;
-    axios.get(`${CONSTS.BASE_URL}/api/tv/comments/${id}?skip=${skip}`)
-    .catch(error => {}).then(response => {
-      if(response) {
-        const { data } = response;
-        const { comments } = data;
-
-        commentsList.innerHTML = '';
-
-        comments.forEach(comment => {
-          const commentItem = document.createElement('div');
-          const commentContent = document.createElement('div');
-          const commentTime = document.createElement('div');
-          commentItem.className = 'comment';
-          commentContent.className = 'content';
-          commentContent.textContent = comment.content;
-          commentTime.className = 'time';
-          commentTime.textContent = this.timeAgo(new Date(comment.created_time).getTime());
-
-          commentItem.append(commentTime);
-          commentItem.append(commentContent);
-
-          commentsList.appendChild(commentItem);
-        });
-        this.showComments(true);
-      }
-    });
   }
   /**
    * If the URL is favorite
@@ -2299,7 +2160,7 @@ class AppShell {
       this.resetTitle();
     }
     this.loadVideoTimestamp();
-    // this.loadComments(database.encodeString(source.url), source.title);
+
     this.loadFavorite(source);
     this.loadReCapture(source);
     this.resetControlButtons(false, false);
@@ -2342,7 +2203,6 @@ class AppShell {
    * @param {{ title: string, url: string, group: string }} item Play item
    */
   playNow(li, item) {
-    this.showComments(false);
     if(li.dataset['broken']) return;
     this.playVideo(item);
   }
@@ -2392,7 +2252,6 @@ class AppShell {
     if(removePreview) {
       this.resetListStyle('preview');
     }
-    this.showComments(false);
   }
   /**
    * @param {HTMLLIElement} li List item
@@ -2406,7 +2265,7 @@ class AppShell {
     if(li.classList.contains('frame')) {
       li.classList.add('preview');
     }
-    this.loadComments(li.dataset['id'], li.title);
+
     this.loadFavorite(item);
     this.loadReCapture(item);
     this.saveLastPlayedVideo(item);
@@ -3268,9 +3127,11 @@ class AppShell {
   resetControlButtons(isPlaying, isReset = false) {
     if(isPlaying) {
       rewindButton.disabled = forwardButton.disabled = false;
+      progressControl.classList.remove('hidden');
     }
     else {
       rewindButton.disabled = forwardButton.disabled = true;
+      progressControl.classList.add('hidden');
     }
     reCaptureButton.disabled = isReset;
     playVideoButton.disabled = dislikeButton.disabled = favoriteButton.disabled = isReset || false;
@@ -3528,31 +3389,11 @@ class AppShell {
     await this.initializeCategories();
     this.initializePlaylist();
   }
-  showBottomControls(display = false) {
-    if(display) {
-      bottomControls.classList.remove('hidden');
-    }
-    else {
-      bottomControls.classList.add('hidden');
-    }
-  }
-  showComments(display = false) {
-    this.showBottomControls(display);
-    if(display) {
-      commentsLayout.classList.remove('hidden');
-    }
-    else {
-      commentsLayout.classList.add('hidden');
-    }
-  }
+
   showErrorMessage(message = '') {
     if(message.length > 0) {
-      this.showBottomControls(true);
+      console.warn(' >', message);
     }
-    else {
-      this.showBottomControls(false);
-    }
-    errorMessage.textContent = message;
   }
   getDominantColor(imageData) {
     if(imageData) {
@@ -4076,31 +3917,6 @@ muteWhenPlayCheckbox.addEventListener('change', (evt) => {
 logClearButton.addEventListener('click', (evt) => {
   logClearButton.classList.add('hidden');
   debugLogs.innerHTML = '> 日志';
-});
-
-commentsForm.addEventListener('submit', async (evt) => {
-  evt.preventDefault();
-  const lastPlayedItem = appShell.getLastVideoItem();
-  if(lastPlayedItem) {
-    const id = database.encodeString(lastPlayedItem.url);
-    axios.post(`${CONSTS.BASE_URL}/api/tv/comments/${id}`, {
-      content: commentsInput.value, video_time: videoPlayer.currentTime
-    })
-    .catch(error => {
-      printLog('comments.error->', error.message);
-    })
-    .then(response => {
-      commentsInput.value = '';
-      commentsInput.focus();
-      commentsInput.dispatchEvent(new Event('input'));
-      appShell.loadComments(id, lastPlayedItem.title);
-    });
-  }
-});
-
-commentsInput.addEventListener('input', (evt) => {
-  const isOK =  evt.target.value.length > 0;
-  commentsButton.disabled = isOK ? false : true;
 });
 
 channelButton.addEventListener('click', (evt) => {
