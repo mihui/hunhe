@@ -1102,6 +1102,14 @@ button:not(:disabled):focus-visible {
 .container .video-container .box {
   background-color: rgba(0, 0, 0, 0.85);
 }
+.container .video-container .box-video {
+  height: 100%;
+  padding-bottom: 0px;
+}
+.container .video-container .box-controls {
+  flex: none;
+  height: auto;
+}
 .range {
   appearance: none;
   width: 100%;
@@ -1594,7 +1602,7 @@ input:checked + .slider:before {
       </div>
 
       <div class="video-container">
-        <div class="box">
+        <div class="box box-video">
           <div class="video-wrapper">
 
             <figure id="videoContainer">
@@ -1619,7 +1627,8 @@ input:checked + .slider:before {
 
             <video id="frameVideo" playsinline muted></video>
           </div>
-
+        </div>
+        <div class="box box-controls">
           <div id="bottomButtons" class="user-controls">
             <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
             <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
@@ -1629,7 +1638,6 @@ input:checked + .slider:before {
             <button id="reCaptureButton" disabled><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
             <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
-
         </div>
       </div>
     </div>
