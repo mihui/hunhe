@@ -888,8 +888,8 @@ button {
   transition: filter 0.3s ease;
 }
 button:disabled {
-  background-color: #bdc3c7 !important;
-  color: #eee;
+  background-color: #363839 !important;
+  color: #888;
 }
 button:not(:disabled):active,
 button:not(:disabled):focus-visible {
@@ -1619,7 +1619,7 @@ input:checked + .slider:before {
                 </div>
                 <div id="progressBar" class="progress">
                   <span id="currentTimeDisplay" class="time">00:00</span>
-                  <input id="progressControl" class="range" type="range" value="0" min="0" max="0">
+                  <input id="progressControl" class="range hidden" type="range" value="0" min="0" max="0">
                   <span id="totalTimeDisplay" class="time">00:00</span>
                 </div>
               </div>
