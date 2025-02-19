@@ -435,7 +435,6 @@ body {
       transition: opacity 0.5s;
       flex-flow: column;
       will-change: opacity;
-      transform: translateZ(0);
     }
       .container #videoContainer #videoControls.transparent {
         opacity: 0;
@@ -505,18 +504,16 @@ body {
       height: 100%;
       display: flex;
       z-index: 10;
-      background: #ffffff99;
-      box-shadow: 2px 0px 6px 1px #ccc;
       overflow: hidden;
       flex: 0 0;
       min-width: 0px;
-      transform: translateZ(0);
       transition: flex 0.2s ease, min-width 0.3s ease;
       will-change: flex, min-width;
     }
     #pageBody.menu .container #playlistContainer {
       flex: 1;
       min-width: 300px;
+      background: #ffffff99;
     }
       #pageBody .container .player-interface {
         display: flex;
@@ -647,7 +644,6 @@ ul.menu-list {
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  transform: translateZ(0);
   backface-visibility: hidden;
   will-change: transform, opacity;
 }
@@ -891,6 +887,10 @@ button:disabled {
   background-color: #363839 !important;
   color: #888;
 }
+#playlistContainer button:disabled {
+  background-color: #b6b6b6!important;
+  color: #888;
+}
 button:not(:disabled):active,
 button:not(:disabled):focus-visible {
   filter: brightness(0.9);
@@ -1083,9 +1083,7 @@ button:not(:disabled):focus-visible {
   width: 100%;
   flex: 1;
   position: relative;
-  background-color: rgba(237, 237, 237, 0.25);
   border-radius: 0px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   overflow: auto;
   padding: 0.5rem;
@@ -1104,11 +1102,11 @@ button:not(:disabled):focus-visible {
 }
 .container .video-container .box-video {
   height: 100%;
-  padding-bottom: 0px;
 }
 .container .video-container .box-controls {
   flex: none;
   height: auto;
+  padding-top: 0px;
 }
 .range {
   appearance: none;
@@ -2304,7 +2302,8 @@ class AppShell {
         li.dataset['frame'] = URL.createObjectURL(checkResult.frame);
         li.classList.add('frame');
       }
-      li.dataset['duration'] = `[${this.getMinutes(checkResult.duration)}]`;
+      const durationText = checkResult.duration ? `[${this.getMinutes(checkResult.duration)}]` : '';
+      li.dataset['duration'] = durationText;
     }
     else {
       if(checkResult.timeout) {
@@ -2580,14 +2579,14 @@ class AppShell {
         const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : CONSTS.POSTER;
         const isOK = currentTarget.classList.contains('broken') === false;
         const isFresh = currentTarget.classList.length === 0 || currentTarget.classList.contains('broken') || currentTarget.classList.contains('timeout');
-        if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isOK && !this.isPlaying() && isFresh === false) {
+        if(isFresh) {
+          this.refreshVideoPlayability(currentTarget);
+        }
+        else if((videoPlayer.poster === frame || frame === CONSTS.POSTER) && isOK && !this.isPlaying() && isFresh === false) {
           this.playNow(currentTarget, item);
         }
         else {
           this.previewNow(currentTarget, item, frame);
-        }
-        if(isFresh) {
-          this.refreshVideoPlayability(currentTarget);
         }
       };
       li.append(label);
