@@ -428,7 +428,6 @@ body {
       width: 100%;
       background-color: rgba(0, 0, 0, 0.3);
       z-index: 20;
-      padding: 0.5rem;
       box-sizing: border-box;
       opacity: 1;
       pointer-events: auto;
@@ -513,7 +512,7 @@ body {
     #pageBody.menu .container #playlistContainer {
       flex: 1;
       min-width: 300px;
-      background: #ffffff99;
+      background: #ffffffcf;
     }
       #pageBody .container .player-interface {
         display: flex;
@@ -1332,7 +1331,7 @@ input:checked + .slider:before {
 /* iPhone Portrait */
 @media only screen and (max-width: 812px) and (orientation: portrait)
 {
-  .container #playlistContainer {
+  .menu .container #playlistContainer {
     position: absolute;
     z-index: 30;
     top: 0px;
@@ -1628,12 +1627,12 @@ input:checked + .slider:before {
         </div>
         <div class="box box-controls">
           <div id="bottomButtons" class="user-controls">
-            <button type="button" id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
             <button id="rewindButton" disabled><svg width="20" height="20"><use xlink:href="#rewind"/></svg></button>
             <button id="forwardButton" disabled><svg width="20" height="20"><use xlink:href="#forward"/></svg></button>
             <button id="favoriteButton" disabled><svg width="20" height="20"><use xlink:href="#favorite"/></svg></button>
             <button id="dislikeButton" disabled><svg width="20" height="20"><use xlink:href="#dislike"/></svg></button>
             <button id="reCaptureButton" disabled><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
+            <button id="settingsButton"><svg width="20" height="20"><use xlink:href="#gear"/></svg></button>
             <button id="playListButton"><svg width="20" height="20"><use xlink:href="#list"/></svg></button>
           </div>
         </div>
@@ -2690,43 +2689,7 @@ class AppShell {
 
       const divItem = document.createElement('div');
       const aItem = document.createElement('a');
-      const dItem = document.createElement('a');
-      const rItem = document.createElement('a');
 
-      dItem.innerText = '删';
-      dItem.className = 'delete';
-      dItem.dataset['id'] = m3uItem.id;
-      dItem.onclick = async (evt) => {
-        evt.preventDefault();
-        /** @type {HTMLAnchorElement} **/
-        const deleteButton = evt.target;
-        if(deleteButton.classList.contains('ready')) {
-          await database.deleteData(evt.target.dataset['id']);
-          this.listStore('click');
-        }
-        else {
-          deleteButton.classList.add('ready');
-        }
-      };
-      rItem.innerText = '刷';
-      rItem.className = 'refresh';
-      rItem.dataset['id'] = m3uItem.id;
-      rItem.onclick = async (evt) => {
-        evt.preventDefault();
-        const element = evt.target;
-        if(element.classList.contains('disabled')) {
-          return;
-        }
-
-        this.loadM3uUrl({ m3uUrl: url, fromCache: false, isBooting: false, onStart: () => {
-          element.classList.add('disabled');
-        }, onSuccess: async (type, data, cached, isBooting) => {
-          await this.listStore('fetch');
-        }, onCompleted: () => {
-          element.classList.remove('disabled');
-        } });
-      };
-      aItem.textContent = url;
       aItem.className = 'load';
       aItem.dataset['id'] = m3uItem.id;
       aItem.onclick = async (evt) => {
@@ -2751,11 +2714,50 @@ class AppShell {
       };
       divItem.title = this.timeAgo(m3uItem.time);
       divItem.append(aItem);
-      divItem.append(rItem);
+
       if(isCurrent) {
+        aItem.innerHTML = '<strong>['.concat(categories[this.currentCategory].length).concat(']</strong>&nbsp;').concat(url);
         divItem.classList.add('active');
+        const rItem = document.createElement('a');
+        rItem.innerText = '刷';
+        rItem.className = 'refresh';
+        rItem.dataset['id'] = m3uItem.id;
+        rItem.onclick = async (evt) => {
+          evt.preventDefault();
+          const element = evt.target;
+          if(element.classList.contains('disabled')) {
+            return;
+          }
+
+          this.loadM3uUrl({ m3uUrl: url, fromCache: false, isBooting: false, onStart: () => {
+            element.classList.add('disabled');
+          }, onSuccess: async (type, data, cached, isBooting) => {
+            await this.listStore('fetch');
+          }, onCompleted: () => {
+            element.classList.remove('disabled');
+          } });
+        };
+
+        divItem.append(rItem);
       }
       else {
+        aItem.textContent = url;
+        const dItem = document.createElement('a');
+        dItem.innerText = '删';
+        dItem.className = 'delete';
+        dItem.dataset['id'] = m3uItem.id;
+        dItem.onclick = async (evt) => {
+          evt.preventDefault();
+          /** @type {HTMLAnchorElement} **/
+          const deleteButton = evt.target;
+          if(deleteButton.classList.contains('ready')) {
+            await database.deleteData(evt.target.dataset['id']);
+            this.listStore('click');
+          }
+          else {
+            deleteButton.classList.add('ready');
+          }
+        };
         divItem.append(dItem);
       }
       m3uList.append(divItem);
