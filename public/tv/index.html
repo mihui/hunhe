@@ -334,6 +334,102 @@ class Database {
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
   <style>
+:root {
+  --background-color: #ffffffcf;
+  --foreground-color: #333;
+  --foreground-color-secondary: #555;
+
+  --primary-background-color-button: #2e6bcc;
+  --primary-background-color-button-disabled: #363839;
+  --primary-color-button: white;
+  --primary-color-button-disabled: #888;
+
+  --primary-color-input: black;
+  --primary-color-input-border:  light-dark(rgb(118, 118, 118, 0.5), rgb(133, 133, 133, 0.5));
+
+  --background-color-list-item-even: rgba(255, 255, 255, 0.50);
+  --background-color-list-item-odd: #cccccc50;
+
+  /* --secondary-color: #2ecc71; */
+
+  /* Background images */
+  --background-image-list-item-selected: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+  --background-image-list-item-checking: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23666%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%201.5a.5.5%200%200%201%20.5-.5h11a.5.5%200%200%201%200%201h-1v1a4.5%204.5%200%200%201-2.557%204.06c-.29.139-.443.377-.443.59v.7c0%20.213.154.451.443.59A4.5%204.5%200%200%201%2012.5%2013v1h1a.5.5%200%200%201%200%201h-11a.5.5%200%201%201%200-1h1v-1a4.5%204.5%200%200%201%202.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5%204.5%200%200%201%203.5%203V2h-1a.5.5%200%200%201-.5-.5m2.5.5v1a3.5%203.5%200%200%200%201.989%203.158c.533.256%201.011.791%201.011%201.491v.702c0%20.7-.478%201.235-1.011%201.491A3.5%203.5%200%200%200%204.5%2013v1h7v-1a3.5%203.5%200%200%200-1.989-3.158C8.978%209.586%208.5%209.052%208.5%208.351v-.702c0-.7.478-1.235%201.011-1.491A3.5%203.5%200%200%200%2011.5%203V2z%22%2F%3E%3C%2Fsvg%3E');
+
+  --background-image-list-item-frame: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+  --background-image-list-item-frame-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+  --background-image-list-item-frame-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+  --background-image-list-item-preview: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+  --background-image-list-item-preview-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+  --background-image-list-item-preview-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+  --background-image-list-item-preview-broken: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+  --background-image-list-item-preview-active: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22green%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+
+  --background-image-list-item-active-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+  --background-image-list-item-active-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+  --background-image-list-item-broken: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M0%2010.5a.5.5%200%200%201%20.5-.5h15a.5.5%200%200%201%200%201H.5a.5.5%200%200%201-.5-.5M12%200H4a2%202%200%200%200-2%202v7h1V2a1%201%200%200%201%201-1h8a1%201%200%200%201%201%201v7h1V2a2%202%200%200%200-2-2m2%2012h-1v2a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1v-2H2v2a2%202%200%200%200%202%202h8a2%202%200%200%200%202-2z%22%2F%3E%3C%2Fsvg%3E');
+  --background-image-list-item-timeout: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%203.5a.5.5%200%200%200-1%200V9a.5.5%200%200%200%20.252.434l3.5%202a.5.5%200%200%200%20.496-.868L8%208.71z%22%2F%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016m7-8A7%207%200%201%201%201%208a7%207%200%200%201%2014%200%22%2F%3E%3C%2Fsvg%3E');
+
+  /* List item colors */
+  --foreground-color-list-item-selected: darkgreen;
+  --foreground-color-list-item-badge-selected: #606060;
+  --background-color-list-item-selected: #ffffff99;
+  --border-color-list-item-good: green;
+  --border-color-list-item-average: #806600;
+  --border-color-list-item-bad: darkred;
+  --border-color-list-item-favorite: gray;
+  --border-color-list-item-broken: #888;
+  --background-color-list-item-highlighted: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #000000cf;
+    --foreground-color: #ddd;
+    --foreground-color-secondary: #bbb;
+
+    --primary-background-color-button: black;
+    --primary-background-color-button-disabled: #282828;
+    --primary-color-button: #c5c5c5;
+    --primary-color-button-disabled: #c5c5c5;
+
+    --primary-color-input: #c5c5c5;
+    --primary-color-input-border: light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
+
+    /* Background images */
+    --background-image-list-item-selected: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22lightgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    --background-image-list-item-checking: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%201.5a.5.5%200%200%201%20.5-.5h11a.5.5%200%200%201%200%201h-1v1a4.5%204.5%200%200%201-2.557%204.06c-.29.139-.443.377-.443.59v.7c0%20.213.154.451.443.59A4.5%204.5%200%200%201%2012.5%2013v1h1a.5.5%200%200%201%200%201h-11a.5.5%200%201%201%200-1h1v-1a4.5%204.5%200%200%201%202.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5%204.5%200%200%201%203.5%203V2h-1a.5.5%200%200%201-.5-.5m2.5.5v1a3.5%203.5%200%200%200%201.989%203.158c.533.256%201.011.791%201.011%201.491v.702c0%20.7-.478%201.235-1.011%201.491A3.5%203.5%200%200%200%204.5%2013v1h7v-1a3.5%203.5%200%200%200-1.989-3.158C8.978%209.586%208.5%209.052%208.5%208.351v-.702c0-.7.478-1.235%201.011-1.491A3.5%203.5%200%200%200%2011.5%203V2z%22%2F%3E%3C%2Fsvg%3E');
+
+    --background-image-list-item-frame: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22lightgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+    --background-image-list-item-frame-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22orange%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+    --background-image-list-item-frame-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+    --background-image-list-item-preview: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22lightgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    --background-image-list-item-preview-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22orange%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    --background-image-list-item-preview-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    --background-image-list-item-preview-broken: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    --background-image-list-item-preview-active: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22lightgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+
+    --background-image-list-item-active-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22orange%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+    --background-image-list-item-active-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+    --background-image-list-item-broken: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M0%2010.5a.5.5%200%200%201%20.5-.5h15a.5.5%200%200%201%200%201H.5a.5.5%200%200%201-.5-.5M12%200H4a2%202%200%200%200-2%202v7h1V2a1%201%200%200%201%201-1h8a1%201%200%200%201%201%201v7h1V2a2%202%200%200%200-2-2m2%2012h-1v2a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1v-2H2v2a2%202%200%200%200%202%202h8a2%202%200%200%200%202-2z%22%2F%3E%3C%2Fsvg%3E');
+    --background-image-list-item-timeout: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%203.5a.5.5%200%200%200-1%200V9a.5.5%200%200%200%20.252.434l3.5%202a.5.5%200%200%200%20.496-.868L8%208.71z%22%2F%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016m7-8A7%207%200%201%201%201%208a7%207%200%200%201%2014%200%22%2F%3E%3C%2Fsvg%3E');
+
+    /* List item colors */
+    --foreground-color-list-item-selected: lightgreen;
+    --foreground-color-list-item-badge-selected: darkgreen;
+    --background-color-list-item-selected: black;
+    --border-color-list-item-good: lightgreen;
+    --border-color-list-item-average: orange;
+    --border-color-list-item-bad: darkred;
+    --border-color-list-item-favorite: white;
+    --border-color-list-item-broken: #bbb;
+    /* Special CSS */
+    --primary-background-color-button-disabled-contrast: #282828;
+    --primary-color-button-disabled-contrast: #a3a3a3;
+    --background-color-list-item-highlighted: #393939;
+  }
+}
+
 html, body {
   width: 100%;
   height: 100%;
@@ -345,7 +441,7 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 0;
-  color: #333;
+  color: var(--foreground-color);
   margin: 0;
   position: relative;
   overflow: hidden;
@@ -512,7 +608,7 @@ body {
     #pageBody.menu .container #playlistContainer {
       flex: 1;
       min-width: 300px;
-      background: #ffffffcf;
+      background: var(--background-color);
     }
       #pageBody .container .player-interface {
         display: flex;
@@ -549,7 +645,7 @@ body {
       #pageBody.settings .container #m3uInputContainer {
         width: 100%;
         z-index: 40;
-        background-color: #ddddddee;
+        background-color: var(--background-color);
       }
         #pageBody.settings .container #m3uInputContainer .box {
           opacity: 1;
@@ -599,13 +695,16 @@ textarea, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
     border-radius: 0px;
   }
   #searchContainer #clearButton svg {
-    background-color: white;
+    background-color: transparent;
   }
 #searchInput, #m3uUrlInput {
   padding: 12px;
 }
 #searchInput {
   flex-grow: 1;
+  background-color: var(--background-color);
+  color: var(--primary-color-input);
+  border-color: var(--primary-color-input-border);
 }
 textarea:focus-visible,
 input:focus-visible,
@@ -617,8 +716,8 @@ select:focus-visible {
 }
 #searchButton, #closeButton, #settingsButton {
   width: auto;
-  background-color: #3498db;
-  color: white;
+  background-color: var(--primary-background-color-button);
+  color: var(--primary-color-button);
   border: none;
   cursor: pointer;
   white-space: nowrap;
@@ -652,7 +751,7 @@ ul.menu-list {
 ul.menu-list li {
   will-change: transform;
   cursor: pointer;
-  background-color: #f1f1f150;
+  background-color: var(--background-color-list-item-odd);
   border-radius: 0px;
   padding: 0px 0px 0px 0.5rem;
   height: 100%;
@@ -677,11 +776,14 @@ ul.menu-list li {
   padding: 0px;
   font-size: 0.8rem;
 }
+  ul.menu-list li:nth-of-type(even) {
+    background-color: var(--background-color-list-item-even);
+  }
   ul.menu-list li::after {
     content: attr(data-duration);
     display: flex;
     font-size: 0.6rem;
-    color: #555;
+    color: var(--foreground-color-secondary);
     text-align: right;
     justify-content: end;
     flex: 0;
@@ -697,93 +799,95 @@ ul.menu-list li {
     display: none;
   }
   ul.menu-list li.selected {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-selected);
     background-position-x: 0.5rem;
-    border-left: 3px solid green;
-    border-bottom-color: green;
-    color: darkgreen;
+    border-left: 3px solid var(--border-color-list-item-good);
+    border-bottom-color: var(--border-color-list-item-good);
+    color: var(--foreground-color-list-item-selected);
   }
   ul.menu-list li.good {
-    border-left: 3px solid green;
+    border-left: 3px solid var(--border-color-list-item-good);
   }
   ul.menu-list li.good.preview,
   ul.menu-list li.good:hover {
-    border-bottom-color: green;
+    border-bottom-color: var(--border-color-list-item-good);
   }
   ul.menu-list li.average {
-    border-left: 3px solid #806600;
+    border-left: 3px solid var(--border-color-list-item-average);
   }
   ul.menu-list li.average.preview,
   ul.menu-list li.average:hover {
-    border-bottom-color: #806600;
+    border-bottom-color: var(--border-color-list-item-average);
   }
   ul.menu-list li.bad {
-    border-left-color: darkred;
+    border-left-color: var(--border-color-list-item-bad);
   }
   ul.menu-list li.bad.preview,
   ul.menu-list li.bad:hover {
-    border-bottom-color: darkred;
+    border-bottom-color: var(--border-color-list-item-bad);
   }
   ul.menu-list li.favorite {
-    box-shadow: inset -2px 0 1px 0px gray;
+    box-shadow: inset -2px 0 1px 0px var(--border-color-list-item-favorite);
   }
   ul.menu-list li.broken {
     font-style: italic;
-    color: #888;
+    color: var(--border-color-list-item-broken);
     font-size: small;
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M0%2010.5a.5.5%200%200%201%20.5-.5h15a.5.5%200%200%201%200%201H.5a.5.5%200%200%201-.5-.5M12%200H4a2%202%200%200%200-2%202v7h1V2a1%201%200%200%201%201-1h8a1%201%200%200%201%201%201v7h1V2a2%202%200%200%200-2-2m2%2012h-1v2a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1v-2H2v2a2%202%200%200%200%202%202h8a2%202%200%200%200%202-2z%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-broken);
     background-position-x: 0.5rem;
   }
   ul.menu-list li.timeout {
-    color: #888;
+    color: var(--border-color-list-item-broken);
     font-size: small;
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%203.5a.5.5%200%200%200-1%200V9a.5.5%200%200%200%20.252.434l3.5%202a.5.5%200%200%200%20.496-.868L8%208.71z%22%2F%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016m7-8A7%207%200%201%201%201%208a7%207%200%200%201%2014%200%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-timeout);
     background-position-x: 0.5rem;
+  }
+  ul.menu-list li.timeout:hover {
+    border-bottom-color: gray;
   }
   ul.menu-list li.broken:hover {
     border-bottom-color: black;
-    background-color: white;
   }
   ul.menu-list li.frame {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-frame);
     background-position-x: 0.5rem;
   }
   ul.menu-list li.average.frame {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-frame-average);
   }
   ul.menu-list li.bad.frame {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-frame-bad);
   }
   ul.menu-list li.preview {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-preview);
     background-position-x: 0.5rem;
   }
   ul.menu-list li.average.preview {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-preview-average);
   }
   ul.menu-list li.bad.preview {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-preview-bad);
   }
   ul.menu-list li.broken.preview {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-preview-broken);
   }
   ul.menu-list li.active,
   ul.menu-list li.preview.active {
     font-weight: bold;
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22green%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-preview-active);
     color: inherit;
   }
   ul.menu-list li.average.active {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-active-average);
   }
   ul.menu-list li.bad.active {
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-active-bad);
   }
   ul.menu-list li.checking {
-    color: #5c5c5c;
+    color: var(--border-color-list-item-broken);
     border-left-color: #000;
     font-size: 0.8rem;
-    background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23666%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%201.5a.5.5%200%200%201%20.5-.5h11a.5.5%200%200%201%200%201h-1v1a4.5%204.5%200%200%201-2.557%204.06c-.29.139-.443.377-.443.59v.7c0%20.213.154.451.443.59A4.5%204.5%200%200%201%2012.5%2013v1h1a.5.5%200%200%201%200%201h-11a.5.5%200%201%201%200-1h1v-1a4.5%204.5%200%200%201%202.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5%204.5%200%200%201%203.5%203V2h-1a.5.5%200%200%201-.5-.5m2.5.5v1a3.5%203.5%200%200%200%201.989%203.158c.533.256%201.011.791%201.011%201.491v.702c0%20.7-.478%201.235-1.011%201.491A3.5%203.5%200%200%200%204.5%2013v1h7v-1a3.5%203.5%200%200%200-1.989-3.158C8.978%209.586%208.5%209.052%208.5%208.351v-.702c0-.7.478-1.235%201.011-1.491A3.5%203.5%200%200%200%2011.5%203V2z%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--background-image-list-item-checking);
     background-position-x: 0.5rem;
   }
   ul#channelList.menu-list {
@@ -801,8 +905,8 @@ ul.menu-list li {
     background-color: #ffffff50;
   }
   ul#channelList.menu-list li.selected {
-    background-color: #ffffff99;
-    border-bottom-color: darkgreen;
+    background-color: var(--background-color-list-item-selected);
+    border-bottom-color: var(--foreground-color-list-item-selected);
   }
   ul#channelList.menu-list li:nth-of-type(odd) {
     width: calc(50% - 1px);
@@ -820,11 +924,9 @@ ul.menu-list li {
     margin-right: 0.5rem;
   }
   ul#channelList.menu-list li.selected::after {
-    background: darkgreen;
+    background: var(--foreground-color-list-item-badge-selected);
   }
-  ul.menu-list li.frame:nth-of-type(even) {
-    background-color: rgba(255, 255, 255, 0.50);
-  }
+
   ul.menu-list li.frame:hover,
   ul.menu-list li:hover {
     background-color: #cceeee5c;
@@ -870,8 +972,8 @@ button {
   user-select: none;
   -webkit-user-select: none;
   padding: 10px 20px;
-  background-color: #3498db;
-  color: white;
+  background-color: var(--primary-background-color-button);
+  color: var(--primary-color-button);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -883,34 +985,30 @@ button {
   transition: filter 0.3s ease;
 }
 button:disabled {
-  background-color: #363839 !important;
-  color: #888;
+  background-color: var(--primary-background-color-button-disabled);
+  color: var(--primary-color-button-disabled);
 }
-#playlistContainer button:disabled {
-  background-color: #b6b6b6!important;
-  color: #888;
-}
+
 button:not(:disabled):active,
 button:not(:disabled):focus-visible {
   filter: brightness(0.9);
+}
+
+#playlistContent button:disabled {
+  background-color: var(--primary-background-color-button-disabled-contrast);
+  color: var(--primary-color-button-disabled-contrast);
 }
 
 #settingsButton {
   background-color: #606060;
 }
 
-#reCaptureButton {
+#reCaptureButton.recapture {
   background-color: darkorchid;
-}
-#favoriteButton {
-  background-color: lightslategrey;
 }
   #favoriteButton.remove {
     background-color: #cc2e68;
   }
-#dislikeButton {
-  background-color: lightslategrey;
-}
   #dislikeButton.remove {
     background-color: #cc2e68;
   }
@@ -956,7 +1054,7 @@ button:not(:disabled):focus-visible {
   border-top: 1px solid #ccc;
 }
   #m3uList div.active {
-    background-color: #fff;
+    background-color: var(--background-color-list-item-highlighted);
   }
 #m3uList div a {
   cursor: pointer;
@@ -973,7 +1071,7 @@ button:not(:disabled):focus-visible {
     margin: 2px 0px;
 }
   #m3uList div a:hover {
-    background-color: #eee;
+    background-color: var(--background-color-list-item-highlighted);
   }
   #m3uList div a.load {
     flex: 1;
@@ -997,8 +1095,10 @@ button:not(:disabled):focus-visible {
     transition: all 1s;
   }
   #m3uList div a.refresh {
-    color: #5c5c5c;
     transition: all 1s;
+  }
+  #m3uList div a.refresh:hover {
+    background: #5c5c5c;
   }
   #m3uList div a.refresh.disabled {
     opacity: 0.2;
@@ -1033,12 +1133,9 @@ button:not(:disabled):focus-visible {
     padding-left: 0;
   }
 #playlistContent .top-buttons button {
-  background-color: #3471db;
   transition: justify-content 0.3s ease, padding-left 0.3s ease;
 }
-  #playlistContent .top-buttons.channel button {
-    background-color: #2e6bcc;
-  }
+
   #playlistContent .top-buttons #listCheckButton.checking {
     background-color: #db6634;
   }
@@ -1056,18 +1153,17 @@ button:not(:disabled):focus-visible {
     width: 100%;
     margin-top: 0.5rem;
   }
+  #playlistContent .page-controls #pagination button {
+    font-size: 16px;
+    flex: 0;
+  }
   #playlistContent .page-controls #pagination button, .user-controls button {
     flex: 1;
+    box-shadow: 0px 0px 2px var(--foreground-color-secondary);
   }
     .user-controls button {
       transition: transform 0.1s ease, background-color 0.2s ease;
     }
-
-  #playlistContent .page-controls #pagination button {
-    font-size: 16px;
-    flex: 0;
-    background-color: lightslategrey;
-  }
   #playlistContent .page-controls #pagination #pageInfo {
     font-size: 16px;
     white-space: nowrap;
@@ -1105,7 +1201,7 @@ button:not(:disabled):focus-visible {
 .container .video-container .box-controls {
   flex: none;
   height: auto;
-  padding-top: 0px;
+  padding-top: 1px;
 }
 .range {
   appearance: none;
@@ -1977,6 +2073,7 @@ class AppShell {
     reCaptureButton.dataset['url'] = item.url;
     reCaptureButton.dataset['group'] = item.group;
     reCaptureButton.dataset['title'] = item.title;
+    reCaptureButton.classList.add('recapture');
   }
 
   muteOrUnmuteVideo(mute) {
@@ -3144,6 +3241,13 @@ class AppShell {
     }
     reCaptureButton.disabled = isReset;
     playVideoButton.disabled = dislikeButton.disabled = favoriteButton.disabled = isReset || false;
+    if(isReset) {
+      dislikeButton.classList.remove('remove');
+      dislikeButton.innerHTML = CONSTS.ICON_DISLIKE;
+      favoriteButton.classList.remove('remove');
+      favoriteButton.innerHTML = CONSTS.ICON_FAVORITE;
+      reCaptureButton.classList.remove('recapture');
+    }
   }
 
   onPlaying() {
@@ -3557,6 +3661,7 @@ reCaptureButton.addEventListener('click', async (evt) => {
   const id = favoriteButton.dataset['id'];
 
   reCaptureButton.disabled = true;
+  reCaptureButton.classList.remove('recapture');
   const result = await appShell.checkVideoPlayability(url, true);
   await database.updateData({ id, result }, STA_STORE);
   const lastPlayedItem = appShell.getLastVideoItem();
@@ -3569,6 +3674,7 @@ reCaptureButton.addEventListener('click', async (evt) => {
     }
   }
   reCaptureButton.disabled = false;
+  reCaptureButton.classList.add('recapture');
 });
 
 pinButton.addEventListener('click', async (evt) => {
