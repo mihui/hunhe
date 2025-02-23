@@ -1787,17 +1787,200 @@ const TYPES = { M3U: 'm3u', TXT: 'txt' };
 const SOURCES = { URL: 'url', CONTENT: 'content' };
 const VARS = {
   CURRENT_TITLE: '', CURRENT_GROUP: '', CURRENT_URL: '', CURRENT_ID: '',
-  PING_TIMEOUT: 0, SCREENSHOT_TIME: 3,
+  PING_TIMEOUT: 0, THUMBNAIL_TIMEOUT: 3,
   URLS: new Set(),
+  /** @type {Object.<string, number>} **/
+  VIDEO_PLAYED_DURATION: {},
   /** @type {string} **/
   TRANSACTION: '',
   ALWAYS_ON_TOP: false,
   DISLIKES: [],
   CONTROL_TIMER: 0,
-  IS_GLOBALLY_HIDDEN: false
+  IS_GLOBALLY_HIDDEN: false,
+  IS_AUTO_CHECK: false,
+  IS_CHECKING_BROKEN_ONLY: false,
+  IS_LOGGING_ENABLED: false,
+  HAS_THUMBNAIL: false,
+  IS_MUTED: false,
+  PLAYLIST_PAGE: 1,
+  ITEMS_PER_PAGE: 15
 };
 
 const database = new Database(DB_VERSION);
+
+class VideoStorage {
+  cached = {};
+  /**
+   * Set into cache
+   * @param {string} key Storage key
+   * @param {any} data Data to be stored
+   */
+  set(key, data) {
+    this.cached[key] = data;
+  }
+  /**
+   * Get from LocalStorage
+   * @param {string} key Storage key
+   * @param {'json'|'string'|'number'|'integer'} type Data type
+   * @returns {string|Object.<string, any>|boolean|number|null} Returns data
+   */
+  get(key, type = 'json') {
+    if(Object.hasOwn(this.cached, key)) {
+      return this.cached[key];
+    }
+    const data = window.localStorage.getItem(key);
+
+    if(type === 'json') {
+      if(data) {
+        try {
+          const json = JSON.parse(data);
+          this.set(key, json);
+          return json;
+        }
+        catch(error) {}
+      }
+      return null;
+    }
+    else if(type === 'number') {
+      if(data) {
+        return Number(data);
+      }
+      return null;
+    }
+    else if(type === 'integer') {
+      if(data) {
+        try {
+          return parseInt(data);
+        }
+        catch(error) {}
+      }
+      return null;
+    }
+    this.set(key, data);
+    return this.cached[key];
+
+    return null;
+  }
+  /**
+   * Get string from LocalStorage
+   * @param {string} key Storage key
+   * @returns {string|null} Returns data
+   */
+  getString(key) {
+    return this.get(key, 'string');
+  }
+  /**
+   * Get number from LocalStorage
+   * @param {string} key Storage key
+   * @returns {number|null} Returns data
+   */
+  getNumber(key) {
+    return this.get(key, 'number');
+  }
+  /**
+   * Get integer from LocalStorage
+   * @param {string} key Storage key
+   * @returns {number|null} Returns data
+   */
+  getInteger(key, defaultVal = 0) {
+    const val = this.get(key, 'integer');
+    if(typeof val === 'number')  {
+      return val;
+    }
+    return defaultVal;
+  }
+  /**
+   * Get JSON from LocalStorage
+   * @param {string} key Storage key
+   * @returns {Object.<string, any>|null} Returns data
+   * @example
+   * getJSON('my-json');
+   * // returns { name: 'John', age: 30 }
+   */
+  getJSON(key) {
+    return this.get(key, 'json');
+  }
+  /**
+   * Get boolean from LocalStorage
+   * @param {string} key Storage key
+   * @param {boolean} defaultVal Default value
+   * @returns {boolean} Returns data
+   */
+  getBoolean(key, defaultVal = false) {
+    const val = this.get(key, 'boolean');
+    if(['true', '1', 'yes', 'on'].includes(val)) {
+      return true;
+    }
+    return defaultVal;
+  }
+  /**
+   * Save into LocalStorage
+   * @param {string} key Storage key
+   * @param {any} data Data to be stored
+   * @param {'json'|'string'|'number'} type Type of data to be stored
+   */
+  save(key, data, type = 'json') {
+    this.set(key, data);
+    window.localStorage.setItem(key, type === 'json' ? JSON.stringify(data) : data);
+  }
+  /**
+   * Save string into LocalStorage
+   * @param {string} key Storage key
+   * @param {string} data Data to be stored
+   */
+  saveString(key, data) {
+    return this.save(key, data, 'string');
+  }
+  /**
+   * Save number into LocalStorage
+   * @param {string} key Storage key
+   * @param {number} data Data to be stored
+   * @returns {void}
+   */
+  saveNumber(key, data) {
+    return this.save(key, data, 'number');
+  }
+  /**
+   * Save integer into LocalStorage
+   * @param {string} key Storage key
+   * @param {number} data Data to be stored
+   * @returns {void}
+   */
+  saveInteger(key, data) {
+    return this.save(key, data, 'integer');
+  }
+  /**
+   * Save boolean data into LocalStorage
+   * @param {string} key Storage key
+   * @param {boolean} data Data to be stored
+   */
+  saveBoolean(key, data) {
+    return this.save(key, data, 'boolean');
+  }
+  /**
+   * Save JSON into LocalStorage
+   * @param {string} key Storage key
+   * @param {Object.<string, any>} json Data to be stored
+   * @returns {void}
+   * @example
+   * saveJSON('my-json', {
+   *   name: 'John',
+   *   age: 30
+   * });
+   */
+  saveJSON(key, json) {
+    return this.save(key, json, 'json');
+  }
+  /**
+   * Delete from LocalStorage
+   * @param {string} key Storage key
+   */
+  delete(key) {
+    window.localStorage.removeItem(key);
+    delete this.cached[key];
+  }
+}
+const storage = new VideoStorage();
 
 function getElementById(idList = []) {
   const domList = [];
@@ -1856,28 +2039,71 @@ getElementById([
   'screenshotTimeDisplay', 'muteWhenPlayCheckbox', 'reCaptureButton', 'pinButton', 'topButtons',
 ]);
 
-let itemsPerPage = 15;
-/** @type {Array<{ title: string, url: string, group: string }>} **/
-let playlistData = [];
-let currentPage = 1;
-/** @type {Object.<string, Array<{ title: string, group: string, url: string }>>} **/
-let categories = {};
 /** @type {Array<{ title: string, url: string, group: string }>} **/
 let filteredPlaylistData = [];
-/** @type {Object.<string, number>} **/
-let videoTimestamp = {};
-let storeFrame = 'false';
-let autoCheck = 'false';
-let enableLogging = 'false';
-let muteWhenPlay = 'true';
-let onlyCheckBroken = 'false';
 let stopURL = null;
 
 class AppShell {
+  /** @type {Object.<string, Array<{ title: string, group: string, url: string }>>} **/
+  channels = {};
   blacklist = [];
   SITE_TITLE = 'Hunhe IPTV';
   currentCategory = CONSTS.CHANNELS.ALL;
 
+  /**
+   * Get channels
+   * @param {Object.<string, Array<{ title: string, group: string, url: string }>>} channels Channels
+   */
+  getChannels() {
+    return this.channels;
+  }
+  /**
+   * Set channels
+   * @param {Object.<string, Array<{ title: string, group: string, url: string }>>} channels Channels
+   */
+  setChannels(channels) {
+    this.channels = channels;
+  }
+  /**
+   * @param {string} key Channel key
+   * @param {Array<{ title: string, group: string, url: string }>} channel Channel
+   */
+  setChannel(key, channel) {
+    this.channels[key] = channel;
+  }
+  /**
+   * Initialize channel
+   * @param {string} key Channel key
+   */
+  initChannel(key) {
+    if (Object.hasOwn(this.channels, key) === false) {
+      this.setChannel(key, []);
+    }
+  }
+  /**
+   * Add channel
+   * @param {string} key Channel key
+   * @param {Array<{ title: string, group: string, url: string }>} channel Channel
+   */
+  addChannel(key, channel) {
+    this.channels[key].push(channel);
+  }
+  /**
+   * Get channel data
+   * @param {string} key Channel key
+   * @returns {Array<{ title: string, group: string, url: string }>} Channel
+   */
+  getChannel(key) {
+    return this.channels[key];
+  }
+  /**
+   * Get selected channel
+   * @param {string} key Channel key
+   * @param {Array<{ title: string, group: string, url: string }>} channel Channel
+   */
+  getSelectedChannel() {
+    return this.channels[this.currentCategory];
+  }
   /**
    * @param {URL} url Video URL
    */
@@ -1905,7 +2131,7 @@ class AppShell {
   }
 
   initUI() {
-    const playListVisible = window.localStorage.getItem('playListVisible') || 'false';
+    const playListVisible = storage.getString('is-playlist-visible') || 'false';
     if(playListVisible === 'false') {
       pageBody.classList.remove('menu');
     }
@@ -2000,11 +2226,11 @@ class AppShell {
    */
   putOnTop(isOnTop) {}
   /**
-   * Get the cached m3u URL
+   * Get the cached Playlist URL
    * @return {string} The cached m3u URL
    */
-  getCachedM3uUrl() {
-    return window.localStorage.getItem('cachedM3uUrl') || '';
+  getPlayListUrl() {
+    return storage.getString('playlist-url') || '';
   }
   /**
    * @param {string} itemCode The item code to fetch
@@ -2012,8 +2238,8 @@ class AppShell {
   async fetchFavorites(itemCode = CONSTS.CODES.LIKE) {
     /** @type {{ data: Array<{ id: string, code: string }> }} */
     const { data } = await database.listData(FAV_STORE);
-    categories[CONSTS.CHANNELS.FAVORITE] = data.filter(x => x.code === itemCode || typeof x.code === 'undefined');
-    return categories[CONSTS.CHANNELS.FAVORITE];
+    this.setChannel(CONSTS.CHANNELS.FAVORITE, data.filter(x => x.code === itemCode || typeof x.code === 'undefined'));
+    return this.getChannel(CONSTS.CHANNELS.FAVORITE);
   }
   /**
    * @param {string} itemCode The item code to fetch
@@ -2028,11 +2254,8 @@ class AppShell {
    * @returns {{ url: string, group: string, title: string }?} Returns Play item
    */
   getLastVideoItem() {
-    const data = window.localStorage.getItem('lastPlayedItem');
-    if(data) {
-      return JSON.parse(data);
-    }
-    return null;
+    const data = storage.getJSON('last-played-video');
+    return data;
   }
   /**
    * If the URL is favorite
@@ -2118,7 +2341,7 @@ class AppShell {
    * @param {boolean} isLive Is alive
    */
   playVideSource(source, duration = '0', isLive = false) {
-    const lastPlayedTime = videoTimestamp[source.url];
+    const lastPlayedTime = VARS.VIDEO_PLAYED_DURATION[source.url];
     if (!isNaN(lastPlayedTime)) {
       videoPlayer.currentTime = lastPlayedTime;
     }
@@ -2276,8 +2499,8 @@ class AppShell {
     this.resetControlButtons(false, false);
     if(isUserAction === false) { return; }
 
-    window.localStorage.removeItem('lastPlayedItem');
-    this.muteOrUnmuteVideo(muteWhenPlay === 'true');
+    storage.delete('last-played-video');
+    this.muteOrUnmuteVideo(VARS.IS_MUTED);
 
     currentTimeDisplay.textContent = this.getMinutes(0);
     totalTimeDisplay.textContent = this.getMinutes(0);
@@ -2324,10 +2547,6 @@ class AppShell {
     this.displayPlayerControls();
     videoPlayer.className = 'paused';
     pipButton.disabled = fullscreenButton.disabled = true;
-  }
-
-  saveVideoTimestamp() {
-    window.localStorage.setItem('videoTimestamp', JSON.stringify(videoTimestamp));
   }
 
   changePoster(poster) {
@@ -2439,7 +2658,7 @@ class AppShell {
    * @returns {Promise<{ frame: string, duration: number }?>} Returns frame URL
    */
   async captureFrame(url, hls = null, isRandom = false) {
-    if(storeFrame === 'false') { return null; }
+    if(VARS.HAS_THUMBNAIL === false) { return null; }
     const canvas = document.createElement('canvas');
     const canvasContext = canvas.getContext('2d');
 
@@ -2490,7 +2709,7 @@ class AppShell {
         canvas.width = frameVideo.videoWidth;
         canvas.height = frameVideo.videoHeight;
         frameVideo.play().then(() => {
-          const captureTime = (isRandom ? Math.ceil(Math.random() * 300) : VARS.SCREENSHOT_TIME);
+          const captureTime = (isRandom ? Math.ceil(Math.random() * 300) : VARS.THUMBNAIL_TIMEOUT);
           frameVideo.currentTime = captureTime;
         }).catch(error => {
           cleanupEvents(null);
@@ -2648,9 +2867,10 @@ class AppShell {
     playlistItems.innerHTML = '';
     /** @type {Array<{ title: string, url: string, group: string }>} **/
     const itemsToDisplay = filteredPlaylistData || [];
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
+    const startIndex = (page - 1) * VARS.ITEMS_PER_PAGE;
+    const endIndex = startIndex + VARS.ITEMS_PER_PAGE;
     const pageItems = itemsToDisplay.slice(startIndex, endIndex);
+    const lastPlayedItem = this.getLastVideoItem();
 
     listCheckButton.disabled = true;
     // Loop list items
@@ -2698,8 +2918,6 @@ class AppShell {
     });
     listCheckButton.disabled = topButtons.classList.contains('channel');
 
-    const isAutoCheck = autoCheck === 'true';
-
     // Update styles
     for (const li of playlistItems.childNodes) {
       const id = li.dataset['id'];
@@ -2710,10 +2928,10 @@ class AppShell {
         return;
       }
       if (playCache) {
-        const lastPlayedItem = this.getLastVideoItem();
+        
         await this.updateListItemStyle(li, playCache.result, lastPlayedItem);
       }
-      else if (isAutoCheck && transaction === VARS.TRANSACTION) {
+      else if (VARS.IS_AUTO_CHECK && transaction === VARS.TRANSACTION) {
         await this.refreshVideoPlayability(li);
       }
     }
@@ -2723,8 +2941,8 @@ class AppShell {
 
   // 初始化播放列表
   async initializePlaylist() {
-    filteredPlaylistData = (categories[this.currentCategory] || playlistData).filter(x => VARS.DISLIKES.includes(x.id) === false);
-    this.displayPlaylistPage(currentPage, VARS.TRANSACTION).catch(error => {
+    filteredPlaylistData = this.getSelectedChannel().filter(x => VARS.DISLIKES.includes(x.id) === false);
+    this.displayPlaylistPage(VARS.PLAYLIST_PAGE, VARS.TRANSACTION).catch(error => {
       printLog('initializePlaylist.displayPlaylistPage.error', error.message);
     });
     this.updatePaginationControls();
@@ -2749,27 +2967,27 @@ class AppShell {
   // 更新分页控件
   updatePaginationControls() {
     const itemsToDisplay = filteredPlaylistData || [];
-    const totalPages = Math.ceil(itemsToDisplay.length / itemsPerPage);
+    const totalPages = Math.ceil(itemsToDisplay.length / VARS.ITEMS_PER_PAGE);
     const hasData = itemsToDisplay.length > 0;
     pageControl.max = totalPages;
 
     if(hasData) {
-      pageInfo.innerHTML = `第 <span id="pageCurrent">${currentPage}</span> / ${totalPages} 页`;
+      pageInfo.innerHTML = `第 <span id="pageCurrent">${VARS.PLAYLIST_PAGE}</span> / ${totalPages} 页`;
       pageControl.min = 1;
     }
     else {
       pageInfo.textContent = '';
       pageControl.min = 0;
     }
-    pageControl.value = currentPage;
-    prevButton.disabled = (currentPage === 1 || hasData === false);
-    nextButton.disabled = (currentPage === totalPages || hasData === false);
+    pageControl.value = VARS.PLAYLIST_PAGE;
+    prevButton.disabled = (VARS.PLAYLIST_PAGE === 1 || hasData === false);
+    nextButton.disabled = (VARS.PLAYLIST_PAGE === totalPages || hasData === false);
   }
 
   gotoPage(p) {
-    currentPage = p;
-    window.localStorage.setItem('currentPage', p);
-    this.displayPlaylistPage(currentPage, VARS.TRANSACTION = crypto.randomUUID()).catch(error => {
+    VARS.PLAYLIST_PAGE = p;
+    storage.saveInteger('playlist-page', p);
+    this.displayPlaylistPage(VARS.PLAYLIST_PAGE, VARS.TRANSACTION = crypto.randomUUID()).catch(error => {
       printLog('gotoPage.error', error.message);
     });
     this.updatePaginationControls();
@@ -2781,8 +2999,8 @@ class AppShell {
   async listStore(source) {
     printLog('listStore');
     settingsButton.disabled = true;
-    const cachedM3uSource = localStorage.getItem('cachedM3uSource') || SOURCES.URL;
-    const cachedM3uUrl = this.getCachedM3uUrl();
+    const cachedM3uSource = SOURCES.URL;
+    const cachedM3uUrl = this.getPlayListUrl();
 
     m3uList.innerHTML = '';
 
@@ -2790,7 +3008,7 @@ class AppShell {
     const { data: list } = await database.listData();
     for(const m3uItem of list) {
       const url = database.decodeString(m3uItem.id);
-      const isCurrent = cachedM3uUrl.includes(url) || (cachedM3uSource === SOURCES.CONTENT && m3uItem.source === SOURCES.CONTENT && cachedM3uUrl.includes(url));
+      const isCurrent = cachedM3uUrl.includes(url);
 
       const divItem = document.createElement('div');
       const aItem = document.createElement('a');
@@ -2821,7 +3039,7 @@ class AppShell {
       divItem.append(aItem);
 
       if(isCurrent) {
-        aItem.innerHTML = '<strong>['.concat(categories[this.currentCategory].length).concat(']</strong>&nbsp;').concat(url);
+        aItem.innerHTML = '<strong>['.concat(this.getSelectedChannel().length).concat(']</strong>&nbsp;').concat(url);
         divItem.classList.add('active');
         const rItem = document.createElement('a');
         rItem.innerText = '刷';
@@ -2830,9 +3048,7 @@ class AppShell {
         rItem.onclick = async (evt) => {
           evt.preventDefault();
           const element = evt.target;
-          if(element.classList.contains('disabled')) {
-            return;
-          }
+          if(element.classList.contains('disabled')) { return; }
 
           this.loadM3uUrl({ m3uUrl: url, fromCache: false, isBooting: false, onStart: () => {
             element.classList.add('disabled');
@@ -2870,12 +3086,12 @@ class AppShell {
     settingsButton.disabled = false;
   }
   /**
-   * Save the category to cache
-   * @param {string} category Category
+   * Save the channel to cache
+   * @param {string} channel Category
    */
-  saveCategoryToCache(category) {
-    this.currentCategory = category;
-    window.localStorage.setItem('currentCategory', category);
+  saveCategoryToCache(channel) {
+    this.currentCategory = channel;
+    storage.saveString('selected-channel', channel);
   }
   /**
    * Load the current channel
@@ -2885,14 +3101,14 @@ class AppShell {
   loadCurrentChannel(isBooting = false) {
     if(isBooting) {
       this.currentCategory = CONSTS.CHANNELS.ALL;
-      let category = window.localStorage.getItem('currentCategory');
-      if(category && category !== this.currentCategory) {
+      let channel = storage.getString('selected-channel');
+      if(channel && channel !== this.currentCategory) {
         /** @type {Array<string>} */
-        const channels = Object.keys(categories);
-        if(channels.includes(category) === false) {
-          category = this.currentCategory;
+        const channels = Object.keys(this.channels);
+        if(channels.includes(channel) === false) {
+          channel = this.currentCategory;
         }
-        this.saveCategoryToCache(category);
+        this.saveCategoryToCache(channel);
       }
     }
     channelButton.textContent = topButtons.classList.contains('channel') ? '返回' : this.currentCategory;
@@ -2931,13 +3147,13 @@ class AppShell {
     channelList.innerHTML = '';
     const selectedChannel = this.loadCurrentChannel(isBooting);
 
-    for (let category in categories) {
+    for (let category in this.getChannels()) {
       if(category === CONSTS.CHANNELS.RAW){
         continue;
       }
       /** @type {HTMLLIElement} **/
       const li = document.createElement('li');
-      const size = categories[category].length;
+      const size = this.getChannel(category).length;
 
       li.dataset['channel'] = category;
       li.dataset['duration'] = size;
@@ -2972,7 +3188,7 @@ class AppShell {
             filteredPlaylistData = await this.fetchFavorites();
           }
           else {
-            filteredPlaylistData = categories[this.currentCategory === CONSTS.CHANNELS.ALL ? CONSTS.CHANNELS.RAW : this.currentCategory];
+            filteredPlaylistData = this.getChannel(this.currentCategory === CONSTS.CHANNELS.ALL ? CONSTS.CHANNELS.RAW : this.currentCategory);
           }
           this.gotoPage(1);
           this.switchChannel();
@@ -3013,13 +3229,11 @@ class AppShell {
       if (!VARS.URLS.has(processedUrl)) {
         VARS.URLS.add(processedUrl);
         const item = { id: VARS.CURRENT_ID, title: VARS.CURRENT_TITLE || processedUrl, url: processedUrl, group: VARS.CURRENT_GROUP };
-        playlistData.push(item);
-        categories[CONSTS.CHANNELS.ALL].push(item);
+
+        this.addChannel(CONSTS.CHANNELS.ALL, item);
         if (VARS.CURRENT_GROUP !== CONSTS.CHANNELS.ALL) {
-          if (!categories[VARS.CURRENT_GROUP]) {
-            categories[VARS.CURRENT_GROUP] = [];
-          }
-          categories[VARS.CURRENT_GROUP].push(item);
+          this.initChannel(VARS.CURRENT_GROUP);
+          this.addChannel(VARS.CURRENT_GROUP, item);
         }
       }
     }
@@ -3045,13 +3259,11 @@ class AppShell {
         VARS.URLS.add(VARS.CURRENT_URL);
         const group = VARS.CURRENT_GROUP || CONSTS.CHANNELS.ALL;
         const item = { id: VARS.CURRENT_ID, title: VARS.CURRENT_TITLE, url: VARS.CURRENT_URL, group };
-        playlistData.push(item);
-        categories[CONSTS.CHANNELS.ALL].push(item);
+
+        this.addChannel(CONSTS.CHANNELS.ALL, item);
         if (group !== CONSTS.CHANNELS.ALL) {
-          if (!categories[group]) {
-            categories[group] = [];
-          }
-          categories[group].push(item);
+          this.initChannel(group);
+          this.addChannel(group, item);
         }
       }
     }
@@ -3062,10 +3274,12 @@ class AppShell {
    * @param {{ m3u: string, time: string }} data The data to load.
    */
   async initPlayData(type, data) {
-    // Data for all
-    playlistData = [];
-    // Data in categories
-    categories = { [CONSTS.CHANNELS.ALL]: [], [CONSTS.CHANNELS.FAVORITE]: [] };
+    // Data in channels
+    this.setChannels({
+      [CONSTS.CHANNELS.RAW]: [],
+      [CONSTS.CHANNELS.ALL]: [],
+      [CONSTS.CHANNELS.FAVORITE]: []
+    });
     VARS.URLS.clear();
 
     await this.fetchDislikes();
@@ -3083,9 +3297,8 @@ class AppShell {
       }
       // [M3U] End - Process data
     }
-    categories[CONSTS.CHANNELS.RAW] = [...categories[CONSTS.CHANNELS.ALL]];
+    this.setChannel(CONSTS.CHANNELS.RAW, [...this.getChannel(CONSTS.CHANNELS.ALL)]);
   }
-
   /**
    * 设置URL输入框
    * @param {string} url URL
@@ -3094,19 +3307,16 @@ class AppShell {
   setUrlInput(url, label = CONSTS.ICON_UPDATE_FROM_URL) {
     m3uUrlInput.value = url;
     loadM3uButton.innerHTML = label;
-    window.localStorage.setItem('cachedM3uUrl', url);
+    storage.saveString('playlist-url', url);
   }
 
   async loadM3uFile(fromCache = false, isBooting = false) {
     /** @type {string} **/
     const m3uUrl = m3uUrlInput.value.trim();
-    this.loadM3uUrl({ m3uUrl, fromCache, isBooting, onStart: () => {
-      
-    }, onSuccess: async (type, data, cached, isBooting) => {
+    this.loadM3uUrl({ m3uUrl, fromCache, isBooting, onSuccess: async (type, data, cached, isBooting) => {
       await this.processM3uData(type, data, cached, false, isBooting);
       await this.listStore('fetch');
       this.gotoPage(1);
-    }, onCompleted: () => {
     } });
   }
   /**
@@ -3142,14 +3352,22 @@ class AppShell {
   }
 
   loadVideoTimestamp() {
-    const videoTimestampData = window.localStorage.getItem('videoTimestamp');
-    videoTimestamp = videoTimestampData ? JSON.parse(videoTimestampData) : {};
+    VARS.VIDEO_PLAYED_DURATION = storage.getJSON('video-played-duration') || {};
+  }
+
+  setVideoTimestamp(url, timestamp, source) {
+    VARS.VIDEO_PLAYED_DURATION[url] = timestamp;
+    storage.set('video-played-duration', VARS.VIDEO_PLAYED_DURATION);
+  }
+
+  saveVideoTimestamp() {
+    storage.saveJSON('video-played-duration', VARS.VIDEO_PLAYED_DURATION);
   }
 
   async loadLocalCache() {
-    const cachedM3uUrl = window.localStorage.getItem('cachedM3uUrl') || '';
-    if (cachedM3uUrl) {
-      this.setUrlInput(cachedM3uUrl);
+    const playListUrl = storage.getString('playlist-url') || '';
+    if (playListUrl) {
+      this.setUrlInput(playListUrl);
       await this.loadM3uFile(true, true); // 添加一个参数来表示这是从缓存加载
     }
     else {
@@ -3157,35 +3375,32 @@ class AppShell {
     }
     this.loadVideoTimestamp();
 
-    currentPage = parseInt(window.localStorage.getItem('currentPage')) || 1;
+    VARS.PLAYLIST_PAGE = storage.getInteger('playlist-page', 1);
 
-    storeFrame = window.localStorage.getItem('storeFrame') === 'true' ? 'true' : 'false';
-    storeFrameCheckbox.checked = storeFrame === 'true';
+    VARS.HAS_THUMBNAIL = storage.getBoolean('has-thumbnail');
+    storeFrameCheckbox.checked = VARS.HAS_THUMBNAIL;
     screenshotTime.disabled = !storeFrameCheckbox.checked;
 
-    autoCheck = window.localStorage.getItem('autoCheck') === 'true' ? 'true' : 'false';
-    autoCheckCheckbox.checked = autoCheck === 'true';
+    VARS.IS_AUTO_CHECK = storage.getBoolean('is-auto-check');
+    autoCheckCheckbox.checked = VARS.IS_AUTO_CHECK;
 
-    enableLogging = window.localStorage.getItem('enableLogging') === 'true' ? 'true' : 'false';
-    enableLoggingCheckbox.checked = enableLogging === 'true';
+    VARS.IS_LOGGING_ENABLED = storage.getBoolean('is-logging-enabled');
+    enableLoggingCheckbox.checked = VARS.IS_LOGGING_ENABLED;
+    if(VARS.IS_LOGGING_ENABLED) { logContainer.classList.remove('hidden'); }
 
-    if(enableLogging === 'true') {
-      logContainer.classList.remove('hidden');
-    }
+    VARS.IS_CHECKING_BROKEN_ONLY = storage.getBoolean('is-checking-broken-only');
+    onlyCheckBrokenCheckbox.checked = VARS.IS_CHECKING_BROKEN_ONLY;
 
-    onlyCheckBroken = window.localStorage.getItem('onlyCheckBroken') === 'true' ? 'true' : 'false';
-    onlyCheckBrokenCheckbox.checked = onlyCheckBroken === 'true';
-
-    VARS.PING_TIMEOUT = parseInt(window.localStorage.getItem('PING_TIMEOUT')) || 10000;
+    VARS.PING_TIMEOUT = storage.getInteger('ping-timeout', 10000);
     checkTimeout.value = Math.round(VARS.PING_TIMEOUT / 1000);
     checkTimeoutDisplay.textContent = checkTimeout.value;
 
-    VARS.SCREENSHOT_TIME = parseInt(window.localStorage.getItem('screenshotTime')) || 3;
-    screenshotTime.value = VARS.SCREENSHOT_TIME;
+    VARS.THUMBNAIL_TIMEOUT = storage.getInteger('thumbnail-timeout', 3);
+    screenshotTime.value = VARS.THUMBNAIL_TIMEOUT;
     screenshotTimeDisplay.textContent = screenshotTime.value;
-    
-    muteWhenPlay = window.localStorage.getItem('muteWhenPlay') === 'false' ? 'false' : 'true';
-    muteWhenPlayCheckbox.checked = muteWhenPlay === 'true';
+
+    VARS.IS_MUTED = storage.getBoolean('is-muted', true);
+    muteWhenPlayCheckbox.checked = VARS.IS_MUTED;
   }
   /**
    * 将字节转换为合适的单位大小
@@ -3214,13 +3429,8 @@ class AppShell {
     this.displayPlayerControls(false, true);
   }
 
-  setVideoTimestamp(timestamp) {
-    const lastPlayedItem = this.getLastVideoItem();
-    videoTimestamp[lastPlayedItem.url] = timestamp;
-  }
-
   saveLastPlayedVideo(playingItem) {
-    window.localStorage.setItem('lastPlayedItem', JSON.stringify(playingItem));
+    storage.saveJSON('last-played-video', playingItem);
   }
 
   seekVideo(time) {
@@ -3229,7 +3439,7 @@ class AppShell {
 
   detectM3uUrl() {
     loadM3uButton.disabled = !m3uUrlInput.checkValidity();
-    const cachedM3uUrl = this.getCachedM3uUrl();
+    const cachedM3uUrl = this.getPlayListUrl();
     if(cachedM3uUrl === m3uUrlInput.value) {
       loadM3uButton.innerHTML = CONSTS.ICON_UPDATE_FROM_URL;
     }
@@ -3299,7 +3509,7 @@ class AppShell {
     }
 
     if(node.poster !== CONSTS.POSTER) {
-      window.localStorage.removeItem('lastPlayedItem');
+      storage.delete('last-played-video');
       this.stopVideo(true, true, node.poster);
       appShell.displaySideMenu(false);
       return true;
@@ -3309,16 +3519,16 @@ class AppShell {
 
   gotoNextPage() {
     const itemsToDisplay = filteredPlaylistData || [];
-    if (currentPage < Math.ceil(itemsToDisplay.length / itemsPerPage)) {
-      currentPage++;
-      this.gotoPage(currentPage);
+    if (VARS.PLAYLIST_PAGE < Math.ceil(itemsToDisplay.length / VARS.ITEMS_PER_PAGE)) {
+      VARS.PLAYLIST_PAGE++;
+      this.gotoPage(VARS.PLAYLIST_PAGE);
     }
   }
 
   gotoPrevPage() {
-    if (currentPage > 1) {
-      currentPage--;
-      this.gotoPage(currentPage);
+    if (VARS.PLAYLIST_PAGE > 1) {
+      VARS.PLAYLIST_PAGE--;
+      this.gotoPage(VARS.PLAYLIST_PAGE);
     }
   }
   /**
@@ -3364,7 +3574,6 @@ class AppShell {
    * @param {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} options 参数对象
    */
   async loadM3uUrl(opts) {
-    printLog('loadM3uUrl');
     /** @type {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} **/
     const options = Object.assign({}, {
       m3uUrl: '', fromCache: false, isBooting: false,
@@ -3399,24 +3608,22 @@ class AppShell {
       this.showErrorMessage('请输入有效的 M3U 文件 URL。');
     }
   }
-
   // 执行搜索
   performSearch() {
     printLog('performSearch');
     const searchTerm = searchInput.value.toLowerCase();
-    if (this.currentCategory === CONSTS.CHANNELS.ALL || this.currentCategory === CONSTS.CHANNELS.RAW) {
-      filteredPlaylistData = categories[CONSTS.CHANNELS.RAW].filter(item => 
+    if ([CONSTS.CHANNELS.RAW, CONSTS.CHANNELS.ALL].includes(this.currentCategory)) {
+      filteredPlaylistData = this.getChannel(CONSTS.CHANNELS.RAW).filter(item => 
         item.title.toLowerCase().includes(searchTerm)
       );
     }
     else {
-      filteredPlaylistData = categories[this.currentCategory].filter(item => 
+      filteredPlaylistData = this.getSelectedChannel().filter(item => 
         item.title.toLowerCase().includes(searchTerm)
       );
     }
     this.gotoPage(1);
   }
-
   // 刷新当前页面
   async refreshCurrentPage(transaction, isChecking = false) {
     if(isChecking) {
@@ -3430,7 +3637,7 @@ class AppShell {
       for (let i = 0; i < items.length; i++) {
         /** @type {HTMLLIElement} */
         const li = items[i];
-        if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
+        if(li.classList.contains('frame') && VARS.IS_CHECKING_BROKEN_ONLY) {
           continue;
         }
         li.className = '';
@@ -3439,7 +3646,7 @@ class AppShell {
       for (let i = 0; i < items.length; i++) {
         /** @type {HTMLLIElement} */
         const li = items[i];
-        if(li.classList.contains('frame') && onlyCheckBroken === 'true') {
+        if(li.classList.contains('frame') && VARS.IS_CHECKING_BROKEN_ONLY) {
           continue;
         }
         li.className = 'checking';
@@ -3467,12 +3674,12 @@ class AppShell {
   // 加载缓存的数据
   async startup() {
     await this.loadLocalCache();
-    this.gotoPage(currentPage);
+    this.gotoPage(VARS.PLAYLIST_PAGE);
     this.playLastVideo(false);
 
     await this.listStore('startup');
 
-    this.initUI();
+    this.initUI('startup');
 
     this.generateBlankFrame();
     this.resetTitle();
@@ -3489,11 +3696,11 @@ class AppShell {
       pageBody.classList.remove('menu');
       this.displayPlayerControls();
     }
-    window.localStorage.setItem('playListVisible', show ? 'true' : 'false');
+    storage.saveString('is-playlist-visible', show ? 'true' : 'false');
   }
 
   async addFavorite(id, url, title, group, code = CONSTS.CODES.LIKE) {
-    await database.addData({ id, url, title, group, code }, FAV_STORE);
+    await database.updateData({ id, url, title, group, code }, FAV_STORE);
     this.refreshFavoriteButton(code);
     this.refreshDislikeButton(code);
     await this.initializeCategories();
@@ -3620,13 +3827,11 @@ class ElectronShell extends AppShell {
 /** @type {AppShell} **/
 const appShell = CONSTS.IS_NATIVE ? new ElectronShell() : new WebShell();
 
-appShell.initUI();
-
 /**
  * @param {Array<any>} args Arguments
  */
 function printLog(...args) {
-  if(enableLogging === 'true') {
+  if(VARS.IS_LOGGING_ENABLED) {
     debugLogs.innerHTML = `$ ${args.join(' ')}\n`.concat(debugLogs.innerHTML);
     logClearButton.classList.remove('hidden');
   }
@@ -3639,6 +3844,8 @@ favoriteButton.addEventListener('click', async (evt) => {
   const title = favoriteButton.dataset['title'];
   const isAddingData = favoriteButton.dataset['action'] === 'add';
   const isDeletingData = favoriteButton.dataset['action'] === 'remove';
+  console.log('isAddingData->', isAddingData);
+  console.log('isDeletingData->', isDeletingData);
   if(isAddingData) {
     appShell.addFavorite(id, url, title, group, CONSTS.CODES.LIKE);
   }
@@ -3654,6 +3861,8 @@ dislikeButton.addEventListener('click', async (evt) => {
   const title = dislikeButton.dataset['title'];
   const isAddingData = dislikeButton.dataset['action'] === 'add';
   const isDeletingData = dislikeButton.dataset['action'] === 'remove';
+  console.log('isAddingData->', isAddingData);
+  console.log('isDeletingData->', isDeletingData);
   if(isAddingData) {
     appShell.addFavorite(id, url, title, group, CONSTS.CODES.DISLIKE);
   }
@@ -3731,7 +3940,7 @@ nextButton.addEventListener('dblclick', (evt) => {
 
 pageControl.addEventListener('change', (evt) => {
   appShell.gotoPage(parseInt(evt.target.value));
-  document.getElementById('pageCurrent').textContent = currentPage;
+  document.getElementById('pageCurrent').textContent = VARS.PLAYLIST_PAGE;
 });
 pageControl.addEventListener('input', (evt) => {
   document.getElementById('pageCurrent').textContent = parseInt(evt.target.value);
@@ -3756,7 +3965,7 @@ searchInput.addEventListener('keyup', (evt) => {
 searchInput.addEventListener('input', function() {
   if (this.value === '') {
     // 清空搜索关键字后，恢复到当前类别的播放列表
-    filteredPlaylistData = categories[appShell.currentCategory === CONSTS.CHANNELS.ALL ? CONSTS.CHANNELS.RAW : appShell.currentCategory];
+    filteredPlaylistData = appShell.getChannel(appShell.currentCategory === CONSTS.CHANNELS.ALL ? CONSTS.CHANNELS.RAW : appShell.currentCategory);
     appShell.gotoPage(1);
   }
   searchInput.dispatchEvent(new Event('keyup'));
@@ -3810,7 +4019,7 @@ videoPlayer.addEventListener('timeupdate', (evt) => {
     /** @type {HTMLVideoElement} **/
     const player = evt.target;
     progressControl.value = player.currentTime;
-    appShell.setVideoTimestamp(player.currentTime);
+    if(player.currentTime > 0) appShell.setVideoTimestamp(lastPlayedItem.url, player.currentTime, 'timeupdate');
     if (progressControl.max === '0' && player.duration) {
       progressControl.max = player.duration;
       totalTimeDisplay.textContent = appShell.getMinutes(player.duration);
@@ -3825,10 +4034,8 @@ videoPlayer.addEventListener('pause', (evt) => {
 
 videoPlayer.addEventListener('seeked', (evt) => {
   const lastPlayedItem = appShell.getLastVideoItem();
-  printLog('videoPlayer.seeked', videoPlayer.currentTime, evt.target.currentTime);
   if(lastPlayedItem) {
-    printLog('lastPlayedItem.seeked', videoPlayer.currentTime, evt.target.currentTime);
-    appShell.setVideoTimestamp(videoPlayer.currentTime);
+    appShell.setVideoTimestamp(lastPlayedItem.url, videoPlayer.currentTime, 'seeked');
   }
 });
 videoPlayer.addEventListener('canplay', (evt) => {
@@ -3870,7 +4077,8 @@ videoPlayer.addEventListener('waiting', (evt) => {
 });
 videoPlayer.addEventListener('canplaythrough', (evt) => {
   printLog('videoPlayer.canplaythrough');
-  appShell.onPlaying();
+  if(appShell.isPlaying())
+    appShell.onPlaying();
 });
 videoPlayer.addEventListener('ended', (evt) => {
   printLog('videoPlayer.ended');
@@ -3996,35 +4204,35 @@ playListButton.addEventListener('click', (evt) => {
 });
 
 storeFrameCheckbox.addEventListener('change', (evt) => {
-  storeFrame = evt.target.checked ? 'true' : 'false';
-  window.localStorage.setItem('storeFrame', storeFrame);
+  VARS.HAS_THUMBNAIL = evt.target.checked;
+  storage.saveBoolean('has-thumbnail', VARS.HAS_THUMBNAIL);
   screenshotTime.disabled = !evt.target.checked;
 });
 autoCheckCheckbox.addEventListener('change', (evt) => {
-  autoCheck = evt.target.checked ? 'true' : 'false';
-  window.localStorage.setItem('autoCheck', autoCheck);
+  VARS.IS_AUTO_CHECK = evt.target.checked;
+  storage.saveBoolean('is-auto-check', VARS.IS_AUTO_CHECK);
 });
 checkTimeout.addEventListener('input', (evt) => {
   VARS.PING_TIMEOUT = parseInt(evt.target.value) * 1000;
   checkTimeoutDisplay.textContent = evt.target.value;
-  window.localStorage.setItem('PING_TIMEOUT', VARS.PING_TIMEOUT);
+  storage.saveInteger('ping-timeout', VARS.PING_TIMEOUT);
 });
 
 screenshotTime.addEventListener('input', (evt) => {
-  VARS.SCREENSHOT_TIME = parseInt(evt.target.value);
+  VARS.THUMBNAIL_TIMEOUT = parseInt(evt.target.value);
   screenshotTimeDisplay.textContent = evt.target.value;
-  window.localStorage.setItem('screenshotTime', VARS.SCREENSHOT_TIME);
+  storage.saveInteger('thumbnail-timeout', VARS.THUMBNAIL_TIMEOUT);
 });
 
 onlyCheckBrokenCheckbox.addEventListener('change', (evt) => {
-  onlyCheckBroken = evt.target.checked ? 'true' : 'false';
-  window.localStorage.setItem('onlyCheckBroken', onlyCheckBroken);
+  VARS.IS_CHECKING_BROKEN_ONLY = evt.target.checked;
+  storage.saveBoolean('is-checking-broken-only', VARS.IS_CHECKING_BROKEN_ONLY);
 });
 
 enableLoggingCheckbox.addEventListener('change', (evt) => {
-  enableLogging = evt.target.checked ? 'true' : 'false';
-  window.localStorage.setItem('enableLogging', enableLogging);
-  if(enableLogging === 'true') {
+  VARS.IS_LOGGING_ENABLED = evt.target.checked;
+  storage.saveBoolean('is-logging-enabled', VARS.IS_LOGGING_ENABLED);
+  if(VARS.IS_LOGGING_ENABLED) {
     logContainer.classList.remove('hidden');
   }
   else {
@@ -4033,8 +4241,8 @@ enableLoggingCheckbox.addEventListener('change', (evt) => {
 });
 
 muteWhenPlayCheckbox.addEventListener('change', (evt) => {
-  muteWhenPlay = evt.target.checked ? 'true' : 'false';
-  window.localStorage.setItem('muteWhenPlay', muteWhenPlay);
+  VARS.IS_MUTED = evt.target.checked;
+  storage.saveBoolean('is-muted', VARS.IS_MUTED);
 });
 
 logClearButton.addEventListener('click', (evt) => {
