@@ -350,12 +350,9 @@ class Database {
   --background-color-list-item-even: rgba(255, 255, 255, 0.50);
   --background-color-list-item-odd: #cccccc50;
 
-  /* --secondary-color: #2ecc71; */
-
   /* Background images */
   --background-image-list-item-selected: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
   --background-image-list-item-checking: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23666%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%201.5a.5.5%200%200%201%20.5-.5h11a.5.5%200%200%201%200%201h-1v1a4.5%204.5%200%200%201-2.557%204.06c-.29.139-.443.377-.443.59v.7c0%20.213.154.451.443.59A4.5%204.5%200%200%201%2012.5%2013v1h1a.5.5%200%200%201%200%201h-11a.5.5%200%201%201%200-1h1v-1a4.5%204.5%200%200%201%202.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5%204.5%200%200%201%203.5%203V2h-1a.5.5%200%200%201-.5-.5m2.5.5v1a3.5%203.5%200%200%200%201.989%203.158c.533.256%201.011.791%201.011%201.491v.702c0%20.7-.478%201.235-1.011%201.491A3.5%203.5%200%200%200%204.5%2013v1h7v-1a3.5%203.5%200%200%200-1.989-3.158C8.978%209.586%208.5%209.052%208.5%208.351v-.702c0-.7.478-1.235%201.011-1.491A3.5%203.5%200%200%200%2011.5%203V2z%22%2F%3E%3C%2Fsvg%3E');
-
   --background-image-list-item-frame: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
   --background-image-list-item-frame-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
   --background-image-list-item-frame-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
@@ -364,7 +361,6 @@ class Database {
   --background-image-list-item-preview-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
   --background-image-list-item-preview-broken: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
   --background-image-list-item-preview-active: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22green%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
-
   --background-image-list-item-active-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23806600%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
   --background-image-list-item-active-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
   --background-image-list-item-broken: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M0%2010.5a.5.5%200%200%201%20.5-.5h15a.5.5%200%200%201%200%201H.5a.5.5%200%200%201-.5-.5M12%200H4a2%202%200%200%200-2%202v7h1V2a1%201%200%200%201%201-1h8a1%201%200%200%201%201%201v7h1V2a2%202%200%200%200-2-2m2%2012h-1v2a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1v-2H2v2a2%202%200%200%200%202%202h8a2%202%200%200%200%202-2z%22%2F%3E%3C%2Fsvg%3E');
@@ -372,7 +368,7 @@ class Database {
 
   /* List item colors */
   --foreground-color-list-item-selected: darkgreen;
-  --foreground-color-list-item-badge-selected: #606060;
+  --background-color-list-item-badge-selected: #606060;
   --background-color-list-item-selected: #ffffff99;
   --border-color-list-item-good: green;
   --border-color-list-item-average: #806600;
@@ -380,6 +376,11 @@ class Database {
   --border-color-list-item-favorite: gray;
   --border-color-list-item-broken: #888;
   --background-color-list-item-highlighted: #fff;
+    /* Special CSS */
+    --primary-background-color-button-disabled-contrast: inherit;
+    --primary-color-button-disabled-contrast: inherit;
+    --background-color-list-item-highlighted: inherit;
+    --background-color-list-item-badge: #606060;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -399,34 +400,33 @@ class Database {
     /* Background images */
     --background-image-list-item-selected: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22lightgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
     --background-image-list-item-checking: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%201.5a.5.5%200%200%201%20.5-.5h11a.5.5%200%200%201%200%201h-1v1a4.5%204.5%200%200%201-2.557%204.06c-.29.139-.443.377-.443.59v.7c0%20.213.154.451.443.59A4.5%204.5%200%200%201%2012.5%2013v1h1a.5.5%200%200%201%200%201h-11a.5.5%200%201%201%200-1h1v-1a4.5%204.5%200%200%201%202.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5%204.5%200%200%201%203.5%203V2h-1a.5.5%200%200%201-.5-.5m2.5.5v1a3.5%203.5%200%200%200%201.989%203.158c.533.256%201.011.791%201.011%201.491v.702c0%20.7-.478%201.235-1.011%201.491A3.5%203.5%200%200%200%204.5%2013v1h7v-1a3.5%203.5%200%200%200-1.989-3.158C8.978%209.586%208.5%209.052%208.5%208.351v-.702c0-.7.478-1.235%201.011-1.491A3.5%203.5%200%200%200%2011.5%203V2z%22%2F%3E%3C%2Fsvg%3E');
-
     --background-image-list-item-frame: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22lightgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
     --background-image-list-item-frame-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22orange%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
-    --background-image-list-item-frame-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.002%205.5a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200%22%2F%3E%3Cpath%20d%3D%22M2.002%201a2%202%200%200%200-2%202v10a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V3a2%202%200%200%200-2-2zm12%201a1%201%200%200%201%201%201v6.5l-3.777-1.947a.5.5%200%200%200-.577.093l-3.71%203.71-2.66-1.772a.5.5%200%200%200-.63.062L1.002%2012V3a1%201%200%200%201%201-1z%22%2F%3E%3C%2Fsvg%3E');
+    /* --background-image-list-item-frame-bad: inherit; */
     --background-image-list-item-preview: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22lightgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
     --background-image-list-item-preview-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22orange%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
-    --background-image-list-item-preview-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
-    --background-image-list-item-preview-broken: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22gray%22%20viewBox%3D%220%200%2016%2016%22%3E%0A%20%20%3Cpath%20d%3D%22M6.5%204.482c1.664-1.673%205.825%201.254%200%205.018-5.825-3.764-1.664-6.69%200-5.018%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M13%206.5a6.47%206.47%200%200%201-1.258%203.844q.06.044.115.098l3.85%203.85a1%201%200%200%201-1.414%201.415l-3.85-3.85a1%201%200%200%201-.1-.115h.002A6.5%206.5%200%201%201%2013%206.5M6.5%2012a5.5%205.5%200%201%200%200-11%205.5%205.5%200%200%200%200%2011%22%2F%3E%0A%3C%2Fsvg%3E');
+    /* --background-image-list-item-preview-bad: inherit; */
+    /* --background-image-list-item-preview-broken: inherit; */
     --background-image-list-item-preview-active: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22lightgreen%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
-
     --background-image-list-item-active-average: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22orange%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
-    --background-image-list-item-active-bad: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m11.596%208.697-6.363%203.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01%201.233-.696l6.363%203.692a.802.802%200%200%201%200%201.393%22%2F%3E%3C%2Fsvg%3E');
-    --background-image-list-item-broken: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkred%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M0%2010.5a.5.5%200%200%201%20.5-.5h15a.5.5%200%200%201%200%201H.5a.5.5%200%200%201-.5-.5M12%200H4a2%202%200%200%200-2%202v7h1V2a1%201%200%200%201%201-1h8a1%201%200%200%201%201%201v7h1V2a2%202%200%200%200-2-2m2%2012h-1v2a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1v-2H2v2a2%202%200%200%200%202%202h8a2%202%200%200%200%202-2z%22%2F%3E%3C%2Fsvg%3E');
+    /* --background-image-list-item-active-bad: inherit; */
+    /* --background-image-list-item-broken: inherit; */
     --background-image-list-item-timeout: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22darkgray%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%203.5a.5.5%200%200%200-1%200V9a.5.5%200%200%200%20.252.434l3.5%202a.5.5%200%200%200%20.496-.868L8%208.71z%22%2F%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016m7-8A7%207%200%201%201%201%208a7%207%200%200%201%2014%200%22%2F%3E%3C%2Fsvg%3E');
 
     /* List item colors */
     --foreground-color-list-item-selected: lightgreen;
-    --foreground-color-list-item-badge-selected: darkgreen;
+    --background-color-list-item-badge-selected: darkgreen;
     --background-color-list-item-selected: black;
     --border-color-list-item-good: lightgreen;
     --border-color-list-item-average: orange;
-    --border-color-list-item-bad: darkred;
+    --border-color-list-item-bad: inherit;
     --border-color-list-item-favorite: white;
     --border-color-list-item-broken: #bbb;
     /* Special CSS */
     --primary-background-color-button-disabled-contrast: #282828;
     --primary-color-button-disabled-contrast: #a3a3a3;
     --background-color-list-item-highlighted: #393939;
+    --background-color-list-item-badge: #3a3a3a;
   }
 }
 
@@ -918,13 +918,13 @@ ul.menu-list li {
     max-width: calc(50% - 1px);
   }
   ul#channelList.menu-list li::after {
-    background: #606060;
+    background: var(--background-color-list-item-badge);
     color: white;
     padding: 0.25rem;
     margin-right: 0.5rem;
   }
   ul#channelList.menu-list li.selected::after {
-    background: var(--foreground-color-list-item-badge-selected);
+    background: var(--background-color-list-item-badge-selected);
   }
 
   ul.menu-list li.frame:hover,
@@ -1158,18 +1158,18 @@ button:not(:disabled):focus-visible {
     flex: 0;
   }
   #playlistContent .page-controls #pagination button, .user-controls button {
-    flex: 1;
-    box-shadow: 0px 0px 2px var(--foreground-color-secondary);
+    box-shadow: 0px 0px 2px var(--foreground-color-secondary);  
   }
     .user-controls button {
       transition: transform 0.1s ease, background-color 0.2s ease;
+      flex: 1;
     }
   #playlistContent .page-controls #pagination #pageInfo {
-    font-size: 16px;
+    font-size: 12px;
     white-space: nowrap;
     width: 100%;
-    flex: 0;
     text-align: center;
+    padding-top: 3px;
   }
 
 .box {
@@ -1576,6 +1576,14 @@ input:checked + .slider:before {
       <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h13A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 12.5zM1.5 3a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5z"/>
       <path d="M8 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-5a.5.5 0 0 1-.5-.5z"/>
     </symbol>
+    <!-- NEXT PAGE -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="next" viewBox="0 0 16 16">
+      <path d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+    </symbol>
+    <!-- PREVIOUS PAGE -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="prev" viewBox="0 0 16 16">
+      <path d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+    </symbol>
   </svg>
 
   <div class="container" id="pageContainer">
@@ -1682,12 +1690,12 @@ input:checked + .slider:before {
 
             <div id="pageControls" class="page-controls">
               <div id="pagination">
-                <button id="prevPage" disabled>上页</button>
+                <button id="prevPage" disabled><svg width="20" height="20"><use xlink:href="#prev"/></svg></button>
                 <div class="page-information">
                   <input id="pageControl" class="range" min="1" type="range">
                   <div id="pageInfo"></div>
                 </div>
-                <button id="nextPage" disabled>下页</button>
+                <button id="nextPage" disabled><svg width="20" height="20"><use xlink:href="#next"/></svg></button>
               </div>
             </div>
           </div>
@@ -2629,7 +2637,7 @@ class AppShell {
     // Check video playability
     li.className = 'checking';
     const result = await this.checkVideoPlayability(videoUrl);
-    await database.addData({ id, result }, STA_STORE);
+    await database.updateData({ id, result }, STA_STORE);
     const lastPlayedItem = this.getLastVideoItem();
     await this.updateListItemStyle(li, result, lastPlayedItem);
     this.showCheckButton(false);
@@ -2746,7 +2754,7 @@ class AppShell {
     pageControl.max = totalPages;
 
     if(hasData) {
-      pageInfo.innerHTML = `第 <span id="pageCurrent">${currentPage}</span>/${totalPages} 页`;
+      pageInfo.innerHTML = `第 <span id="pageCurrent">${currentPage}</span> / ${totalPages} 页`;
       pageControl.min = 1;
     }
     else {
