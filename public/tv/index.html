@@ -547,7 +547,7 @@ body {
         justify-content: space-between;
         box-sizing: border-box;
         position: relative;
-        padding: 0px;
+        padding: 0px 1px;
         column-gap: 0.5rem;
       }
       .container #videoContainer #videoControls .buttons .group {
@@ -669,6 +669,7 @@ textarea, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
   font-size: 14px;
+  border: 0px;
 }
 #searchContainer, #playlistContent .top-buttons {
   margin-bottom: 10px;
@@ -1027,6 +1028,11 @@ button:not(:disabled):focus-visible {
 }
 #playVideoButton {
   background-color: blueviolet;
+}
+#pipButton:disabled,
+#playVideoButton:disabled,
+#fullscreenButton:disabled {
+  background-color: inherit;
 }
 #speakerButton {
   background-color: rgb(43, 89, 226);
@@ -1619,7 +1625,7 @@ input:checked + .slider:before {
         <div class="m3u-controls">
           <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
           <button id="loadM3uButton"><svg width="20" height="20"><use xlink:href="#read-from-url"/></svg></button>
-          <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#back"/></svg></button>
+          <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
         </div>
   
         <div id="m3uList"></div>
