@@ -3074,7 +3074,7 @@ class AppShell {
       divItem.append(aItem);
 
       if(isCurrent) {
-        aItem.innerHTML = '<strong>['.concat(this.getSelectedChannel().length).concat(']</strong>&nbsp;').concat(url);
+        aItem.innerHTML = '<strong>['.concat(this.getChannel(CONSTS.CHANNELS.RAW).length).concat(']</strong>&nbsp;').concat(url);
         divItem.classList.add('active');
         const rItem = document.createElement('a');
         rItem.innerText = '刷';
