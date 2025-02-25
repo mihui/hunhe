@@ -376,11 +376,13 @@ class Database {
   --border-color-list-item-favorite: gray;
   --border-color-list-item-broken: #888;
   --background-color-list-item-highlighted: #fff;
-    /* Special CSS */
-    --primary-background-color-button-disabled-contrast: inherit;
-    --primary-color-button-disabled-contrast: inherit;
-    --background-color-list-item-highlighted: inherit;
-    --background-color-list-item-badge: #606060;
+  /* Special CSS */
+  --primary-background-color-button-disabled-contrast: inherit;
+  --primary-color-button-disabled-contrast: inherit;
+  --background-color-list-item-highlighted: inherit;
+  --background-color-list-item-badge: #606060;
+
+  --border-radius-button: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -471,8 +473,9 @@ body {
     will-change: flex-grow, min-width, max-width, width;
   }
     .container .video-container .video-wrapper {
+      align-items: center;
       box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.5);
-      border-radius: 8px;
+      border-radius: var(--border-radius-button);
       overflow: hidden;
       display: flex;
       width: 100%;
@@ -506,8 +509,8 @@ body {
         height: auto;
         position: absolute;
         z-index: -1;
+        visibility: hidden;
       }
-
     .container .video-container .user-controls {
       width: 100%;
       display: flex;
@@ -657,7 +660,7 @@ textarea, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
 .m3u-controls #loadM3uButton, .m3u-controls #closeM3uButton {
   width: 100%;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: var(--border-radius-button);
   font-size: 16px;
   appearance: none;
   box-sizing: border-box;
@@ -774,7 +777,7 @@ ul.menu-list li {
   background-position: -1rem center;
   background-repeat: no-repeat;
   padding: 0px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
   ul.menu-list li:nth-of-type(even) {
     background-color: var(--background-color-list-item-even);
@@ -975,7 +978,7 @@ button {
   background-color: var(--primary-background-color-button);
   color: var(--primary-color-button);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--border-radius-button);
   cursor: pointer;
   font-size: 16px;
   white-space: nowrap;
@@ -988,6 +991,9 @@ button:disabled {
   background-color: var(--primary-background-color-button-disabled);
   color: var(--primary-color-button-disabled);
 }
+  button:disabled svg {
+    filter: invert(1);
+  }
 
 button:not(:disabled):active,
 button:not(:disabled):focus-visible {
@@ -1127,13 +1133,30 @@ button:not(:disabled):focus-visible {
   flex: 1;
   border-radius: 0;
   justify-content: center;
+  border-left: 1px solid var(--primary-color-button);
+  border-right: 1px solid var(--primary-color-button);
 }
+#playlistContent .top-buttons #searchFormButton {
+  border-radius: 0;
+}
+  #playlistContent .top-buttons #searchFormButton svg {
+    zoom: 0.8;
+  }
+  #playlistContent .top-buttons.channel .channel-hidden {
+    display: none;
+  }
+  #playlistContent .top-buttons.channel button {
+    --primary-background-color-button: #333;
+  }
   #playlistContent .top-buttons.channel #channelButton {
+    padding-left: 0px;
     justify-content: flex-start;
-    padding-left: 0;
+    border-left: 0px;
+    border-top-right-radius: var(--border-radius-button);
+    border-bottom-right-radius: var(--border-radius-button);
   }
 #playlistContent .top-buttons button {
-  transition: justify-content 0.3s ease, padding-left 0.3s ease;
+  transition: background-color 0.5s ease-in-out, padding-left 0.5s ease-in-out;
 }
 
   #playlistContent .top-buttons #listCheckButton.checking {
@@ -1476,6 +1499,10 @@ input:checked + .slider:before {
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="cancel" viewBox="0 0 16 16">
       <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
     </symbol>
+    <!-- CLOSE -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="close" viewBox="0 0 16 16">
+      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+    </symbol>
     <!-- FULLSCREEN -->
     <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="fullscreen" viewBox="0 0 16 16">
       <path d="M5.5 0a.5.5 0 0 1 .5.5v4A1.5 1.5 0 0 1 4.5 6h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5m5 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 10 4.5v-4a.5.5 0 0 1 .5-.5M0 10.5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 6 11.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5m10 1a1.5 1.5 0 0 1 1.5-1.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0z"/>
@@ -1521,8 +1548,8 @@ input:checked + .slider:before {
       <path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1z"/>
       <path d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5"/>
     </symbol>
-    <!-- CLOSE -->
-    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="close" viewBox="0 0 16 16">
+    <!-- BACK -->
+    <symbol xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" id="back" viewBox="0 0 16 16">
       <path d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/>
     </symbol>
     <!-- SEARCH -->
@@ -1592,7 +1619,7 @@ input:checked + .slider:before {
         <div class="m3u-controls">
           <input type="url" id="m3uUrlInput" required placeholder="输入 M3U 文件 URL">
           <button id="loadM3uButton"><svg width="20" height="20"><use xlink:href="#read-from-url"/></svg></button>
-          <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
+          <button id="closeM3uButton"><svg width="20" height="20"><use xlink:href="#back"/></svg></button>
         </div>
   
         <div id="m3uList"></div>
@@ -1664,7 +1691,7 @@ input:checked + .slider:before {
             <code id="debugLogs">&gt; 日志</code>
           </div>
         </div>
-  
+
       </div>
     </div>
     <div class="player-interface">
@@ -1674,10 +1701,11 @@ input:checked + .slider:before {
             <div class="top-buttons" id="topButtons">
               <button type="button" id="closeButton"><svg width="20" height="20"><use xlink:href="#close"/></svg></button>
               <button type="button" id="channelButton">加载中...</button>
-              <button id="listCheckButton" data-checking="false"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
+              <button type="button" id="searchFormButton" class="channel-hidden"><svg width="20" height="20"><use xlink:href="#search"/></svg></button>
+              <button type="button" id="listCheckButton" class="channel-hidden" data-checking="false"><svg width="20" height="20"><use xlink:href="#list-check"/></svg></button>
             </div>
 
-            <form id="searchContainer">
+            <form id="searchContainer" class="hidden">
               <div class="search">
                 <input type="text" id="searchInput" required placeholder="搜索...">
                 <button type="reset" id="clearButton" class="hidden"><svg width="20" height="20"><use xlink:href="#reset"/></svg></button>
@@ -1766,6 +1794,8 @@ const CONSTS = {
   ICON_PINNED: '<svg width="20" height="20"><use xlink:href="#pin"/></svg>',
   ICON_UNPINNED: '<svg width="20" height="20"><use xlink:href="#unpin"/></svg>',
   ICON_CHECK: '<svg width="20" height="20"><use xlink:href="#list-check"/></svg>',
+  ICON_CLOSE: '<svg width="20" height="20"><use xlink:href="#close"/></svg>',
+  ICON_BACK: '<svg width="20" height="20"><use xlink:href="#back"/></svg>',
   POSTER: 'background.jpeg',
   KILOBYTE: 1024,
   MEGABYTE: 1048576,
@@ -1992,7 +2022,7 @@ function getElementById(idList = []) {
 
 /** @type {[
  * HTMLBodyElement,
- * HTMLVideoElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement,
+ * HTMLVideoElement, HTMLInputElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLDivElement, HTMLDivElement,
  * HTMLButtonElement, HTMLDivElement, HTMLFormElement, HTMLButtonElement, HTMLButtonElement,
  * HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLButtonElement, HTMLInputElement,
@@ -2008,7 +2038,7 @@ function getElementById(idList = []) {
  * ]} **/
 const [
   pageBody,
-  videoPlayer, m3uUrlInput, closeM3uButton, pipButton,
+  videoPlayer, m3uUrlInput, closeM3uButton, pipButton, searchFormButton,
   loadM3uButton, settingsButton, m3uInputContainer, playlistContent,
   playVideoButton, m3uList, searchContainer, speakerButton, channelButton,
   favoriteButton, playListButton, rewindButton, forwardButton, searchInput,
@@ -2024,7 +2054,7 @@ const [
  ] = 
 getElementById([
   'pageBody',
-  'videoPlayer', 'm3uUrlInput', 'closeM3uButton', 'pipButton',
+  'videoPlayer', 'm3uUrlInput', 'closeM3uButton', 'pipButton', 'searchFormButton',
   'loadM3uButton', 'settingsButton', 'm3uInputContainer', 'playlistContent',
   'playVideoButton', 'm3uList', 'searchContainer', 'speakerButton', 'channelButton',
   'favoriteButton', 'playListButton', 'rewindButton', 'forwardButton', 'searchInput',
@@ -2759,7 +2789,6 @@ class AppShell {
         }
       }
       catch(error) {
-        // console.warn('Invalid host:', error.message);
         return resolveProblem({ latency: new Date().getTime() - timestamp });
       }
       if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
@@ -3123,7 +3152,7 @@ class AppShell {
       searchInput.classList.add('hidden');
       pageControls.classList.add('hidden');
       topButtons.classList.add('channel');
-      listCheckButton.disabled = true;
+      closeButton.innerHTML = CONSTS.ICON_BACK;
     }
     // Playlist
     else {
@@ -3132,7 +3161,7 @@ class AppShell {
       searchInput.classList.remove('hidden');
       pageControls.classList.remove('hidden');
       topButtons.classList.remove('channel');
-      listCheckButton.disabled = false;
+      closeButton.innerHTML = CONSTS.ICON_CLOSE;
     }
     this.loadCurrentChannel();
   }
@@ -3945,7 +3974,12 @@ pageControl.addEventListener('change', (evt) => {
 pageControl.addEventListener('input', (evt) => {
   document.getElementById('pageCurrent').textContent = parseInt(evt.target.value);
 });
-
+searchFormButton.addEventListener('click', (evt) => {
+  evt.preventDefault();
+  evt.stopPropagation();
+  searchContainer.classList.toggle('hidden');
+  searchInput.focus();
+});
 searchContainer.addEventListener('submit', (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
