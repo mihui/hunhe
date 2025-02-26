@@ -2950,7 +2950,6 @@ class AppShell {
       li.append(label);
       playlistItems.appendChild(li);
     });
-    listCheckButton.disabled = topButtons.classList.contains('channel');
 
     // Update styles
     for (const li of playlistItems.childNodes) {
@@ -2962,7 +2961,6 @@ class AppShell {
         return;
       }
       if (playCache) {
-        
         await this.updateListItemStyle(li, playCache.result, lastPlayedItem);
       }
       else if (VARS.IS_AUTO_CHECK && transaction === VARS.TRANSACTION) {
@@ -2971,6 +2969,7 @@ class AppShell {
     }
 
     this.showCheckButton(false);
+    listCheckButton.disabled = topButtons.classList.contains('channel');
   }
 
   // 初始化播放列表
@@ -3992,6 +3991,12 @@ searchContainer.addEventListener('submit', (evt) => {
     appShell.performSearch();
 });
 
+searchInput.addEventListener('blur', (evt) => {
+  if(evt.target.value === '') {
+    searchFormButton.dispatchEvent(new Event('click'));
+  }
+});
+
 searchInput.addEventListener('keyup', (evt) => {
   if(evt.target.value === '') {
     clearButton.classList.add('hidden');
@@ -4003,7 +4008,6 @@ searchInput.addEventListener('keyup', (evt) => {
 
 searchInput.addEventListener('input', function() {
   if (this.value === '') {
-    // 清空搜索关键字后，恢复到当前类别的播放列表
     filteredPlaylistData = appShell.getChannel(appShell.currentCategory === CONSTS.CHANNELS.ALL ? CONSTS.CHANNELS.RAW : appShell.currentCategory);
     appShell.gotoPage(1);
   }
@@ -4025,6 +4029,7 @@ clearButton.addEventListener('click', (evt) => {
   searchInput.value = '';
   appShell.performSearch();
   searchInput.dispatchEvent(new Event('keyup'));
+  searchInput.dispatchEvent(new Event('blur'));
 });
 
 closeButton.addEventListener('click', (evt) => {
