@@ -1943,8 +1943,11 @@ class VideoStorage {
    */
   getBoolean(key, defaultVal = false) {
     const val = this.get(key, 'boolean');
-    if(['true', '1', 'yes', 'on'].includes(val)) {
+    if(['true', '1', 'yes', 'on', true].includes(val)) {
       return true;
+    }
+    if(['false', '0', 'no', 'off', true].includes(val)) {
+      return false;
     }
     return defaultVal;
   }
