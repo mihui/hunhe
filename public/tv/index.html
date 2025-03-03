@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-tap-highlight" content="no">
+  <meta name="referrer" content="no-referrer">
   <script src="js-hls.js"></script>
   <script src="js-simple-peer.js"></script>
   <script>
@@ -492,6 +493,7 @@ body {
       .container #videoContainer {
         display: flex;
         width: 100%;
+        height: 100%;
         flex: 1;
         margin: 0px;
         padding: 0px;
@@ -1465,6 +1467,11 @@ input:checked + .slider:before {
     flex: 1;
     max-height: 100%;
   }
+  .container .video-container .user-controls button#favoriteButton,
+  .container .video-container .user-controls button#dislikeButton,
+  .container .video-container .user-controls button#reCaptureButton {
+    display: none;
+  }
 }
 @media only screen and (max-width: 965px) {
   .container #videoContainer #videoControls .buttons button {
@@ -2184,11 +2191,13 @@ class AppShell {
 
   /**
    * @param {string} url Request URL
-   * @param {Object} options Request options
+   * @param {Object} opts Request options
    * @returns {Promise<string>} Returns the response
    */
-  async makeRequest(url, options = {}) {
+  async makeRequest(url, opts = {}) {
     return new Promise((resolve, reject) => {
+      /** @type {RequestInit} */
+      const options = { referrerPolicy: 'no-referrer', ...opts };
       const response = fetch(url, options).then(response => {
         if (response.ok || response.status === 302) {
           response.text().then(data => {
@@ -3837,7 +3846,8 @@ class WebShell extends AppShell {
 
 class ElectronShell extends AppShell {
   SITE_TITLE = 'Hunhe IPTV | v1.0';
-  async makeRequest(url, options = {}) {
+  async makeRequest(url, opts = {}) {
+    const options = { referrerPolicy: 'no-referrer', ...opts };
     return new Promise((resolve, reject) => {
       const response = window['electronAPI'].makeRequest(url, options);
       if(response.error) {
