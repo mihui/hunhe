@@ -4066,7 +4066,7 @@ clearButton.addEventListener('click', (evt) => {
   searchInput.value = '';
   appShell.performSearch();
   searchInput.dispatchEvent(new Event('keyup'));
-  searchInput.dispatchEvent(new Event('blur'));
+  searchInput.focus();
 });
 
 closeButton.addEventListener('click', (evt) => {
