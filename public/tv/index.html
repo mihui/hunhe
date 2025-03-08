@@ -1112,6 +1112,7 @@ button:not(:disabled):focus-visible {
   }
   #m3uList div a.refresh:hover {
     background: #5c5c5c;
+    color: white;
   }
   #m3uList div a.refresh.disabled {
     opacity: 0.2;
@@ -1288,11 +1289,14 @@ button:not(:disabled):focus-visible {
 
   .m3u-controls #loadM3uButton {
     background-color: #3498db;
-    color: white;
     border: 0px;
     cursor: pointer;
     border-radius: 0px;
     font-size: 14px;
+  }
+  .m3u-controls #loadM3uButton:disabled,
+  .m3u-controls #closeM3uButton:disabled {
+    background-color: inherit;
   }
 
 .page-information {
@@ -1823,8 +1827,14 @@ const CONSTS = {
     RAW: '原始频道',
     ALL: '所有频道',
     FAVORITE: '收藏频道'
+  },
+  PLAYER: {
+    PLAYBACK_RATE_FAST: 2,
+    PLAYBACK_RATE_NORMAL: 1,
+    PRESS_TOLERANCE_TIME: 500,
   }
 };
+
 const TYPES = { M3U: 'm3u', TXT: 'txt' };
 const SOURCES = { URL: 'url', CONTENT: 'content' };
 const VARS = {
@@ -1845,7 +1855,8 @@ const VARS = {
   HAS_THUMBNAIL: false,
   IS_MUTED: false,
   PLAYLIST_PAGE: 1,
-  ITEMS_PER_PAGE: 15
+  ITEMS_PER_PAGE: 15,
+  QUICK_PLAY_TIMER: 0,
 };
 
 const database = new Database(DB_VERSION);
@@ -3835,6 +3846,17 @@ class AppShell {
       videoPlayer.requestPictureInPicture();
     }
   }
+
+  handleQuickPlay (evt) {
+    VARS.QUICK_PLAY_TIMER = setTimeout(() => {
+      videoPlayer.playbackRate = CONSTS.PLAYER.PLAYBACK_RATE_FAST;
+    }, CONSTS.PLAYER.PRESS_TOLERANCE_TIME);
+  }
+  handleNormalPlay (evt) {
+    clearTimeout(VARS.QUICK_PLAY_TIMER);
+    videoPlayer.playbackRate = CONSTS.PLAYER.PLAYBACK_RATE_NORMAL;
+  }
+
 } // End of class
 
 class WebShell extends AppShell {
@@ -4149,15 +4171,15 @@ videoPlayer.addEventListener('error', (evt) => {
   }
   appShell.showErrorMessage('加载视频时出错，请尝试其他源或检查网络连接。');
 });
-['mouseover', 'touchstart'].forEach(eventType => {
-  [videoPlayer, videoControls].forEach(element => {
+['mouseover', 'touchstart', 'mousemove', 'mousedown'].forEach(eventType => {
+  [videoPlayer, videoControls, videoContainer].forEach(element => {
     element.addEventListener(eventType, () => {
       clearTimeout(VARS.CONTROL_TIMER);
       appShell.displayPlayerControls(true, true);
     }, { passive: true });
   });
 });
-['mouseout', 'touchend'].forEach(eventType => {
+['mouseout', 'touchend', 'mouseleave', 'touchcancel'].forEach(eventType => {
   [videoPlayer, videoControls].forEach(element => {
     element.addEventListener(eventType, () => {
       clearTimeout(VARS.CONTROL_TIMER);
@@ -4165,7 +4187,7 @@ videoPlayer.addEventListener('error', (evt) => {
     });
   });
 });
-[videoPlayer, videoControls].forEach(element => {
+[videoPlayer, videoControls, videoContainer].forEach(element => {
   element.addEventListener('touchcancel', () => {
     clearTimeout(VARS.CONTROL_TIMER);
     VARS.CONTROL_TIMER = setTimeout(appShell.displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
@@ -4311,7 +4333,20 @@ channelButton.addEventListener('click', (evt) => {
   appShell.switchChannel();
 });
 
-document.addEventListener('keydown', function (event) {
+videoContainer.addEventListener('touchstart', appShell.handleQuickPlay);
+videoContainer.addEventListener('touchend', appShell.handleNormalPlay);
+videoContainer.addEventListener('touchcancel', appShell.handleNormalPlay);
+
+videoContainer.addEventListener('mousedown', appShell.handleQuickPlay);
+videoContainer.addEventListener('mouseup', appShell.handleNormalPlay);
+videoContainer.addEventListener('mouseout', appShell.handleNormalPlay);
+
+videoPlayer.addEventListener('contextmenu', (event) => {
+  event.preventDefault();
+});
+
+
+document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' || event.keyCode === 27) {
     event.preventDefault();
     if(VARS.IS_GLOBALLY_HIDDEN) {
