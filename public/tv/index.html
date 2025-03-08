@@ -4335,18 +4335,15 @@ channelButton.addEventListener('click', (evt) => {
   appShell.switchChannel();
 });
 
-videoContainer.addEventListener('touchstart', (evt) => appShell.handleQuickPlay);
-videoContainer.addEventListener('touchend', (evt) => appShell.handleNormalPlay);
-videoContainer.addEventListener('touchcancel', (evt) => appShell.handleNormalPlay);
+videoContainer.addEventListener('touchstart', (evt) => appShell.handleQuickPlay());
+videoContainer.addEventListener('touchend', (evt) => appShell.handleNormalPlay());
+videoContainer.addEventListener('touchcancel', (evt) => appShell.handleNormalPlay());
 
-videoContainer.addEventListener('mousedown', (evt) => appShell.handleQuickPlay);
-videoContainer.addEventListener('mouseup', (evt) => appShell.handleNormalPlay);
-videoContainer.addEventListener('mouseout', (evt) => appShell.handleNormalPlay);
+videoContainer.addEventListener('mousedown', (evt) => appShell.handleQuickPlay());
+videoContainer.addEventListener('mouseup', (evt) => appShell.handleNormalPlay());
+videoContainer.addEventListener('mouseout', (evt) => appShell.handleNormalPlay());
 
-videoPlayer.addEventListener('contextmenu', (event) => {
-  event.preventDefault();
-});
-
+videoPlayer.addEventListener('contextmenu', (evt) => evt.preventDefault());
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' || event.keyCode === 27) {
