@@ -3491,6 +3491,7 @@ class AppShell {
 
   seekVideo(time) {
     videoPlayer.currentTime += time;
+    this.handleNormalPlay();
   }
 
   detectM3uUrl() {
@@ -3847,12 +3848,13 @@ class AppShell {
     }
   }
 
-  handleQuickPlay (evt) {
+  handleQuickPlay () {
     VARS.QUICK_PLAY_TIMER = setTimeout(() => {
       videoPlayer.playbackRate = CONSTS.PLAYER.PLAYBACK_RATE_FAST;
     }, CONSTS.PLAYER.PRESS_TOLERANCE_TIME);
   }
-  handleNormalPlay (evt) {
+
+  handleNormalPlay () {
     clearTimeout(VARS.QUICK_PLAY_TIMER);
     videoPlayer.playbackRate = CONSTS.PLAYER.PLAYBACK_RATE_NORMAL;
   }
@@ -4333,13 +4335,13 @@ channelButton.addEventListener('click', (evt) => {
   appShell.switchChannel();
 });
 
-videoContainer.addEventListener('touchstart', appShell.handleQuickPlay);
-videoContainer.addEventListener('touchend', appShell.handleNormalPlay);
-videoContainer.addEventListener('touchcancel', appShell.handleNormalPlay);
+videoContainer.addEventListener('touchstart', (evt) => appShell.handleQuickPlay);
+videoContainer.addEventListener('touchend', (evt) => appShell.handleNormalPlay);
+videoContainer.addEventListener('touchcancel', (evt) => appShell.handleNormalPlay);
 
-videoContainer.addEventListener('mousedown', appShell.handleQuickPlay);
-videoContainer.addEventListener('mouseup', appShell.handleNormalPlay);
-videoContainer.addEventListener('mouseout', appShell.handleNormalPlay);
+videoContainer.addEventListener('mousedown', (evt) => appShell.handleQuickPlay);
+videoContainer.addEventListener('mouseup', (evt) => appShell.handleNormalPlay);
+videoContainer.addEventListener('mouseout', (evt) => appShell.handleNormalPlay);
 
 videoPlayer.addEventListener('contextmenu', (event) => {
   event.preventDefault();
