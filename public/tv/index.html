@@ -989,6 +989,10 @@ button {
   justify-content: center;
   transition: filter 0.3s ease;
 }
+svg,
+button svg {
+  pointer-events: auto;
+}
 button:disabled {
   background-color: var(--primary-background-color-button-disabled);
   color: var(--primary-color-button-disabled);
