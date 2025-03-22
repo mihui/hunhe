@@ -437,6 +437,7 @@ html, body {
   width: 100%;
   height: 100%;
   zoom: 1;
+  touch-action: manipulation;
 }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -3912,6 +3913,7 @@ function printLog(...args) {
 }
 
 favoriteButton.addEventListener('click', async (evt) => {
+  evt.stopPropagation();
   const id = favoriteButton.dataset['id'];
   const url = favoriteButton.dataset['url'];
   const group = favoriteButton.dataset['group'];
@@ -3929,6 +3931,7 @@ favoriteButton.addEventListener('click', async (evt) => {
 });
 
 dislikeButton.addEventListener('click', async (evt) => {
+  evt.stopPropagation();
   const id = dislikeButton.dataset['id'];
   const url = dislikeButton.dataset['url'];
   const group = dislikeButton.dataset['group'];
@@ -3946,6 +3949,7 @@ dislikeButton.addEventListener('click', async (evt) => {
 });
 // 
 reCaptureButton.addEventListener('click', async (evt) => {
+  evt.stopPropagation();
   const url = reCaptureButton.dataset['url'];
   const group = favoriteButton.dataset['group'];
   const title = favoriteButton.dataset['title'];
@@ -3969,6 +3973,7 @@ reCaptureButton.addEventListener('click', async (evt) => {
 });
 
 pinButton.addEventListener('click', async (evt) => {
+  evt.stopPropagation();
   VARS.ALWAYS_ON_TOP = !VARS.ALWAYS_ON_TOP;
   appShell.putOnTop(VARS.ALWAYS_ON_TOP);
   if(VARS.ALWAYS_ON_TOP) {
@@ -3982,20 +3987,23 @@ pinButton.addEventListener('click', async (evt) => {
 });
 
 loadM3uButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.loadM3uFile(false);
 });
 
 closeM3uButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.showM3uInput();
 });
 
 settingsButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.showM3uInput();
   appShell.muteOrUnmuteVideo(true);
 });
 
 prevButton.addEventListener('click', (evt) => {
-  evt.preventDefault();
+  evt.stopPropagation();
   appShell.gotoPrevPage();
 });
 prevButton.addEventListener('dblclick', (evt) => {
@@ -4004,7 +4012,7 @@ prevButton.addEventListener('dblclick', (evt) => {
 });
 
 nextButton.addEventListener('click', (evt) => {
-  evt.preventDefault();
+  evt.stopPropagation();
   appShell.gotoNextPage();
 });
 nextButton.addEventListener('dblclick', (evt) => {
@@ -4066,6 +4074,7 @@ m3uUrlInput.addEventListener('input', (evt) => {
 });
 
 clearButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   evt.preventDefault();
   searchInput.value = '';
   appShell.performSearch();
@@ -4074,6 +4083,7 @@ clearButton.addEventListener('click', (evt) => {
 });
 
 closeButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   if(topButtons.classList.contains('channel')) {
     channelButton.dispatchEvent(new Event('click'));
   }
@@ -4082,6 +4092,7 @@ closeButton.addEventListener('click', (evt) => {
   }
 });
 m3uInputContainer.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   if(evt.target.id === 'm3uInputContainer') {
     closeM3uButton.dispatchEvent(new Event('click'));
   }
@@ -4093,6 +4104,7 @@ m3uInputContainer.addEventListener('dblclick', (evt) => {
 });
 
 listCheckButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.refreshCurrentPage(VARS.TRANSACTION = crypto.randomUUID(), listCheckButton.classList.contains('checking'));
 });
 
@@ -4234,6 +4246,7 @@ progressControl.addEventListener('input', (evt) => {
 });
 
 playVideoButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   if(appShell.isPlaying()) {
     appShell.stopVideo(false);
   }
@@ -4243,6 +4256,7 @@ playVideoButton.addEventListener('click', (evt) => {
 });
 
 pauseVideoButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   if(videoPlayer.paused) {
     videoPlayer.play().then(() => {
       
@@ -4256,9 +4270,11 @@ pauseVideoButton.addEventListener('click', (evt) => {
 });
 
 speakerButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.muteOrUnmuteVideo(!videoPlayer.muted);
 });
 pipButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.togglePictureInPicture();
 });
 fullscreenButton.addEventListener('click', (evt) => {
@@ -4277,14 +4293,17 @@ fullscreenButton.addEventListener('click', (evt) => {
 });
 
 rewindButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.seekVideo(-30);
 });
 
 forwardButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.seekVideo(30);
 });
 
 playListButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.displaySideMenu(pageBody.classList.contains('menu') === false);
 });
 
@@ -4336,6 +4355,7 @@ logClearButton.addEventListener('click', (evt) => {
 });
 
 channelButton.addEventListener('click', (evt) => {
+  evt.stopPropagation();
   appShell.switchChannel();
 });
 
