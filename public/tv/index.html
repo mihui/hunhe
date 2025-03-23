@@ -4273,7 +4273,7 @@ speakerButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.muteOrUnmuteVideo(!videoPlayer.muted);
 });
-pipButton.addEventListener('pointerdown', (evt) => {
+pipButton.addEventListener('click', (evt) => {
   evt.stopPropagation();
   appShell.togglePictureInPicture();
 });
