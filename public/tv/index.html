@@ -3912,7 +3912,7 @@ function printLog(...args) {
   }
 }
 
-favoriteButton.addEventListener('click', async (evt) => {
+favoriteButton.addEventListener('pointerdown', async (evt) => {
   evt.stopPropagation();
   const id = favoriteButton.dataset['id'];
   const url = favoriteButton.dataset['url'];
@@ -3930,7 +3930,7 @@ favoriteButton.addEventListener('click', async (evt) => {
   }
 });
 
-dislikeButton.addEventListener('click', async (evt) => {
+dislikeButton.addEventListener('pointerdown', async (evt) => {
   evt.stopPropagation();
   const id = dislikeButton.dataset['id'];
   const url = dislikeButton.dataset['url'];
@@ -3948,7 +3948,7 @@ dislikeButton.addEventListener('click', async (evt) => {
   }
 });
 // 
-reCaptureButton.addEventListener('click', async (evt) => {
+reCaptureButton.addEventListener('pointerdown', async (evt) => {
   evt.stopPropagation();
   const url = reCaptureButton.dataset['url'];
   const group = favoriteButton.dataset['group'];
@@ -3972,7 +3972,7 @@ reCaptureButton.addEventListener('click', async (evt) => {
   reCaptureButton.classList.add('recapture');
 });
 
-pinButton.addEventListener('click', async (evt) => {
+pinButton.addEventListener('pointerdown', async (evt) => {
   evt.stopPropagation();
   VARS.ALWAYS_ON_TOP = !VARS.ALWAYS_ON_TOP;
   appShell.putOnTop(VARS.ALWAYS_ON_TOP);
@@ -3986,23 +3986,23 @@ pinButton.addEventListener('click', async (evt) => {
   }
 });
 
-loadM3uButton.addEventListener('click', (evt) => {
+loadM3uButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.loadM3uFile(false);
 });
 
-closeM3uButton.addEventListener('click', (evt) => {
+closeM3uButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.showM3uInput();
 });
 
-settingsButton.addEventListener('click', (evt) => {
+settingsButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.showM3uInput();
   appShell.muteOrUnmuteVideo(true);
 });
 
-prevButton.addEventListener('click', (evt) => {
+prevButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.gotoPrevPage();
 });
@@ -4011,7 +4011,7 @@ prevButton.addEventListener('dblclick', (evt) => {
   appShell.gotoPrevPage();
 });
 
-nextButton.addEventListener('click', (evt) => {
+nextButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.gotoNextPage();
 });
@@ -4082,19 +4082,19 @@ clearButton.addEventListener('click', (evt) => {
   searchInput.focus();
 });
 
-closeButton.addEventListener('click', (evt) => {
+closeButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   if(topButtons.classList.contains('channel')) {
-    channelButton.dispatchEvent(new Event('click'));
+    channelButton.dispatchEvent(new Event('pointerdown'));
   }
   else {
-    playListButton.dispatchEvent(new Event('click'));
+    playListButton.dispatchEvent(new Event('pointerdown'));
   }
 });
-m3uInputContainer.addEventListener('click', (evt) => {
+m3uInputContainer.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   if(evt.target.id === 'm3uInputContainer') {
-    closeM3uButton.dispatchEvent(new Event('click'));
+    closeM3uButton.dispatchEvent(new Event('pointerdown'));
   }
 });
 
@@ -4103,7 +4103,7 @@ m3uInputContainer.addEventListener('dblclick', (evt) => {
   evt.stopPropagation();
 });
 
-listCheckButton.addEventListener('click', (evt) => {
+listCheckButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.refreshCurrentPage(VARS.TRANSACTION = crypto.randomUUID(), listCheckButton.classList.contains('checking'));
 });
@@ -4245,7 +4245,7 @@ progressControl.addEventListener('input', (evt) => {
   } catch (error) {}
 });
 
-playVideoButton.addEventListener('click', (evt) => {
+playVideoButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   if(appShell.isPlaying()) {
     appShell.stopVideo(false);
@@ -4255,7 +4255,7 @@ playVideoButton.addEventListener('click', (evt) => {
   }
 });
 
-pauseVideoButton.addEventListener('click', (evt) => {
+pauseVideoButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   if(videoPlayer.paused) {
     videoPlayer.play().then(() => {
@@ -4269,15 +4269,15 @@ pauseVideoButton.addEventListener('click', (evt) => {
   }
 });
 
-speakerButton.addEventListener('click', (evt) => {
+speakerButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.muteOrUnmuteVideo(!videoPlayer.muted);
 });
-pipButton.addEventListener('click', (evt) => {
+pipButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.togglePictureInPicture();
 });
-fullscreenButton.addEventListener('click', (evt) => {
+fullscreenButton.addEventListener('pointerdown', (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
 
@@ -4292,17 +4292,17 @@ fullscreenButton.addEventListener('click', (evt) => {
   }
 });
 
-rewindButton.addEventListener('click', (evt) => {
+rewindButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.seekVideo(-30);
 });
 
-forwardButton.addEventListener('click', (evt) => {
+forwardButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.seekVideo(30);
 });
 
-playListButton.addEventListener('click', (evt) => {
+playListButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.displaySideMenu(pageBody.classList.contains('menu') === false);
 });
@@ -4354,7 +4354,7 @@ logClearButton.addEventListener('click', (evt) => {
   debugLogs.innerHTML = '> 日志';
 });
 
-channelButton.addEventListener('click', (evt) => {
+channelButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.switchChannel();
 });
