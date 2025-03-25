@@ -2110,6 +2110,8 @@ class AppShell {
   blacklist = [];
   SITE_TITLE = 'Hunhe IPTV';
   currentCategory = CONSTS.CHANNELS.ALL;
+  /** @type {WakeLockSentinel|null} */
+  wakeLockSentinel = null;
 
   /**
    * Get channels
@@ -2644,6 +2646,7 @@ class AppShell {
     if(removePreview) {
       this.resetListStyle('preview');
     }
+    this.releaseWakeLock();
   }
   /**
    * @param {HTMLLIElement} li List item
@@ -3530,6 +3533,29 @@ class AppShell {
     }
   }
 
+  async releaseWakeLock() {
+    try {
+      await this.wakeLockSentinel?.release();
+    }
+    catch(error) {
+      console.warn(error);
+    }
+    finally {
+      this.wakeLockSentinel = null;
+    }
+  }
+
+  async requestWakeLock() {
+    await this.releaseWakeLock();
+
+    try {
+      this.wakeLockSentinel = await navigator.wakeLock.request('screen');
+    }
+    catch(error) {
+      console.warn(error);
+    }
+  }
+
   onPlaying() {
     playVideoButton.innerHTML = CONSTS.ICON_STOP;
     pauseVideoButton.innerHTML = CONSTS.ICON_PAUSE;
@@ -3540,6 +3566,7 @@ class AppShell {
     this.resetControlButtons(true);
     clearTimeout(VARS.CONTROL_TIMER);
     VARS.CONTROL_TIMER = setTimeout(this.displayPlayerControls, CONSTS.CONTROL_DISPLAY_TIMEOUT);
+    this.requestWakeLock();
   }
 
   setFullscreenData(state) {
@@ -3912,7 +3939,7 @@ function printLog(...args) {
   }
 }
 
-favoriteButton.addEventListener('pointerdown', async (evt) => {
+favoriteButton.addEventListener('dblclick', async (evt) => {
   evt.stopPropagation();
   const id = favoriteButton.dataset['id'];
   const url = favoriteButton.dataset['url'];
@@ -3930,7 +3957,7 @@ favoriteButton.addEventListener('pointerdown', async (evt) => {
   }
 });
 
-dislikeButton.addEventListener('pointerdown', async (evt) => {
+dislikeButton.addEventListener('dblclick', async (evt) => {
   evt.stopPropagation();
   const id = dislikeButton.dataset['id'];
   const url = dislikeButton.dataset['url'];
@@ -4273,7 +4300,7 @@ speakerButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.muteOrUnmuteVideo(!videoPlayer.muted);
 });
-pipButton.addEventListener('click', (evt) => {
+pipButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.togglePictureInPicture();
 });
