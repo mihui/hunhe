@@ -3235,7 +3235,7 @@ class AppShell {
         li.classList.add('broken');
       }
       else {
-        li.onclick = async (evt) => {
+        li.onpointerdown = async (evt) => {
           evt.preventDefault();
           const { currentTarget } = evt;
           if(currentTarget.classList.contains('selected') || li.dataset['duration'] === '0') {
