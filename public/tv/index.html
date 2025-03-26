@@ -2963,7 +2963,7 @@ class AppShell {
       li.dataset['duration'] = '';
       li.title = item.title;
 
-      li.onclick = (evt) => {
+      li.onpointerdown = (evt) => {
         evt.preventDefault();
         const { currentTarget } = evt;
         const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : CONSTS.POSTER;
