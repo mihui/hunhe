@@ -4000,7 +4000,7 @@ reCaptureButton.addEventListener('pointerdown', async (evt) => {
   reCaptureButton.classList.add('recapture');
 });
 
-pinButton.addEventListener('click', async (evt) => {
+pinButton.addEventListener('pointerdown', async (evt) => {
   evt.stopPropagation();
   VARS.ALWAYS_ON_TOP = !VARS.ALWAYS_ON_TOP;
   appShell.putOnTop(VARS.ALWAYS_ON_TOP);
@@ -4301,7 +4301,7 @@ speakerButton.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
   appShell.muteOrUnmuteVideo(!videoPlayer.muted);
 });
-pipButton.addEventListener('pointerdown', (evt) => {
+pipButton.addEventListener('click', (evt) => {
   evt.stopPropagation();
   appShell.togglePictureInPicture();
 });
