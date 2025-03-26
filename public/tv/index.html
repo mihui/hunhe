@@ -535,6 +535,7 @@ body {
       transition: opacity 0.5s;
       flex-flow: column;
       will-change: opacity;
+      padding-top: 0.5rem;
     }
       .container #videoContainer #videoControls.transparent {
         opacity: 0;
@@ -568,7 +569,7 @@ body {
         align-items: center;
         justify-content: space-between;
         box-sizing: border-box;
-        padding: 0.5rem;
+        padding: 0.5rem 0.5rem 0px;
       }
       .container #videoContainer #videoControls .progress #progressControl {
         width: 100%;
@@ -3999,7 +4000,7 @@ reCaptureButton.addEventListener('pointerdown', async (evt) => {
   reCaptureButton.classList.add('recapture');
 });
 
-pinButton.addEventListener('pointerdown', async (evt) => {
+pinButton.addEventListener('click', async (evt) => {
   evt.stopPropagation();
   VARS.ALWAYS_ON_TOP = !VARS.ALWAYS_ON_TOP;
   appShell.putOnTop(VARS.ALWAYS_ON_TOP);
