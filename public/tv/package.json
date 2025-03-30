@@ -2,7 +2,7 @@
   "name": "tv",
   "version": "1.0.0",
   "description": "Hunhe TV",
-  "main": "main.js",
+  "main": "js/electron.main.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",

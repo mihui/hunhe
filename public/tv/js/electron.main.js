@@ -18,7 +18,7 @@ const createWindow = () => {
     // minHeight: 806,
     webPreferences: {
       nodeIntegration: true,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'js/electron.preload.js'),
       devTools: true
     },
     title: 'TV Browser'

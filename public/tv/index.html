@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en-US">
-
 <head>
   <title>Hunhe IPTV</title>
   <meta charset="UTF-8">
@@ -8,8 +7,8 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-tap-highlight" content="no">
   <meta name="referrer" content="no-referrer">
-  <script src="js-hls.js"></script>
-  <script src="js-simple-peer.js"></script>
+  <script src="js/hls.js"></script>
+  <script src="js/main.js"></script>
   <script>
 // M3U list store
 const M3U_STORE = 'm3u-store';
@@ -17,7 +16,6 @@ const M3U_STORE = 'm3u-store';
 const FAV_STORE = 'fav-store';
 // The status cache of the playlist item
 const STA_STORE = 'sta-store';
-
 /**
  * 数据库类，封装了IndexedDB的操作
  */
@@ -86,20 +84,80 @@ class Database {
           printLog('Database version upgraded from', event.oldVersion, 'to ', event.newVersion);
           /** @type {IDBDatabase} */
           const db = event.target.result;
-          try {
-            db.createObjectStore(M3U_STORE, { keyPath: "id" });
-          } catch (error) {}
+          
+          /**
+           * 创建对象存储
+           * @param {string} storeName - 存储对象名称
+           * @param {string} keyPath - 主键路径
+           * @param {Array<{ name: string, keyPath: string, options?: IDBIndexParameters }>} indexes - 索引数组
+           * @param {Array<string>} deleteIndexes - 需要删除的索引名称数组
+           * @returns {Promise<IDBObjectStore>} - 返回一个Promise对象，解析为对象存储实例
+           * @throws {Error} - 如果存储对象名称无效
+           */
+          const createObjectStore = async (storeName, keyPath, indexes = [], deleteIndexes = []) => {
+            let store = null;
+            try {
+              if (!storeName || typeof storeName !== 'string') {
+                throw new Error(`Invalid store name: ${storeName}`);
+              }
+              if (db.objectStoreNames.contains(storeName)) {
+                console.log(`Object store '${storeName}' already exists.`);
+                /** @type {IDBTransaction} */
+                const transaction = event.target.transaction;
+                /** @type {IDBObjectStore} */
+                store = transaction.objectStore(storeName);
+                for(const index of indexes) {
+                  if (!store.indexNames.contains(index.name)) {
+                    store.createIndex(index.name, index.keyPath, index.options);
+                    console.log(`Index '${index.name}' created in object store '${storeName}'.`);
+                  }
+                  else {
+                    console.log(`Index '${index.name}' already exists in object store '${storeName}'.`);
+                  }
+                }
 
-          try {
-            db.createObjectStore(FAV_STORE, { keyPath: "id" });
-          } catch (error) {}
+                for(const index of deleteIndexes) {
+                  if (store.indexNames.contains(index)) {
+                    store.deleteIndex(index);
+                    console.log(`Index '${index}' deleted from object store '${storeName}'.`);
+                  }
+                }
+                return store;
+              }
+              /** @type {IDBObjectStore} */
+              store = db.createObjectStore(storeName, { keyPath });
+              console.info(`Object store '${storeName}' created successfully.`);
+              for(const index of indexes) {
+                store.createIndex(index.name, index.keyPath, index.options);
+                console.info(`Index '${index.name}' created in object store '${storeName}'.`);
+              }
+              return store;
+            }
+            catch (error) {
+              console.error(`Failed to create or modify object store '${storeName}':`, error);
+            }
+          };
 
-          try {
-            db.createObjectStore(STA_STORE, { keyPath: "id" });
-          } catch (error) {}
+          await createObjectStore(M3U_STORE, "id");
+          await createObjectStore(FAV_STORE, "id");
+          const staStore = await createObjectStore(STA_STORE, "id", [
+            { name: 'staStatusOK', keyPath: 'result.status', options: { unique: false } },
+          ]);
+          staStore.openCursor().onsuccess = function (event) {
+            const cursor = event.target.result;
+            if (cursor) {
+              /** @type {{ result: { status: number, ok: boolean } }} */
+              const value = cursor.value;
+              value.result.status = value.result.ok ? CONSTS.STATUS.OK : CONSTS.STATUS.BAD;
+              delete value.result.ok;
+              cursor.update(value);
+              cursor.continue();
+            }
+          };
 
           db.onversionchange = (event) => {
             printLog('The version of this database has changed');
+            db.close();
           };
         };
         this.request.onsuccess = (event) => {
@@ -247,6 +305,22 @@ class Database {
     });
   }
 
+  async queryData(storeName = STA_STORE, indexName, query = null) {
+    const { db, error } = await this.openDB();
+    if(error) { return { error }; }
+    const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
+    const store = transaction.objectStore(storeName); // 获取存储对象
+    const request = store.index(indexName).getAll(query); // 查询数据
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve({ data: request.result }); // 在成功时，解析Promise为结果
+      }
+      request.onerror = () => {
+        resolve({ error: request.error }); // 在错误时，拒绝Promise为错误
+      }
+    });
+  }
+
   /**
    * 清空存储对象中的所有数据
    * @param {string} storeName - 存储对象名称，默认为FAV_STORE
@@ -332,8 +406,6 @@ class Database {
 }
 
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
   <style>
 :root {
   --background-color: #ffffffcf;
@@ -1795,7 +1867,7 @@ input:checked + .slider:before {
   </div>
 
 <script>
-const DB_VERSION = 6;
+const DB_VERSION = 19;
 const UNSAFE_HTTP = 'http://';
 const CONSTS = {
   IS_NATIVE: (typeof window.electronAPI !== 'undefined'),
@@ -1838,6 +1910,10 @@ const CONSTS = {
     PLAYBACK_RATE_FAST: 2,
     PLAYBACK_RATE_NORMAL: 1,
     PRESS_TOLERANCE_TIME: 500,
+  },
+  STATUS: {
+    OK: 1,
+    BAD: 0
   }
 };
 
@@ -2042,6 +2118,7 @@ class VideoStorage {
     delete this.cached[key];
   }
 }
+
 const storage = new VideoStorage();
 
 function getElementById(idList = []) {
@@ -2679,14 +2756,14 @@ class AppShell {
   }
   /**
    * @param {HTMLLIElement} li List item
-   * @param {{ ok: boolean, duration: number, frame: string, latency: number, timeout: boolean }} checkResult List item
+   * @param {{ status: number, duration: number, frame: string, latency: number, timeout: boolean }} checkResult List item
    * @param {{ url: string, group: string, title: string }} lastPlayedItem Last played data
    */
   async updateListItemStyle(li, checkResult, lastPlayedItem) {
     const itemId = li.dataset['id'];
     const itemCode = await this.fetchPlayItemCode(itemId);
     li.className = '';
-    if (checkResult.ok) {
+    if (checkResult.status === CONSTS.STATUS.OK) {
       li.classList.add(this.getLatencyStyle(checkResult.latency));
       if(checkResult.frame) {
         li.dataset['frame'] = URL.createObjectURL(checkResult.frame);
@@ -2799,41 +2876,53 @@ class AppShell {
     });
     return frame;
   }
+
   /**
    * 检查视频可播放性
    * @param {string} url URL
-   * @returns {{ ok: boolean, duration: number, frame: string, latency: 0, timeout: boolean }}
+   * @returns {{ status: number, duration: number, frame: string, latency: 0, timeout: boolean }}
    **/
   async checkVideoPlayability(url, isRandom = false) {
     const timestamp = new Date().getTime();
     return new Promise((resolve) => {
       let timeoutId = 0;
+      let resolved = false;
       /**
        * Return value
-       * @param {{ ok: boolean, duration: number, frame: string, latency: number, timeout: boolean, alive: boolean }} val New value
+       * @param {{ status: number, duration: number, frame: string, latency: number, timeout: boolean, alive: boolean }} val New value
        */
       const resolveProblem = (val) => {
         const data = Object.assign({}, {
-          ok: false, duration: 0, frame: null, latency: new Date().getTime() - timestamp, timeout: false
+          status: CONSTS.STATUS.BAD, duration: 0, frame: null, latency: new Date().getTime() - timestamp, timeout: false
         }, val);
+        if (resolved) {
+          console.log('repeated.data--->', data);
+          return resolved;
+        }
+        console.log('resolved.data--->', data);
+        resolved = true;
         return resolve(data);
       };
       let videoUrl = null;
       try {
         videoUrl = new URL(url);
-        if(this.blacklist.includes(videoUrl.hostname)) {
-          throw new Error(`${videoUrl.hostname} is not available!`);
-        }
+        // if(this.blacklist.includes(videoUrl.hostname)) {
+        //   throw new Error(`${videoUrl.hostname} is not available!`);
+        // }
       }
       catch(error) {
+        console.warn('error--->', error);
         return resolveProblem({ latency: new Date().getTime() - timestamp });
       }
       if (Hls.isSupported() && (url.startsWith(UNSAFE_HTTP) === false || CONSTS.IS_NATIVE)) {
         try {
           const hls = new Hls({
-            enableWorker: false,
-            lowLatencyMode: true,
-            capLevelToPlayerSize: true
+            enableWorker: true,
+            lowLatencyMode: false,
+            capLevelToPlayerSize: true,
+            maxBufferHole: 5,
+            maxBufferLength: 10,
+            maxBufferSize: 60 * 1000 * 1000,
           });
           const cleanup = () => {
             if (timeoutId) {
@@ -2847,18 +2936,22 @@ class AppShell {
             const latency = new Date().getTime() - timestamp;
             const captured = await this.captureFrame(url, hls, isRandom);
             cleanup();
-            resolveProblem({ ok: true, duration: captured?.duration, frame: captured?.frame, latency });
+            resolveProblem({ status: CONSTS.STATUS.OK, duration: captured?.duration, frame: captured?.frame, latency, event: Hls.Events.MANIFEST_PARSED });
           });
 
-          hls.once(Hls.Events.ERROR, () => {
+          hls.once(Hls.Events.ERROR, (error, data) => {
+            console.warn(error, data);
+            if(data.details === 'bufferSeekOverHole') {
+              return;
+            }
             cleanup();
-            this.addBlackList(videoUrl);
-            resolveProblem({ latency: new Date().getTime() - timestamp });
+            // this.addBlackList(videoUrl);
+            resolveProblem({ latency: new Date().getTime() - timestamp, event: Hls.Events.ERROR });
           });
 
           timeoutId = setTimeout(() => {
             cleanup();
-            resolveProblem({ latency: new Date().getTime() - timestamp, timeout: true });
+            resolveProblem({ latency: new Date().getTime() - timestamp, timeout: true, event: null });
           }, VARS.PING_TIMEOUT);
         }
         catch(error) {
@@ -2879,22 +2972,22 @@ class AppShell {
           const latency = new Date().getTime() - timestamp;
           const captured = await this.captureFrame(url, null, isRandom);
           cleanup();
-          resolveProblem({ ok: true, latency, timeout: true });
+          resolveProblem({ status: CONSTS.STATUS.OK, latency, timeout: true, event: 'onloadedmetadata' });
         };
 
         video.onerror = () => {
           cleanup();
           this.addBlackList(videoUrl);
-          resolveProblem({ latency: new Date().getTime() - timestamp });
+          resolveProblem({ latency: new Date().getTime() - timestamp, event: 'onerror' });
         };
 
         timeoutId = setTimeout(() => {
           cleanup();
-          resolveProblem({ latency: new Date().getTime() - timestamp, timeout: true });
+          resolveProblem({ latency: new Date().getTime() - timestamp, timeout: true, event: null });
         }, VARS.PING_TIMEOUT);
       }
       else {
-        resolveProblem({ latency: new Date().getTime() - timestamp });
+        resolveProblem({ latency: new Date().getTime() - timestamp, event: 'none', url });
       }
     });
   }
@@ -2963,7 +3056,7 @@ class AppShell {
       li.dataset['duration'] = '';
       li.title = item.title;
 
-      li.onpointerdown = (evt) => {
+      li.onclick = (evt) => {
         evt.preventDefault();
         const { currentTarget } = evt;
         const frame = currentTarget.dataset['frame'] ? currentTarget.dataset['frame'] : CONSTS.POSTER;
@@ -2986,7 +3079,7 @@ class AppShell {
     // Update styles
     for (const li of playlistItems.childNodes) {
       const id = li.dataset['id'];
-      /** @type {{ data: { result: { ok: boolean, duration: number, frame: string, latency: number, timeout: boolean } }, error: Error }} */
+      /** @type {{ data: { result: { status: number, duration: number, frame: string, latency: number, timeout: boolean } }, error: Error }} */
       const { data: playCache, error } = await database.readData(id, STA_STORE);
       if(error) {
         printLog('displayPlaylistPage.error', error.message);
@@ -3070,7 +3163,7 @@ class AppShell {
     m3uList.innerHTML = '';
 
     /** @type {{ data: Array<{ key: string, id: string, source: string }> }} **/
-    const { data: list } = await database.listData();
+    const { data: list } = await database.listData(M3U_STORE);
     for(const m3uItem of list) {
       const url = database.decodeString(m3uItem.id);
       const isCurrent = cachedM3uUrl.includes(url);
@@ -3219,7 +3312,6 @@ class AppShell {
       /** @type {HTMLLIElement} **/
       const li = document.createElement('li');
       const size = this.getChannel(category).length;
-
       li.dataset['channel'] = category;
       li.dataset['duration'] = size;
       /** @type {HTMLDivElement} **/
@@ -3235,7 +3327,7 @@ class AppShell {
         li.classList.add('broken');
       }
       else {
-        li.onpointerdown = async (evt) => {
+        li.onclick = async (evt) => {
           evt.preventDefault();
           const { currentTarget } = evt;
           if(currentTarget.classList.contains('selected') || li.dataset['duration'] === '0') {
@@ -3773,6 +3865,9 @@ class AppShell {
 
     this.generateBlankFrame();
     this.resetTitle();
+
+    // const data = await database.queryData(STA_STORE, 'staStatusOK', 1);
+    // console.log(data);
   }
 
   displaySideMenu(show = false) {
