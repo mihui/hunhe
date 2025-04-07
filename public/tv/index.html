@@ -140,20 +140,9 @@ class Database {
 
           await createObjectStore(M3U_STORE, "id");
           await createObjectStore(FAV_STORE, "id");
-          const staStore = await createObjectStore(STA_STORE, "id", [
+          await createObjectStore(STA_STORE, "id", [
             { name: 'staStatusOK', keyPath: 'result.status', options: { unique: false } },
           ]);
-          staStore.openCursor().onsuccess = function (event) {
-            const cursor = event.target.result;
-            if (cursor) {
-              /** @type {{ result: { status: number, ok: boolean } }} */
-              const value = cursor.value;
-              value.result.status = value.result.ok ? CONSTS.STATUS.OK : CONSTS.STATUS.BAD;
-              delete value.result.ok;
-              cursor.update(value);
-              cursor.continue();
-            }
-          };
 
           db.onversionchange = (event) => {
             printLog('The version of this database has changed');
@@ -183,10 +172,10 @@ class Database {
   /**
    * 添加数据到数据库
    * @param {Object} data - 要添加的数据对象
-   * @param {string} storeName - 存储对象名称，默认为M3U_STORE
+   * @param {string} storeName - 存储对象名称
    * @returns {Promise} - 返回一个Promise对象，解析为添加操作的结果
    */
-  async addData(data, storeName = M3U_STORE) {
+  async addData(data, storeName) {
     const { db, error } = await this.openDB();
     if(error) { return { error }; }
 
@@ -208,10 +197,10 @@ class Database {
   /**
    * 读取数据库中的数据
    * @param {number} id - 数据的ID
-   * @param {string} storeName - 存储对象名称，默认为M3U_STORE
+   * @param {string} storeName - 存储对象名称
    * @returns {Promise<{ data: any, error: Error }>} - 返回一个Promise对象，解析为读取到的数据对象
    */
-  async readData(id, storeName = M3U_STORE) {
+  async readData(id, storeName) {
     const { db, error } = await this.openDB();
     if(error) { return { error }; }
     const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
@@ -232,10 +221,10 @@ class Database {
   /**
    * 更新数据库中的数据
    * @param {Object} data - 要更新的数据对象
-   * @param {string} storeName - 存储对象名称，默认为M3U_STORE
+   * @param {string} storeName - 存储对象名称
    * @returns {Promise<{ data: any, error: Error }>} - 返回一个Promise对象，解析为更新操作的结果
    */
-  async updateData(data, storeName = M3U_STORE) {
+  async updateData(data, storeName) {
     const { db, error } = await this.openDB();
     if(error) { return { error }; }
     const transaction = db.transaction(storeName, "readwrite"); // 创建事务
@@ -256,10 +245,10 @@ class Database {
   /**
    * 从数据库中删除数据
    * @param {number} id - 要删除的数据的ID
-   * @param {string} storeName - 存储对象名称，默认为M3U_STORE
+   * @param {string} storeName - 存储对象名称
    * @returns {Promise<{ data: any, error: Error }>} - 返回一个Promise对象，解析为删除操作的结果
    */
-  async deleteData(id, storeName = M3U_STORE) {
+  async deleteData(id, storeName) {
     const { db, error } = await this.openDB();
     if(error) { return { error }; }
     const transaction = db.transaction(storeName, "readwrite"); // 创建事务
@@ -279,10 +268,10 @@ class Database {
 
   /**
    * 列出存储对象中的所有数据
-   * @param {string} storeName - 存储对象名称，默认为M3U_STORE
+   * @param {string} storeName - 存储对象名称
    * @returns {Promise<{ data: [], error: Error }>} - 返回一个Promise对象，解析为数据列表
    */
-  async listData(storeName = M3U_STORE) {
+  async listData(storeName) {
     const { db, error } = await this.openDB();
     if(error) { return { error }; }
     const transaction = db.transaction(storeName, "readonly"); // 创建只读事务
@@ -326,7 +315,7 @@ class Database {
    * @param {string} storeName - 存储对象名称，默认为FAV_STORE
    * @returns {Promise} - 返回一个Promise对象，解析为清空操作的结果
    */
-  async purgeData(storeName = FAV_STORE) {
+  async purgeData(storeName) {
     const { db, error } = await this.openDB();
     if(error) { return { error }; }
     const transaction = db.transaction(storeName, "readwrite"); // 创建事务
@@ -728,6 +717,7 @@ body {
         #pageBody.settings .container #m3uInputContainer .box {
           opacity: 1;
           scale: 0.9;
+          background: var(--background-color);
         }
 
 textarea, #searchInput, #searchButton, #clearButton, #closeButton, #m3uUrlInput,
@@ -1867,7 +1857,7 @@ input:checked + .slider:before {
   </div>
 
 <script>
-const DB_VERSION = 19;
+const DB_VERSION = 20;
 const UNSAFE_HTTP = 'http://';
 const CONSTS = {
   IS_NATIVE: (typeof window.electronAPI !== 'undefined'),
@@ -2876,7 +2866,6 @@ class AppShell {
     });
     return frame;
   }
-
   /**
    * 检查视频可播放性
    * @param {string} url URL
@@ -2896,10 +2885,8 @@ class AppShell {
           status: CONSTS.STATUS.BAD, duration: 0, frame: null, latency: new Date().getTime() - timestamp, timeout: false
         }, val);
         if (resolved) {
-          console.log('repeated.data--->', data);
           return resolved;
         }
-        console.log('resolved.data--->', data);
         resolved = true;
         return resolve(data);
       };
@@ -3155,7 +3142,7 @@ class AppShell {
    * @param {string} source The source to list
    */
   async listStore(source) {
-    printLog('listStore');
+    printLog('listStore', source);
     settingsButton.disabled = true;
     const cachedM3uSource = SOURCES.URL;
     const cachedM3uUrl = this.getPlayListUrl();
@@ -3177,7 +3164,7 @@ class AppShell {
         /** @type {HTMLAnchorElement} **/
         const element = evt.target;
         /** @type {{ data: { id: string, m3u: string, source: string, type: string, time: number }, error: Error }} */
-        const { data, error } = await database.readData(element.dataset['id']);
+        const { data, error } = await database.readData(element.dataset['id'], M3U_STORE);
         if(error) {
           printLog('listStore.error', error.message);
           return;
@@ -3230,7 +3217,7 @@ class AppShell {
           /** @type {HTMLAnchorElement} **/
           const deleteButton = evt.target;
           if(deleteButton.classList.contains('ready')) {
-            await database.deleteData(evt.target.dataset['id']);
+            await database.deleteData(evt.target.dataset['id'], M3U_STORE);
             this.listStore('click');
           }
           else {
@@ -3440,7 +3427,6 @@ class AppShell {
     VARS.URLS.clear();
 
     await this.fetchDislikes();
-
     const lines = data.m3u.split('\n');
 
     for(const item of lines) {
@@ -3471,7 +3457,7 @@ class AppShell {
     /** @type {string} **/
     const m3uUrl = m3uUrlInput.value.trim();
     this.loadM3uUrl({ m3uUrl, fromCache, isBooting, onSuccess: async (type, data, cached, isBooting) => {
-      await this.processM3uData(type, data, cached, false, isBooting);
+      await this.processM3uData(type, data, cached, isBooting);
       await this.listStore('fetch');
       this.gotoPage(1);
     } });
@@ -3715,26 +3701,25 @@ class AppShell {
   }
   /**
    * @param {string} id ID
-   * @param {boolean} payload Data
+   * @param {boolean} hasData Data
    * @param {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} options 参数对象
    */
-  async fetchM3u(id, payload, options) {
-    printLog('fetchM3u');
+  async fetchM3u(id, hasData, options) {
     options.onStart();
     m3uUrlInput.disabled = loadM3uButton.disabled = true;
     const { m3uUrl, fromCache = false, isBooting = false } = options;
     const type = (m3uUrl.endsWith('m3u') || m3uUrl.endsWith('m3u8')) ? TYPES.M3U : m3uUrl.endsWith('txt') ? TYPES.TXT : '';
-
     const safeUrl = (m3uUrl.startsWith(UNSAFE_HTTP) && CONSTS.IS_NATIVE === false) ? new URL(`${window.location.origin}/api/fetch?url=${encodeURIComponent(m3uUrl)}`).href : m3uUrl;
     try {
       const data = await this.makeRequest(safeUrl, { cache: 'no-store' });
       if (data) {
         const time = new Date().getTime();
         const x = { id, m3u: data, source: SOURCES.URL, type, time };
-        if (payload) {
-          await database.updateData(x);
-        } else {
-          await database.addData(x);
+        if (hasData) {
+          await database.updateData(x, M3U_STORE);
+        }
+        else {
+          await database.addData(x, M3U_STORE);
         }
         await options.onSuccess(type, x, fromCache, isBooting);
       }
@@ -3753,10 +3738,10 @@ class AppShell {
   }
   /**
    * 加载 M3U 文件
-   * @param {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} options 参数对象
+   * @param {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, isBooting: boolean) => Promise<void>, onCompleted: () => void }} options 参数对象
    */
   async loadM3uUrl(opts) {
-    /** @type {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, cached: boolean, isBooting: boolean) => Promise<void>, onCompleted: () => void }} **/
+    /** @type {{ m3uUrl: string, fromCache: boolean, isBooting: boolean, onStart: () => void, onSuccess: (type: string, data: { id: string, m3u: string, source: string, type: string, time: number }, isBooting: boolean) => Promise<void>, onCompleted: () => void }} **/
     const options = Object.assign({}, {
       m3uUrl: '', fromCache: false, isBooting: false,
       onStart: () => { },
@@ -3774,16 +3759,19 @@ class AppShell {
 
     if (type && m3uUrlInput.checkValidity()) {
       const id = database.encodeString(m3uUrl);
-      const { data: payload, error } = await database.readData(id);
+      /** @type {{ data: { id: string, m3u: string, source: string, type: string, time: number }, error: Error }} */
+      const { data: payload, error } = await database.readData(id, M3U_STORE);
       if(error) {
         this.showErrorMessage('请输入有效的 M3U 文件 URL。');
         printLog('loadM3uFile.fetchDataAndProcess.error', error.message);
         return;
       }
       if (payload && payload.m3u && fromCache) {
-        await this.processM3uData(type, payload, true, isBooting, false);
-      } else {
-        this.fetchM3u(id, payload, options);
+        // Cached data
+        await this.processM3uData(type, payload, true, isBooting);
+      }
+      else {
+        this.fetchM3u(id, false, options);
       }
     }
     else {
@@ -3865,9 +3853,6 @@ class AppShell {
 
     this.generateBlankFrame();
     this.resetTitle();
-
-    // const data = await database.queryData(STA_STORE, 'staStatusOK', 1);
-    // console.log(data);
   }
 
   displaySideMenu(show = false) {
