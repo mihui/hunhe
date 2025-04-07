@@ -3766,12 +3766,13 @@ class AppShell {
         printLog('loadM3uFile.fetchDataAndProcess.error', error.message);
         return;
       }
-      if (payload && payload.m3u && fromCache) {
+      const hasData = (payload && payload.m3u) ? true : false;
+      if (hasData && fromCache) {
         // Cached data
         await this.processM3uData(type, payload, true, isBooting);
       }
       else {
-        this.fetchM3u(id, false, options);
+        this.fetchM3u(id, hasData, options);
       }
     }
     else {
